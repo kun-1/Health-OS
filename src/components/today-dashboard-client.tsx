@@ -78,7 +78,7 @@ export function TodayDashboardClient() {
             <p className="text-xs font-semibold uppercase text-teal-800">Record Layer</p>
             <h1 className="mt-3 text-[32px] font-bold leading-tight text-[#17201c]">Today</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-[#5d6963]">
-              今日只展示已记录的原始事实和简单计数。Insights、Trends 和 Decisions 当前保留为空状态。
+              今日展示原始事实和简单计数。Insights 和 Trends 会基于已有记录生成第一版分析，Decisions 仍保留为空状态。
             </p>
           </div>
           <Link className="primary-action" href="/record">

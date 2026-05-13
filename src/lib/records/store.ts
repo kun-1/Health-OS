@@ -193,3 +193,8 @@ export function listRecords(limit: number, cursor?: Cursor) {
     nextCursor: rows.length > limit && last ? encodeCursor({ occurred_at: last.occurredAt, id: last.id }) : null
   };
 }
+
+export function listRecentRecordsForAnalysis(limit = 2000): TimelineRecord[] {
+  const rows = db.select().from(records).orderBy(desc(records.occurredAt), desc(records.id)).limit(limit).all();
+  return rows.map(toTimelineRecord);
+}

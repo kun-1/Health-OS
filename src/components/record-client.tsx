@@ -96,6 +96,38 @@ const foodMethodOptions = [
   ["unknown", "不确定"]
 ] as const;
 
+const hungerScale = [
+  "0 不饿",
+  "1 有点饿",
+  "2 正常",
+  "3 很饿",
+  "4 饿到不舒服"
+];
+
+const stressScale = [
+  "0 放松",
+  "1 轻微压力",
+  "2 中等可控",
+  "3 压力明显",
+  "4 极高压力"
+];
+
+const symptomScale = [
+  "0 无",
+  "1 轻微",
+  "2 明显但可忍",
+  "3 影响状态",
+  "4 严重"
+];
+
+const sleepQualityScale = [
+  "0 很差",
+  "1 偏差",
+  "2 一般",
+  "3 好",
+  "4 很好"
+];
+
 const bristolExamples = [
   { value: 1, title: "1 型", detail: "分离硬块，像羊屎蛋，通常偏便秘" },
   { value: 2, title: "2 型", detail: "香肠状但表面结块，仍偏便秘" },
@@ -245,6 +277,25 @@ function datetimeFieldValue(value: unknown) {
   }
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   return date.toISOString().slice(0, 16);
+}
+
+function calculatedSleepDurationHours(bedAt: string, wakeAt: string) {
+  if (!bedAt || !wakeAt) {
+    return "";
+  }
+  const bed = new Date(bedAt);
+  const wake = new Date(wakeAt);
+  if (Number.isNaN(bed.getTime()) || Number.isNaN(wake.getTime())) {
+    return "";
+  }
+  if (wake <= bed) {
+    wake.setDate(wake.getDate() + 1);
+  }
+  const hours = (wake.getTime() - bed.getTime()) / 36e5;
+  if (hours <= 0 || hours > 24) {
+    return "";
+  }
+  return String(Math.round(hours * 10) / 10);
 }
 
 function NotesField({ initialValue }: { initialValue?: string }) {
@@ -590,6 +641,19 @@ function DetailSection({ title = "More details", children }: { title?: string; c
   );
 }
 
+function ScaleGuide({ items }: { items: string[] }) {
+  return (
+    <p className="text-xs leading-5 text-slate-500">
+      {items.map((item, index) => (
+        <span key={item}>
+          {item}
+          {index < items.length - 1 ? " / " : ""}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function MealFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
   const [mealType, setMealType] = useState(String(initialPayload?.meal_type ?? inferredMealType()));
   const [hunger, setHunger] = useState(String(initialPayload?.hunger_before ?? "2"));
@@ -622,26 +686,7 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
 
   return (
     <>
-      <PrimaryZone title="What did you eat?" description="先写原始餐食文本；如果你愿意，再把主要食材和做法拆出来。">
-        <div className="field">
-          <label htmlFor="food_text_raw">餐食内容</label>
-          <textarea
-            className="control min-h-28"
-            defaultValue={stringValue(initialPayload?.food_text_raw)}
-            id="food_text_raw"
-            name="food_text_raw"
-            placeholder="例如：燕麦、鸡蛋、咖啡；或者：鸡米花、冰美式"
-          />
-          <p className="text-xs text-slate-500">
-            不确定怎么拆时，先按你最自然的说法写原文。后面的结构化食材里，建议把“鸡胸肉”写成食材名，把“水煮”单独写到做法。
-          </p>
-        </div>
-      </PrimaryZone>
-      <DetailSection title="食材和做法（推荐）">
-        <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700">
-          做法建议单独记录，不要硬塞进食材名里。<code>鸡胸肉 + boil</code> 比 <code>水煮鸡胸肉</code>{" "}
-          更利于后续统计；如果你只知道成品名，比如 <code>鸡米花</code>，原文里直接写 <code>鸡米花</code> 也没问题。
-        </div>
+      <PrimaryZone title="What did you eat?" description="优先拆主要食材和做法；不想拆时，直接在原文里写整餐。">
         <div className="grid gap-3">
           {foodItems.map((item, index) => (
             <div className="rounded-lg border border-slate-200 p-3" key={item.key}>
@@ -683,7 +728,20 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
             添加一个食材
           </button>
         </div>
-      </DetailSection>
+        <div className="field">
+          <label htmlFor="food_text_raw">餐食内容</label>
+          <textarea
+            className="control min-h-28"
+            defaultValue={stringValue(initialPayload?.food_text_raw)}
+            id="food_text_raw"
+            name="food_text_raw"
+            placeholder="例如：燕麦、鸡蛋、咖啡；或者：鸡米花、冰美式"
+          />
+          <p className="text-xs text-slate-500">
+            这里可以写成品名、调料、外卖名或不确定的部分，例如：鸡米花、冰美式、偏辣、外卖。
+          </p>
+        </div>
+      </PrimaryZone>
       <div className="field">
         <div className="field-label">餐次</div>
         <Segmented
@@ -701,10 +759,12 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
       <div className="field">
         <div className="field-label">饥饿 0-4</div>
         <Score name="hunger_before" onChange={setHunger} value={hunger} />
+        <ScaleGuide items={hungerScale} />
       </div>
       <div className="field">
         <div className="field-label">压力 0-4</div>
         <Score name="stress_before" onChange={setStress} value={stress} />
+        <ScaleGuide items={stressScale} />
       </div>
       <DetailSection>
         <div className="field">
@@ -1065,6 +1125,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
         <div className="field" key={name}>
           <div className="field-label">{label}</div>
           <Score name={name} onChange={update(name)} value={values[name]} />
+          <ScaleGuide items={name === "stress_peak" ? stressScale : symptomScale} />
         </div>
       ))}
       <div className="field">
@@ -1079,6 +1140,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
           ]}
           value={values.skin_area_change}
         />
+        <p className="text-xs leading-5 text-slate-500">和前一天相比：减少 / 无变化 / 增加。</p>
       </div>
       <details className="rounded-lg border border-slate-200 p-3">
         <summary className="cursor-pointer font-semibold text-slate-700">展开可选字段</summary>
@@ -1096,21 +1158,36 @@ function SleepFields({ initialPayload }: { initialPayload: Record<string, unknow
   const [awakenings, setAwakenings] = useState(String(initialPayload?.night_awakenings ?? "1"));
   const [quality, setQuality] = useState(String(initialPayload?.sleep_quality ?? "2"));
   const [disruption, setDisruption] = useState(String(initialPayload?.sleep_disruption ?? "none"));
+  const [duration, setDuration] = useState(numberValue(initialPayload?.sleep_duration_hours) ?? "");
+  const [bedAt, setBedAt] = useState(datetimeFieldValue(initialPayload?.bed_at));
+  const [wakeAt, setWakeAt] = useState(datetimeFieldValue(initialPayload?.wake_at));
+
+  function updateSleepWindow(nextBedAt: string, nextWakeAt: string) {
+    const nextDuration = calculatedSleepDurationHours(nextBedAt, nextWakeAt);
+    if (nextDuration) {
+      setDuration(nextDuration);
+    }
+  }
+
   return (
     <>
       <PrimaryZone title="Sleep snapshot" description="早晨先记下昨晚睡了多久、睡得怎样。">
         <TextField defaultValue={stringValue(initialPayload?.sleep_date ?? yesterday())} label="睡眠归属日期" name="sleep_date" required type="date" />
         <TextField
-          defaultValue={numberValue(initialPayload?.sleep_duration_hours)}
           label="睡眠时长（小时）"
+          max="24"
+          min="0"
           name="sleep_duration_hours"
+          onValueChange={setDuration}
           required
           step="0.1"
           type="number"
+          value={duration}
         />
         <div className="field">
           <div className="field-label">睡眠质量 0-4</div>
           <Score name="sleep_quality" onChange={setQuality} value={quality} />
+          <ScaleGuide items={sleepQualityScale} />
         </div>
       </PrimaryZone>
       <div className="field">
@@ -1137,9 +1214,27 @@ function SleepFields({ initialPayload }: { initialPayload: Record<string, unknow
         />
       </div>
       <DetailSection>
-          <TextField defaultValue={datetimeFieldValue(initialPayload?.bed_at)} label="上床时间" name="bed_at" type="datetime-local" />
-          <TextField defaultValue={datetimeFieldValue(initialPayload?.wake_at)} label="起床时间" name="wake_at" type="datetime-local" />
-          <OptionalNumber defaultValue={numberValue(initialPayload?.sleep_latency_min)} label="入睡耗时（分钟）" name="sleep_latency_min" />
+        <TextField
+          label="上床时间"
+          name="bed_at"
+          onValueChange={(value) => {
+            setBedAt(value);
+            updateSleepWindow(value, wakeAt);
+          }}
+          type="datetime-local"
+          value={bedAt}
+        />
+        <TextField
+          label="起床时间"
+          name="wake_at"
+          onValueChange={(value) => {
+            setWakeAt(value);
+            updateSleepWindow(bedAt, value);
+          }}
+          type="datetime-local"
+          value={wakeAt}
+        />
+        <OptionalNumber defaultValue={numberValue(initialPayload?.sleep_latency_min)} label="入睡耗时（分钟）" name="sleep_latency_min" />
       </DetailSection>
     </>
   );
@@ -1174,7 +1269,9 @@ function TextField({
   value,
   onValueChange,
   placeholder,
-  step
+  step,
+  min,
+  max
 }: {
   id?: string;
   label: string;
@@ -1186,6 +1283,8 @@ function TextField({
   onValueChange?: (value: string) => void;
   placeholder?: string;
   step?: string;
+  min?: string;
+  max?: string;
 }) {
   return (
     <div className="field">
@@ -1194,6 +1293,8 @@ function TextField({
         className="control"
         defaultValue={defaultValue}
         id={id ?? name}
+        max={max}
+        min={min}
         name={name}
         onChange={onValueChange ? (event) => onValueChange(event.target.value) : undefined}
         placeholder={placeholder}
