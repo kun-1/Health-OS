@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/ChatGPT%20Image%202026%E5%B9%B45%E6%9C%8813%E6%97%A5%2010_32_37.png" alt="Health OS" width="700" style="border-radius: 16px;">
+  <img src="assets/ChatGPT%20Image%202026%E5%B9%B45%E6%9C%8813%E6%97%A5%2010_32_37.png" alt="Health OS" width="480" style="border-radius: 16px;">
 </p>
 
 <h1 align="center">Health OS<br><sub>Personal Health Memory System &amp; AI Analysis Layer</sub></h1>
