@@ -324,10 +324,23 @@ function NotesField({ initialValue }: { initialValue?: string }) {
 }
 
 function OccurredAtField({ value }: { value?: string }) {
+  const [occurredAt, setOccurredAt] = useState("");
+
+  useEffect(() => {
+    setOccurredAt(localDatetimeValue(value));
+  }, [value]);
+
   return (
     <div className="field">
       <label htmlFor="occurred_at">发生时间</label>
-      <input className="control" defaultValue={localDatetimeValue(value)} id="occurred_at" name="occurred_at" type="datetime-local" />
+      <input
+        className="control"
+        id="occurred_at"
+        name="occurred_at"
+        onChange={(event) => setOccurredAt(event.target.value)}
+        type="datetime-local"
+        value={occurredAt}
+      />
     </div>
   );
 }
@@ -385,7 +398,7 @@ export function RecordClient() {
 
   async function submit(type: EntryKey, form: FormData) {
     setMessage("保存中...");
-    const occurredAt = datetimeToIso(form.get("occurred_at"));
+    const occurredAt = datetimeToIso(form.get("occurred_at") || nowLocal());
 
     if (type === "supplement" && !editingRecord) {
       const payloads = buildSupplementPayloads(form);
@@ -655,7 +668,7 @@ function ScaleGuide({ items }: { items: string[] }) {
 }
 
 function MealFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
-  const [mealType, setMealType] = useState(String(initialPayload?.meal_type ?? inferredMealType()));
+  const [mealType, setMealType] = useState(String(initialPayload?.meal_type ?? "lunch"));
   const [hunger, setHunger] = useState(String(initialPayload?.hunger_before ?? "2"));
   const [stress, setStress] = useState(String(initialPayload?.stress_before ?? "1"));
   const [processed, setProcessed] = useState(
@@ -671,6 +684,12 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
         }))
       : [{ key: "item-0", name: "", method: "" }];
   const [foodItems, setFoodItems] = useState(initialItems);
+
+  useEffect(() => {
+    if (!initialPayload?.meal_type) {
+      setMealType(inferredMealType());
+    }
+  }, [initialPayload?.meal_type]);
 
   function updateFoodItem(index: number, field: "name" | "method", value: string) {
     setFoodItems((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
@@ -1103,6 +1122,7 @@ function NosebleedFields({ initialPayload }: { initialPayload: Record<string, un
 }
 
 function DailySummaryFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
+  const [summaryDate, setSummaryDate] = useState(stringValue(initialPayload?.summary_date));
   const [values, setValues] = useState<Record<string, string>>({
     skin_redness: String(initialPayload?.skin_redness ?? "2"),
     skin_scaling: String(initialPayload?.skin_scaling ?? "2"),
@@ -1112,9 +1132,23 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
     stress_peak: String(initialPayload?.stress_peak ?? "1")
   });
   const update = (key: string) => (value: string) => setValues((current) => ({ ...current, [key]: value }));
+
+  useEffect(() => {
+    if (!initialPayload?.summary_date) {
+      setSummaryDate(today());
+    }
+  }, [initialPayload?.summary_date]);
+
   return (
     <>
-      <TextField defaultValue={stringValue(initialPayload?.summary_date ?? today())} label="归属日期" name="summary_date" required type="date" />
+      <TextField
+        label="归属日期"
+        name="summary_date"
+        onValueChange={setSummaryDate}
+        required
+        type="date"
+        value={summaryDate}
+      />
       {[
         ["skin_redness", "红斑 0-4"],
         ["skin_scaling", "鳞屑 0-4"],
@@ -1155,6 +1189,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
 }
 
 function SleepFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
+  const [sleepDate, setSleepDate] = useState(stringValue(initialPayload?.sleep_date));
   const [awakenings, setAwakenings] = useState(String(initialPayload?.night_awakenings ?? "1"));
   const [quality, setQuality] = useState(String(initialPayload?.sleep_quality ?? "2"));
   const [disruption, setDisruption] = useState(String(initialPayload?.sleep_disruption ?? "none"));
@@ -1169,10 +1204,23 @@ function SleepFields({ initialPayload }: { initialPayload: Record<string, unknow
     }
   }
 
+  useEffect(() => {
+    if (!initialPayload?.sleep_date) {
+      setSleepDate(yesterday());
+    }
+  }, [initialPayload?.sleep_date]);
+
   return (
     <>
       <PrimaryZone title="Sleep snapshot" description="早晨先记下昨晚睡了多久、睡得怎样。">
-        <TextField defaultValue={stringValue(initialPayload?.sleep_date ?? yesterday())} label="睡眠归属日期" name="sleep_date" required type="date" />
+        <TextField
+          label="睡眠归属日期"
+          name="sleep_date"
+          onValueChange={setSleepDate}
+          required
+          type="date"
+          value={sleepDate}
+        />
         <TextField
           label="睡眠时长（小时）"
           max="24"

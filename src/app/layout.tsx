@@ -5,7 +5,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Health Monitor",
-  description: "Personal health record layer"
+  description: "Personal health record layer",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Health Monitor"
+  }
 };
 
 export const viewport: Viewport = {
