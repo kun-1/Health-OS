@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const navItems = [
     ["Today", "/"],
     ["Timeline", "/timeline"],
+    ["Expenses", "/expenses"],
     ["Insights", "/insights"],
     ["Trends", "/trends"],
     ["Decisions", "/decisions"],

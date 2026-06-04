@@ -1,4 +1,5 @@
 import { deriveDataQuality, deriveDailyMetrics, deriveMealReactions, deriveTrendSummaries } from "@/lib/analysis/derive";
+import { addDays, localDateKey } from "@/lib/analysis/date";
 import type { AnalysisPayload, DataQuality, InsightCard, MealReactionMetric, TrendSummary } from "@/lib/analysis/types";
 import type { TimelineRecord } from "@/lib/records/types";
 
@@ -138,7 +139,9 @@ export function buildAnalysisPayload(records: TimelineRecord[], rangeDays: numbe
   const startDate = dailyMetrics[0]?.date ?? endDate;
   const dataQuality = deriveDataQuality(dailyMetrics, rangeDays);
   const trendSummaries = deriveTrendSummaries(dailyMetrics);
-  const mealReactions = deriveMealReactions(records);
+  const rangeStartDate = addDays(endDate, -(rangeDays - 1));
+  const rangeRecords = records.filter((r) => localDateKey(r.occurred_at) >= rangeStartDate);
+  const mealReactions = deriveMealReactions(rangeRecords);
   const insights = [
     dataQualityInsight(dataQuality, startDate, endDate),
     ...safetyInsights(records, startDate, endDate),

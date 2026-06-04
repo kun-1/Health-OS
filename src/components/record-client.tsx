@@ -97,11 +97,11 @@ const foodMethodOptions = [
 ] as const;
 
 const hungerScale = [
-  "0 不饿",
-  "1 有点饿",
-  "2 正常",
-  "3 很饿",
-  "4 饿到不舒服"
+  "0 不饿（完全不想吃）",
+  "1 轻微饿（可吃可不吃）",
+  "2 适中（有正常食欲）",
+  "3 明显饿（胃有空感）",
+  "4 极度饿（饿到不舒服）"
 ];
 
 const stressScale = [
@@ -267,37 +267,6 @@ function localDatetimeValue(value: unknown) {
   return date.toISOString().slice(0, 16);
 }
 
-function datetimeFieldValue(value: unknown) {
-  if (typeof value !== "string") {
-    return "";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-  return date.toISOString().slice(0, 16);
-}
-
-function calculatedSleepDurationHours(bedAt: string, wakeAt: string) {
-  if (!bedAt || !wakeAt) {
-    return "";
-  }
-  const bed = new Date(bedAt);
-  const wake = new Date(wakeAt);
-  if (Number.isNaN(bed.getTime()) || Number.isNaN(wake.getTime())) {
-    return "";
-  }
-  if (wake <= bed) {
-    wake.setDate(wake.getDate() + 1);
-  }
-  const hours = (wake.getTime() - bed.getTime()) / 36e5;
-  if (hours <= 0 || hours > 24) {
-    return "";
-  }
-  return String(Math.round(hours * 10) / 10);
-}
-
 function NotesField({ initialValue }: { initialValue?: string }) {
   const [open, setOpen] = useState(Boolean(initialValue));
   const [value, setValue] = useState(initialValue ?? "");
@@ -430,7 +399,7 @@ export function RecordClient() {
     const body = {
       type,
       occurred_at: occurredAt,
-      payload: buildPayload(type, form)
+      payload: buildPayload(type, form, editingRecord?.payload)
     };
 
     const url = editingRecord ? `/api/records/${editingRecord.id}` : "/api/records";
@@ -479,9 +448,6 @@ export function RecordClient() {
                 All captures
               </Link>
             ) : null}
-            <Link className="secondary-action" href="/timeline">
-              Timeline
-            </Link>
           </div>
         </div>
       </div>
@@ -668,13 +634,14 @@ function ScaleGuide({ items }: { items: string[] }) {
 }
 
 function MealFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
-  const [mealType, setMealType] = useState(String(initialPayload?.meal_type ?? "lunch"));
+  const [mealType, setMealType] = useState(String(initialPayload?.meal_type ?? inferredMealType()));
   const [hunger, setHunger] = useState(String(initialPayload?.hunger_before ?? "2"));
   const [stress, setStress] = useState(String(initialPayload?.stress_before ?? "1"));
   const [processed, setProcessed] = useState(
     initialPayload?.processed_food === true ? "true" : initialPayload?.processed_food === false ? "false" : ""
   );
   const [portion, setPortion] = useState(String(initialPayload?.portion_level ?? "normal"));
+  const [doneEating, setDoneEating] = useState(Boolean(initialPayload?.meal_duration_min));
   const initialItems =
     Array.isArray(initialPayload?.food_items) && initialPayload.food_items.length > 0
       ? initialPayload.food_items.map((item, index) => ({
@@ -685,11 +652,21 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
       : [{ key: "item-0", name: "", method: "" }];
   const [foodItems, setFoodItems] = useState(initialItems);
 
-  useEffect(() => {
-    if (!initialPayload?.meal_type) {
-      setMealType(inferredMealType());
+  function handleDoneEating() {
+    const input = document.querySelector<HTMLInputElement>("input[name='occurred_at']");
+    if (!input || !input.value) return;
+    const start = new Date(input.value);
+    const now = new Date();
+    const minutes = Math.round((now.getTime() - start.getTime()) / 60000);
+    if (minutes > 0 && minutes < 600) {
+      const durationInput = document.querySelector<HTMLInputElement>("input[name='meal_duration_min']");
+      if (durationInput) {
+        durationInput.value = String(minutes);
+        durationInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
     }
-  }, [initialPayload?.meal_type]);
+    setDoneEating(true);
+  }
 
   function updateFoodItem(index: number, field: "name" | "method", value: string) {
     setFoodItems((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
@@ -761,6 +738,27 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
           </p>
         </div>
       </PrimaryZone>
+      <div className="flex items-center gap-3">
+        <button
+          className={`rounded-lg border px-4 py-2 text-sm font-bold transition ${
+            doneEating
+              ? "border-teal-600 bg-teal-50 text-teal-800"
+              : "border-[rgba(38,55,49,0.14)] bg-white/70 text-[#45524c] hover:bg-white"
+          }`}
+          onClick={handleDoneEating}
+          type="button"
+        >
+          {doneEating ? "✅ 已吃完" : "🍽️ 吃完"}
+        </button>
+        <input name="meal_duration_min" type="hidden" />
+        {doneEating ? (
+          <span className="text-sm text-[#5d6963]">
+            用餐时长已记录
+          </span>
+        ) : (
+          <span className="text-xs text-slate-500">吃完后点击，自动计算用餐时长</span>
+        )}
+      </div>
       <div className="field">
         <div className="field-label">餐次</div>
         <Segmented
@@ -782,6 +780,7 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
       </div>
       <div className="field">
         <div className="field-label">压力 0-4</div>
+        <p className="text-xs text-slate-500">餐前压力是餐后反应的重要干扰因素，记录它有助于区分反应是来自食物还是情绪。</p>
         <Score name="stress_before" onChange={setStress} value={stress} />
         <ScaleGuide items={stressScale} />
       </div>
@@ -801,28 +800,32 @@ function MealFields({ initialPayload }: { initialPayload: Record<string, unknown
           <div className="field-label">加工食品</div>
           <TriState name="processed_food" onChange={setProcessed} value={processed} />
         </div>
-        <SelectField
-          defaultValue={stringValue(initialPayload?.additive_risk_level)}
-          label="添加剂等级"
-          name="additive_risk_level"
-          options={[
-            ["", "未记录"],
-            ["none", "none"],
-            ["low", "low"],
-            ["medium", "medium"],
-            ["high", "high"]
-          ]}
-        />
-        <div className="field">
-          <label htmlFor="additive_tags">添加剂标签（逗号分隔）</label>
-          <input
-            className="control"
-            defaultValue={arrayValue(initialPayload?.additive_tags)}
-            id="additive_tags"
-            name="additive_tags"
-            placeholder="CMC,P80,糖醇"
-          />
-        </div>
+        {mealType === "snack" ? (
+          <>
+            <SelectField
+              defaultValue={stringValue(initialPayload?.additive_risk_level)}
+              label="添加剂等级"
+              name="additive_risk_level"
+              options={[
+                ["", "未记录"],
+                ["none", "none"],
+                ["low", "low"],
+                ["medium", "medium"],
+                ["high", "high"]
+              ]}
+            />
+            <div className="field">
+              <label htmlFor="additive_tags">添加剂标签（逗号分隔）</label>
+              <input
+                className="control"
+                defaultValue={arrayValue(initialPayload?.additive_tags)}
+                id="additive_tags"
+                name="additive_tags"
+                placeholder="CMC,P80,糖醇"
+              />
+            </div>
+          </>
+        ) : null}
         <div className="field">
           <div className="field-label">份量</div>
           <Segmented
@@ -1008,17 +1011,18 @@ function BowelFields({ initialPayload }: { initialPayload: Record<string, unknow
           <Score max={3} name="strain_level" onChange={setStrain} value={strain} />
         </div>
       </PrimaryZone>
-      <DetailSection>
-        <TriStateField label="急迫感" name="urgency" onChange={setUrgency} value={urgency} />
-        <TriStateField label="排便不尽" name="incomplete_emptying" onChange={setIncomplete} value={incomplete} />
-        <TriStateField label="血便或黑便" name="blood_or_black_stool" onChange={setBlood} value={blood} />
-      </DetailSection>
+      <TriStateField label="急迫感" name="urgency" onChange={setUrgency} value={urgency} />
+      <TriStateField label="排便不尽" name="incomplete_emptying" onChange={setIncomplete} value={incomplete} />
+      <TriStateField label="血便或黑便" name="blood_or_black_stool" onChange={setBlood} value={blood} />
     </>
   );
 }
 
 function WaterFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
-  const [amount, setAmount] = useState(String(initialPayload?.amount_ml ?? "1000"));
+  const presets = ["250", "500", "750", "1000"];
+  const initialAmount = String(initialPayload?.amount_ml ?? "1000");
+  const isPreset = presets.includes(initialAmount);
+  const [amount, setAmount] = useState(isPreset ? initialAmount : "1000");
   const [drinkType, setDrinkType] = useState(String(initialPayload?.drink_type ?? "water"));
   return (
     <>
@@ -1028,16 +1032,16 @@ function WaterFields({ initialPayload }: { initialPayload: Record<string, unknow
           <Segmented
             name="amount_ml"
             onChange={setAmount}
-            options={["250", "500", "750", "1000"].map((item) => ({ label: `${item} ml`, value: item }))}
+            options={presets.map((item) => ({ label: `${item} ml`, value: item }))}
             value={amount}
           />
           <input
             className="control"
-            defaultValue={initialPayload?.amount_ml ? "" : undefined}
+            defaultValue={isPreset ? undefined : initialAmount}
             min={1}
             max={5000}
             name="amount_ml_custom"
-            placeholder="自定义 ml，可选"
+            placeholder="自定义 ml"
             type="number"
           />
         </div>
@@ -1088,6 +1092,7 @@ function WaterFields({ initialPayload }: { initialPayload: Record<string, unknow
 function NosebleedFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
   return (
     <>
+      <PrimaryZone title="Nosebleed" description="低频事件只做事实记录。">
       <SelectField
         defaultValue={stringValue(initialPayload?.nosebleed_side)}
         label="侧别"
@@ -1117,12 +1122,13 @@ function NosebleedFields({ initialPayload }: { initialPayload: Record<string, un
         name="nosebleed_duration_min"
         type="number"
       />
+      </PrimaryZone>
     </>
   );
 }
 
 function DailySummaryFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
-  const [summaryDate, setSummaryDate] = useState(stringValue(initialPayload?.summary_date));
+  const [summaryDate, setSummaryDate] = useState(stringValue(initialPayload?.summary_date) || today());
   const [values, setValues] = useState<Record<string, string>>({
     skin_redness: String(initialPayload?.skin_redness ?? "2"),
     skin_scaling: String(initialPayload?.skin_scaling ?? "2"),
@@ -1131,13 +1137,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
     nasal_blockage: String(initialPayload?.nasal_blockage ?? "1"),
     stress_peak: String(initialPayload?.stress_peak ?? "1")
   });
-  const update = (key: string) => (value: string) => setValues((current) => ({ ...current, [key]: value }));
-
-  useEffect(() => {
-    if (!initialPayload?.summary_date) {
-      setSummaryDate(today());
-    }
-  }, [initialPayload?.summary_date]);
+  const updateField = (key: string) => (value: string) => setValues((current) => ({ ...current, [key]: value }));
 
   return (
     <>
@@ -1158,7 +1158,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
       ].map(([name, label]) => (
         <div className="field" key={name}>
           <div className="field-label">{label}</div>
-          <Score name={name} onChange={update(name)} value={values[name]} />
+          <Score name={name} onChange={updateField(name)} value={values[name]} />
           <ScaleGuide items={name === "stress_peak" ? stressScale : symptomScale} />
         </div>
       ))}
@@ -1166,7 +1166,7 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
         <div className="field-label">皮肤面积变化</div>
         <Segmented
           name="skin_area_change"
-          onChange={update("skin_area_change")}
+          onChange={updateField("skin_area_change")}
           options={[
             { label: "减少", value: "-1" },
             { label: "无变化", value: "0" },
@@ -1189,26 +1189,28 @@ function DailySummaryFields({ initialPayload }: { initialPayload: Record<string,
 }
 
 function SleepFields({ initialPayload }: { initialPayload: Record<string, unknown> | null }) {
-  const [sleepDate, setSleepDate] = useState(stringValue(initialPayload?.sleep_date));
+  const [sleepDate, setSleepDate] = useState(stringValue(initialPayload?.sleep_date) || yesterday());
   const [awakenings, setAwakenings] = useState(String(initialPayload?.night_awakenings ?? "1"));
   const [quality, setQuality] = useState(String(initialPayload?.sleep_quality ?? "2"));
   const [disruption, setDisruption] = useState(String(initialPayload?.sleep_disruption ?? "none"));
   const [duration, setDuration] = useState(numberValue(initialPayload?.sleep_duration_hours) ?? "");
-  const [bedAt, setBedAt] = useState(datetimeFieldValue(initialPayload?.bed_at));
-  const [wakeAt, setWakeAt] = useState(datetimeFieldValue(initialPayload?.wake_at));
+  const [bedAt, setBedAt] = useState(stringValue(initialPayload?.bed_at));
+  const [wakeAt, setWakeAt] = useState(stringValue(initialPayload?.wake_at));
 
   function updateSleepWindow(nextBedAt: string, nextWakeAt: string) {
-    const nextDuration = calculatedSleepDurationHours(nextBedAt, nextWakeAt);
-    if (nextDuration) {
-      setDuration(nextDuration);
+    if (!nextBedAt || !nextWakeAt) return;
+    const bed = new Date(nextBedAt);
+    const wake = new Date(nextWakeAt);
+    if (Number.isNaN(bed.getTime()) || Number.isNaN(wake.getTime())) return;
+    let end = wake;
+    if (end <= bed) {
+      end = new Date(end.getTime() + 86400000);
+    }
+    const hours = (end.getTime() - bed.getTime()) / 36e5;
+    if (hours > 0 && hours <= 24) {
+      setDuration(String(Math.round(hours * 10) / 10));
     }
   }
-
-  useEffect(() => {
-    if (!initialPayload?.sleep_date) {
-      setSleepDate(yesterday());
-    }
-  }, [initialPayload?.sleep_date]);
 
   return (
     <>
@@ -1422,7 +1424,7 @@ function TriStateField({
   );
 }
 
-function buildPayload(type: EntryKey, form: FormData) {
+function buildPayload(type: EntryKey, form: FormData, existingPayload?: Record<string, unknown> | null) {
   const base = { notes: optionalText(form, "notes") };
   if (type === "meal") {
     const foodItems = parseFoodItems(form);
@@ -1485,7 +1487,7 @@ function buildPayload(type: EntryKey, form: FormData) {
     });
   }
   if (type === "daily_summary") {
-    return compact({
+    const formFields = compact({
       ...base,
       summary_date: form.get("summary_date"),
       skin_redness: Number(form.get("skin_redness")),
@@ -1498,6 +1500,15 @@ function buildPayload(type: EntryKey, form: FormData) {
       fruit_count: optionalNumber(form, "fruit_count"),
       stress_note: optionalText(form, "stress_note")
     });
+    if (existingPayload) {
+      const formKeys = new Set(getFormFieldNames(type));
+      for (const [key, value] of Object.entries(existingPayload)) {
+        if (!formKeys.has(key) && !(key in formFields)) {
+          (formFields as Record<string, unknown>)[key] = value;
+        }
+      }
+    }
+    return formFields;
   }
   return compact({
     ...base,
@@ -1510,4 +1521,11 @@ function buildPayload(type: EntryKey, form: FormData) {
     wake_at: optionalText(form, "wake_at") ? new Date(String(form.get("wake_at"))).toISOString() : undefined,
     sleep_latency_min: optionalNumber(form, "sleep_latency_min")
   });
+}
+
+function getFormFieldNames(type: EntryKey): string[] {
+  if (type === "daily_summary") {
+    return ["notes", "summary_date", "skin_redness", "skin_scaling", "skin_itch", "skin_area_change", "nasal_blockage", "stress_peak", "vegetable_count", "fruit_count", "stress_note"];
+  }
+  return [];
 }

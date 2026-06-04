@@ -164,12 +164,6 @@ export function deriveDailyMetrics(records: TimelineRecord[], rangeDays: number,
       const strain = numberValue(record.payload.strain_level);
       if (strain !== null) {
         strainValues.set(date, [...(strainValues.get(date) ?? []), strain]);
-        if (strain >= 2 && bristol !== null && bristol >= 3 && bristol <= 5) {
-          metric.bristol_abnormal_count += 1;
-        }
-      }
-      if (record.payload.urgency === true && bristol !== null && bristol < 6) {
-        metric.bristol_abnormal_count += 1;
       }
       if (record.payload.blood_or_black_stool === true) {
         metric.blood_or_black_stool_count += 1;

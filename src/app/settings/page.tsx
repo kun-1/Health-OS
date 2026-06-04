@@ -1,10 +1,13 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { SupplementScheduleClient } from "@/components/supplement-schedule-client";
 
 export default function SettingsPage() {
   return (
-    <PlaceholderPage
-      description="当前阶段只保留页面结构，不实现导入、导出或部署配置。"
-      title="Settings"
-    />
+    <div className="grid gap-6">
+      <div>
+        <p className="text-xs font-semibold uppercase text-teal-800">Settings</p>
+        <h1 className="mt-2 text-[32px] font-bold leading-tight text-[#17201c]">Settings</h1>
+      </div>
+      <SupplementScheduleClient />
+    </div>
   );
 }
