@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { formatMoney } from "@/lib/expenses/money";
+import { SUPPORTED_CURRENCIES, type SupportedCurrency } from "@/lib/expenses/settings";
 import type { ExtractedExpenseItem, ExtractedExpenseReceipt } from "@/lib/expenses/types";
 
 import { categoryNames, categoryEmoji, categoryLabel } from "./category-colors";
@@ -19,7 +20,10 @@ function emptyItem(): ExtractedExpenseItem {
     category_zh: "其他",
     quantity: null,
     spec_text: null,
+    food_amount_value: null,
+    food_amount_unit: null,
     unit_price: null,
+    discounted_unit_price: null,
     amount: null,
     confidence: 1,
     notes: null
@@ -43,6 +47,11 @@ function quantityCount(value: string | null): number | null {
   const fallback = trimmed.match(/^(\d+(?:\.\d+)?)/);
   const parsed = Number(explicit?.[1] ?? fallback?.[1]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function lineAmountFromUnitPrices(item: ExtractedExpenseItem, count: number | null): number | null {
+  const unitPrice = item.discounted_unit_price ?? item.unit_price;
+  return unitPrice !== null && count ? roundMoney(unitPrice * count) : null;
 }
 
 export function ReceiptForm({ value, onChange }: Props) {
@@ -83,10 +92,11 @@ export function ReceiptForm({ value, onChange }: Props) {
     const item = value.items[index];
     const count = quantityCount(quantity);
     const patch: Partial<ExtractedExpenseItem> = { quantity };
-    if (count && item.unit_price !== null) {
-      patch.amount = roundMoney(item.unit_price * count);
+    const amount = lineAmountFromUnitPrices(item, count);
+    if (amount !== null) {
+      patch.amount = amount;
     } else if (count && item.amount !== null) {
-      patch.unit_price = roundMoney(item.amount / count);
+      patch.discounted_unit_price = roundMoney(item.amount / count);
     }
     updateItem(index, patch);
   }
@@ -94,18 +104,35 @@ export function ReceiptForm({ value, onChange }: Props) {
   function updateItemUnitPrice(index: number, unitPrice: number | null) {
     const item = value.items[index];
     const count = quantityCount(item.quantity);
+    const nextItem = { ...item, unit_price: unitPrice };
     updateItem(index, {
       unit_price: unitPrice,
-      amount: unitPrice !== null && count ? roundMoney(unitPrice * count) : item.amount
+      amount: lineAmountFromUnitPrices(nextItem, count) ?? item.amount
+    });
+  }
+
+  function updateItemDiscountedUnitPrice(index: number, discountedUnitPrice: number | null) {
+    const item = value.items[index];
+    const count = quantityCount(item.quantity);
+    const nextItem = { ...item, discounted_unit_price: discountedUnitPrice };
+    updateItem(index, {
+      discounted_unit_price: discountedUnitPrice,
+      amount: lineAmountFromUnitPrices(nextItem, count) ?? item.amount
     });
   }
 
   function updateItemAmount(index: number, amount: number | null) {
     const item = value.items[index];
     const count = quantityCount(item.quantity);
+    const unitPatch =
+      amount !== null && count
+        ? item.discounted_unit_price !== null
+          ? { discounted_unit_price: roundMoney(amount / count) }
+          : { unit_price: roundMoney(amount / count) }
+        : {};
     updateItem(index, {
       amount,
-      unit_price: amount !== null && count ? roundMoney(amount / count) : item.unit_price
+      ...unitPatch
     });
   }
 
@@ -124,9 +151,15 @@ export function ReceiptForm({ value, onChange }: Props) {
     const item = value.items[lastIndex];
     const nextAmount = roundMoney((item.amount ?? 0) + lineAmountDiff);
     const count = quantityCount(item.quantity);
+    const unitPatch =
+      count && item.discounted_unit_price !== null
+        ? { discounted_unit_price: roundMoney(Math.max(0, nextAmount) / count) }
+        : count
+          ? { unit_price: roundMoney(Math.max(0, nextAmount) / count) }
+          : {};
     updateItem(lastIndex, {
       amount: Math.max(0, nextAmount),
-      unit_price: count ? roundMoney(Math.max(0, nextAmount) / count) : item.unit_price
+      ...unitPatch
     });
   }
 
@@ -151,6 +184,21 @@ export function ReceiptForm({ value, onChange }: Props) {
             value={value.merchant_name ?? ""}
           />
         </label>
+        {/* Wave 2 feature: receipt form currency field — same row as merchant. */}
+        <label className="exp-form__field">
+          <span className="exp-form__label">币种</span>
+          <select
+            className="exp-form__select"
+            onChange={(event) => update("currency", event.target.value)}
+            value={SUPPORTED_CURRENCIES.includes(value.currency as SupportedCurrency) ? value.currency : "CNY"}
+          >
+            {SUPPORTED_CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="exp-form__field">
           <span className="exp-form__label">日期</span>
           <input
@@ -170,7 +218,9 @@ export function ReceiptForm({ value, onChange }: Props) {
           <span>商品</span>
           <span>分类</span>
           <span>数量</span>
+          <span>食物量</span>
           <span>单价</span>
+          <span>优惠价</span>
           <span>小计</span>
           <span />
         </div>
@@ -209,13 +259,38 @@ export function ReceiptForm({ value, onChange }: Props) {
               type="text"
               value={item.quantity ?? ""}
             />
+            <div className="exp-form__amount-pair">
+              <input
+                className="exp-form__input"
+                onChange={(event) => updateItem(index, { food_amount_value: num(event.target.value) })}
+                placeholder="250"
+                step="0.01"
+                type="number"
+                value={item.food_amount_value ?? ""}
+              />
+              <input
+                className="exp-form__input"
+                onChange={(event) => updateItem(index, { food_amount_unit: event.target.value || null })}
+                placeholder="g"
+                type="text"
+                value={item.food_amount_unit ?? ""}
+              />
+            </div>
             <input
               className="exp-form__input"
               onChange={(event) => updateItemUnitPrice(index, num(event.target.value))}
-              placeholder="0.00"
+              placeholder="原价"
               step="0.01"
               type="number"
               value={item.unit_price ?? ""}
+            />
+            <input
+              className="exp-form__input"
+              onChange={(event) => updateItemDiscountedUnitPrice(index, num(event.target.value))}
+              placeholder="优惠后"
+              step="0.01"
+              type="number"
+              value={item.discounted_unit_price ?? ""}
             />
             <input
               className="exp-form__input"

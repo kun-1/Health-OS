@@ -43,6 +43,7 @@ function getAnalysisReadinessReasons(extracted: ExtractedExpenseReceipt): string
     if (!expenseCategories.includes(item.category_zh)) reasons.push(`分析字段格式错误：商品“${item.name_zh}”分类不在白名单`);
     if (!validQuantity(item.quantity)) reasons.push(`分析字段格式错误：商品“${item.name_zh}”数量`);
     if (!validNullableMoney(item.unit_price)) reasons.push(`分析字段格式错误：商品“${item.name_zh}”单价`);
+    if (!validNullableMoney(item.discounted_unit_price)) reasons.push(`分析字段格式错误：商品“${item.name_zh}”优惠价`);
     if (!validNullableMoney(item.amount)) reasons.push(`分析字段格式错误：商品“${item.name_zh}”行金额`);
   }
 

@@ -7,6 +7,7 @@ type Props = {
   maxFiles: number;
   maxBytesPerFile: number;
   hint: string;
+  compact?: boolean;
 };
 
 function fileKey(file: File) {
@@ -19,7 +20,7 @@ function formatBytes(n: number) {
   return `${(n / 1024 / 1024).toFixed(2)} MB`;
 }
 
-export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint }: Props) {
+export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint, compact = false }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -70,7 +71,7 @@ export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint }: P
   const overLimit = files.length >= maxFiles;
 
   return (
-    <div className="exp-uploader">
+    <div className={compact ? "exp-uploader exp-uploader--compact" : "exp-uploader"}>
       <div
         className="exp-uploader__zone"
         onClick={() => fileRef.current?.click()}
@@ -101,9 +102,9 @@ export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint }: P
           </svg>
         </div>
         <div className="exp-uploader__title">
-          {overLimit ? `已选满 ${maxFiles} 张` : "拖入票据，或点击选择"}
+          {overLimit ? `已选满 ${maxFiles} 张` : compact ? "新增票据" : "拖入票据，或点击选择"}
         </div>
-        <div className="exp-uploader__hint">{hint}</div>
+        {compact ? null : <div className="exp-uploader__hint">{hint}</div>}
         <div className="exp-uploader__actions" onClick={(e) => e.stopPropagation()}>
           <button
             className="exp-btn exp-btn--secondary exp-btn--sm"
@@ -171,20 +172,22 @@ export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint }: P
         </div>
       ) : null}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, gap: 12, flexWrap: "wrap" }}>
-        <div className="exp-uploader__note" style={{ marginTop: 0 }}>
-          {error ? <span style={{ color: "var(--exp-danger)" }}>{error}</span> : `一次最多 ${maxFiles} 张，避免视觉模型请求排队过久`}
+      {compact && files.length === 0 && !error ? null : (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, gap: 12, flexWrap: "wrap" }}>
+          <div className="exp-uploader__note" style={{ marginTop: 0 }}>
+            {error ? <span style={{ color: "var(--exp-danger)" }}>{error}</span> : compact ? hint : `一次最多 ${maxFiles} 张，避免视觉模型请求排队过久`}
+          </div>
+          <button
+            className="exp-btn exp-btn--primary"
+            disabled={busy || files.length === 0}
+            onClick={submit}
+            type="button"
+          >
+            <span aria-hidden>✨</span>
+            {busy ? "识别中..." : "识别票据"}
+          </button>
         </div>
-        <button
-          className="exp-btn exp-btn--primary"
-          disabled={busy || files.length === 0}
-          onClick={submit}
-          type="button"
-        >
-          <span aria-hidden>✨</span>
-          {busy ? "识别中..." : "识别票据"}
-        </button>
-      </div>
+      )}
     </div>
   );
 }

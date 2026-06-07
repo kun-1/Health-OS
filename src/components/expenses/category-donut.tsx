@@ -1,13 +1,16 @@
 "use client";
 
-import { formatMoney } from "@/lib/expenses/money";
+import { formatMoney, fromCents } from "@/lib/expenses/money";
 import type { ExpenseAnalytics } from "@/lib/expenses/types";
 
 import { categoryColor, categoryEmoji, categoryLabel } from "./category-colors";
 
 type Props = {
-  categoryTotals: ExpenseAnalytics["category_totals"];
+  // Wave 1 cleanup: this is the new primary-currency-scoped breakdown.
+  // Amounts are in cents (budget currency) and get converted for display here.
+  categoryBreakdown: ExpenseAnalytics["category_breakdown"];
   currency: string;
+  otherCurrenciesText: string;
 };
 
 const SIZE = 220;
@@ -45,8 +48,12 @@ function donutPath(startAngle: number, endAngle: number) {
   );
 }
 
-export function CategoryDonut({ categoryTotals, currency }: Props) {
-  const visible = categoryTotals.filter((c) => c.amount > 0);
+export function CategoryDonut({ categoryBreakdown, currency, otherCurrenciesText }: Props) {
+  // Convert cents → display units once, then keep the rest of the math in
+  // units so percentages and label rendering stay identical to before.
+  const visible = categoryBreakdown
+    .map((entry) => ({ category_zh: entry.category_zh, amount: fromCents(entry.amount) }))
+    .filter((entry) => entry.amount > 0);
   const total = visible.reduce((sum, c) => sum + c.amount, 0);
 
   const segments: { start: number; end: number; color: string }[] = [];
@@ -69,12 +76,12 @@ export function CategoryDonut({ categoryTotals, currency }: Props) {
     <div className="exp-cats">
       <h2 className="exp-section-title">
         <span aria-hidden>🗂️</span>
-        分类构成
+        分类构成（{currency}）
         <span className="exp-section-title__count">{visible.length}</span>
       </h2>
 
       {visible.length === 0 ? (
-        <div className="exp-cats__empty">这个月还没有消费分类数据</div>
+        <div className="exp-cats__empty">这个月还没有{currency}消费分类数据</div>
       ) : (
         <div className="exp-donut-row">
           <div className="exp-donut">
@@ -122,6 +129,12 @@ export function CategoryDonut({ categoryTotals, currency }: Props) {
           </div>
         </div>
       )}
+
+      {otherCurrenciesText ? (
+        <div className="exp-card__meta">
+          <span aria-hidden>🌐</span> {otherCurrenciesText} 未分类展示
+        </div>
+      ) : null}
     </div>
   );
 }

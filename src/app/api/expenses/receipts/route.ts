@@ -3,8 +3,18 @@ import path from "node:path";
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { extractReceiptWithOpenRouter } from "@/lib/expenses/ocr";
-import { createReceipt, listExpenseReceipts } from "@/lib/expenses/store";
+import { db } from "@/lib/db";
+import { expenseReceipts } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  ensureReceiptDirs,
+  extensionForMimeType,
+  generateReceiptFilename,
+  generateReceiptThumbnail
+} from "@/lib/expenses/images";
+import { processExpenseReceiptJob } from "@/lib/expenses/receipt-jobs";
+import { createReceiptJob, getReceiptByHash, listExpenseReceipts } from "@/lib/expenses/store";
+import { sha256OfBuffer } from "@/lib/expenses/hashing";
 
 export const runtime = "nodejs";
 
@@ -16,18 +26,19 @@ function elapsedSince(startedAt: number): number {
   return Math.round(performance.now() - startedAt);
 }
 
-function extensionForMimeType(mimeType: string): string {
-  if (mimeType === "image/png") return "png";
-  if (mimeType === "image/webp") return "webp";
-  return "jpg";
-}
-
 export async function POST(request: NextRequest) {
   const requestStartedAt = performance.now();
   const form = await request.formData().catch(() => null);
-  const files = [...(form?.getAll("receipts") ?? []), ...(form?.getAll("receipt") ?? [])].filter(
-    (file): file is File => file instanceof File
-  );
+  // Wave 1 review fix (C1): reject any request that uses a key other than
+  // "receipts" before counting files. Previously we merged getAll("receipts")
+  // and getAll("receipt") which let a misbehaving client send 2 + 2 = 4 files
+  // past the maxFilesPerRequest cap. The client must use "receipts" only.
+  const allKeys = new Set<string>();
+  for (const key of form?.keys() ?? []) allKeys.add(key);
+  if (allKeys.size > 1 || (allKeys.size === 1 && !allKeys.has("receipts"))) {
+    return NextResponse.json({ error: "Invalid upload key" }, { status: 400 });
+  }
+  const files = (form?.getAll("receipts") ?? []).filter((file): file is File => file instanceof File);
   if (files.length === 0) {
     return NextResponse.json({ error: "receipt image is required" }, { status: 400 });
   }
@@ -35,12 +46,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `一次最多上传 ${maxFilesPerRequest} 张票据，避免视觉模型请求排队过久` }, { status: 400 });
   }
 
-  const receipts = [];
-  const failures = [];
-  const timings = [];
+  const receipts: unknown[] = [];
+  const failures: { filename?: string; error: string; imagePath?: string; job?: unknown; timing?: unknown }[] = [];
+  const jobs: unknown[] = [];
+  const timings: unknown[] = [];
 
+  // Wave 2 feature: image compression — originals go under originals/, thumbs
+  // go under thumbs/. The file-serving route resolves both via its traversal
+  // guard.
   const receiptsDir = path.join(process.cwd(), "data", "expense-receipts");
-  await fs.mkdir(receiptsDir, { recursive: true });
+  await ensureReceiptDirs();
 
   for (const file of files) {
     const fileStartedAt = performance.now();
@@ -57,79 +72,89 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const filename = `${Date.now()}-${crypto.randomUUID()}.${extensionForMimeType(file.type)}`;
-    const imagePath = path.join(receiptsDir, filename);
+    // Wave 3 dedup: SHA-256 dedup against the receipt_hashes table. We abort
+    // the whole request with 409 on the first duplicate — the UI shows the
+    // existing receipt id and the user can either open that receipt or
+    // remove the duplicate and resubmit. The bytes-to-disk write below is
+    // skipped for duplicates, so no orphan file is left behind.
+    const hash = sha256OfBuffer(bytes);
+    const existing = getReceiptByHash(hash);
+    if (existing) {
+      return NextResponse.json(
+        {
+          error: "Duplicate image",
+          existingReceiptId: existing.id,
+          message: "This image was already uploaded. Open the existing receipt instead."
+        },
+        { status: 409 }
+      );
+    }
+
+    const filename = generateReceiptFilename(extensionForMimeType(file.type));
+    const imagePath = path.join(receiptsDir, "originals", filename);
     const saveStartedAt = performance.now();
     await fs.writeFile(imagePath, bytes);
     const saveMs = elapsedSince(saveStartedAt);
+    // Wave 2 feature: image compression — generate thumbnail alongside the
+    // original. On failure (corrupt file, unsupported format) we fall back
+    // to null and the UI uses the original.
+    const thumbnailPath = await generateReceiptThumbnail(imagePath);
 
-    try {
-      const encodeStartedAt = performance.now();
-      const imageBase64 = bytes.toString("base64");
-      const encodeMs = elapsedSince(encodeStartedAt);
-      const ocrStartedAt = performance.now();
-      const ocr = await extractReceiptWithOpenRouter({
-        imageBase64,
-        mimeType: file.type
-      });
-      const ocrMs = elapsedSince(ocrStartedAt);
-      const dbStartedAt = performance.now();
-      const receipt = createReceipt({
-        imagePath,
-        imageMimeType: file.type,
-        rawModelJson: ocr.raw,
-        extracted: ocr.extracted
-      });
-      const dbMs = elapsedSince(dbStartedAt);
-      receipts.push(receipt);
-      const timing = {
-        filename: file.name,
-        size_bytes: bytes.byteLength,
-        provider: ocr.provider,
-        model: ocr.model,
-        total_ms: elapsedSince(fileStartedAt),
-        read_ms: readMs,
-        save_ms: saveMs,
-        encode_ms: encodeMs,
-        ocr_ms: ocrMs,
-        db_ms: dbMs,
-        provider_timings: ocr.timings
-      };
-      timings.push(timing);
-      console.info("[expenses:receipt-ocr:timing]", timing);
-    } catch (error) {
-      const timing = {
-        filename: file.name,
-        size_bytes: bytes.byteLength,
-        total_ms: elapsedSince(fileStartedAt),
-        read_ms: readMs,
-        save_ms: saveMs
-      };
-      timings.push(timing);
-      console.error("[expenses:receipt-ocr]", {
-        error: error instanceof Error ? error.message : error,
-        imagePath,
-        timing
-      });
-      failures.push({
-        filename: file.name,
-        error: error instanceof Error ? error.message : "Receipt OCR failed",
-        image_path: imagePath,
-        timing
-      });
-    }
-  }
+    const job = createReceiptJob({
+      imagePath,
+      imageMimeType: file.type,
+      originalFilename: file.name
+    });
+    jobs.push(job);
 
-  if (receipts.length === 0) {
-    return NextResponse.json(
-      { error: "All receipt OCR attempts failed", failures, timings, total_ms: elapsedSince(requestStartedAt) },
-      { status: 502 }
-    );
+    // Wave 3 worker: OCR no longer blocks the upload. We file the job in the
+    // queue (createReceiptJob already marks it 'queued' with next_attempt_at =
+    // now) and hand it to setImmediate so the HTTP response returns within
+    // milliseconds, dodging reverse-proxy timeouts. If the worker dies
+    // between setImmediate and the OCR call, the scheduler tick (every
+    // SCHEDULER_OCR_INTERVAL_MS) will pick the job back up.
+    const baseTiming = {
+      filename: file.name,
+      size_bytes: bytes.byteLength,
+      read_ms: readMs,
+      save_ms: saveMs,
+      total_ms: elapsedSince(fileStartedAt)
+    };
+    timings.push(baseTiming);
+    setImmediate(() => {
+      processExpenseReceiptJob(job.id)
+        .then((result) => {
+          // Wave 2 feature: image compression — the original sync handler
+          // wrote thumbnail_path onto the receipt after OCR succeeded. The
+          // background path can't do that inline (no receipt.id yet at
+          // response time), so we do it here once the receipt exists.
+          if (thumbnailPath && !("error" in result)) {
+            db.update(expenseReceipts)
+              .set({ thumbnailPath })
+              .where(eq(expenseReceipts.id, result.receipt.id))
+              .run();
+          }
+        })
+        .catch((error) => {
+          console.error("[expenses:upload-bg]", {
+            jobId: job.id,
+            filename: file.name,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        });
+    });
   }
 
   return NextResponse.json(
-    { receipts, failures, timings, total_ms: elapsedSince(requestStartedAt) },
-    { status: failures.length > 0 ? 207 : 201 }
+    {
+      receipts,
+      failures,
+      jobs,
+      timings,
+      total_ms: elapsedSince(requestStartedAt),
+      status: "queued"
+    },
+    { status: 202 }
   );
 }
 

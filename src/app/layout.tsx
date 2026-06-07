@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link className="text-base font-bold text-[#17201c]" href="/">
               Health Monitor
             </Link>
-            <div className="flex gap-1 overflow-x-auto text-sm font-semibold">
+            <div className="flex max-w-full gap-1 overflow-x-auto whitespace-nowrap text-sm font-semibold">
               {navItems.map(([label, href]) => (
                 <Link className="rounded-md px-3 py-2 text-[#5d6963] transition hover:bg-white hover:text-[#17201c]" href={href} key={href}>
                   {label}

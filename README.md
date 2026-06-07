@@ -161,6 +161,10 @@ All forms follow a **lazy-recording philosophy**: capture the core signal first,
 | **PWA** | Web manifest, apple-touch-icon, standalone display |
 | **Deployment** | Docker, Docker Compose, [Tailscale](https://tailscale.com/) |
 
+### 🔐 Auth (optional, Wave 3)
+
+Set `EXPENSES_PASSWORD` to any non-empty value to require a login on `/expenses/*` and `/api/expenses/*`. Leave it empty for local dev. The session is a signed HttpOnly cookie (30 days) — no user table, no third-party auth library.
+
 ## 🚀 Getting Started
 
 ```bash
@@ -352,6 +356,10 @@ graph TB
 | **语言** | [TypeScript 5.8](https://www.typescriptlang.org/) (严格模式) |
 | **PWA** | Web manifest、apple-touch-icon、standalone 显示 |
 | **部署** | Docker、Docker Compose、[Tailscale](https://tailscale.com/) |
+
+### 🔐 鉴权（可选，Wave 3）
+
+设置 `EXPENSES_PASSWORD` 为任意非空值即可对 `/expenses/*` 页面与 `/api/expenses/*` API 启用登录。留空则保持开放（本地开发）。会话是签名过的 HttpOnly Cookie（30 天），无用户表、无第三方鉴权库。
 
 ## 🚀 快速开始
 

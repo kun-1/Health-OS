@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMoney } from "@/lib/expenses/money";
+import { formatMoney, fromCents } from "@/lib/expenses/money";
 
 type Props = {
   spent: number;
@@ -10,9 +10,21 @@ type Props = {
   dailyBudget: number;
   projectedOverBudget: boolean;
   projectedMonthEnd: number;
+  // Wave 1 cleanup: non-primary currencies present in the month, so we can
+  // show a muted "另有 $X USD 未计入预算" line under the ring.
+  otherCurrencies: { currency: string; cents: number }[];
 };
 
-export function HeroRing({ spent, budget, currency, daysRemaining, dailyBudget, projectedOverBudget, projectedMonthEnd }: Props) {
+export function HeroRing({
+  spent,
+  budget,
+  currency,
+  daysRemaining,
+  dailyBudget,
+  projectedOverBudget,
+  projectedMonthEnd,
+  otherCurrencies
+}: Props) {
   const ratio = budget > 0 ? Math.min(1.4, spent / budget) : 0;
   const visibleRatio = Math.min(1, ratio);
   const size = 220;
@@ -71,6 +83,15 @@ export function HeroRing({ spent, budget, currency, daysRemaining, dailyBudget, 
           每天可花 <strong>{formatMoney(dailyBudget, currency)}</strong>
         </span>
       </div>
+
+      {otherCurrencies.length > 0 ? (
+        <div className="exp-card__meta">
+          <span aria-hidden>🌐</span> 另有
+          {" "}
+          {otherCurrencies.map((entry) => formatMoney(fromCents(entry.cents), entry.currency)).join(" / ")}
+          {" "}未计入预算
+        </div>
+      ) : null}
 
       {projectedOverBudget ? (
         <div className="exp-hero__warn" role="status">
