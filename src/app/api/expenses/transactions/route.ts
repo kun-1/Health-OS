@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
           name_raw: expense.item_name,
           name_zh: expense.item_name,
           category_zh: expense.category_zh,
+          category_raw: null,
           quantity: expense.quantity,
           spec_text: null,
           food_amount_value: null,

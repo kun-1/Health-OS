@@ -1,29 +1,45 @@
 import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const records = sqliteTable("records", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  type: text("type").notNull(),
-  occurredAt: text("occurred_at").notNull(),
-  payloadJson: text("payload_json").notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull()
-});
+// Stage 1 nutrition scoring: substring patterns used to bucket expense_items
+// into plant-based / animal / ultra-processed groups. `raw_pattern` matches via
+// name_zh.includes(); user-set rows override seeded ones on tie.
+//
+// `油脂` (cooking oils) is intentionally separate from "未分类" so the
+// Harvard plate scorer can filter oils out — a 500 g bottle of oil would
+// otherwise dominate the "other" bucket and skew the ratio.
+export const nutritionCategories = [
+  "蔬菜",
+  "水果",
+  "全谷物",
+  "豆类",
+  "坚果",
+  "香料",
+  "动物性",
+  "油脂",
+  "含糖饮料",
+  "加工肉",
+  "反式零食",
+  "未分类"
+] as const;
 
-export type RecordRow = typeof records.$inferSelect;
+export type NutritionCategory = (typeof nutritionCategories)[number];
 
-export const supplementSchedules = sqliteTable("supplement_schedules", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  supplementName: text("supplement_name").notNull(),
-  brand: text("brand"),
-  doseText: text("dose_text"),
-  timeOfDay: text("time_of_day").notNull(),
-  daysOfWeek: text("days_of_week").notNull(),
-  active: integer("active").notNull().default(1),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull()
-});
+export const nutritionFoodAliases = sqliteTable(
+  "nutrition_food_aliases",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    rawPattern: text("raw_pattern").notNull().unique(),
+    category: text("category", { enum: nutritionCategories }).notNull(),
+    isUserSet: integer("is_user_set").notNull().default(0),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull()
+  },
+  (table) => ({
+    idxAliasPattern: index("idx_nutrition_aliases_pattern").on(table.rawPattern)
+  })
+);
 
-export type SupplementScheduleRow = typeof supplementSchedules.$inferSelect;
+export type NutritionFoodAliasRow = typeof nutritionFoodAliases.$inferSelect;
 
 export const expenseReceipts = sqliteTable("expense_receipts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -47,6 +63,11 @@ export const expenseReceiptJobs = sqliteTable("expense_receipt_jobs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   imagePath: text("image_path").notNull(),
   imageMimeType: text("image_mime_type").notNull(),
+  // Wave 3 multi-image: JSON-serialised [{path, mime}] for N-image jobs.
+  // Nullable for backward compat with legacy single-image rows (which
+  // synthesise a 1-element array at read time). `image_path`/`image_mime_type`
+  // above stay as the FIRST image for legacy queue-UI code.
+  imagePathsJson: text("image_paths_json"),
   originalFilename: text("original_filename").notNull(),
   status: text("status").notNull(),
   errorMessage: text("error_message"),
@@ -89,6 +110,10 @@ export const expenseItems = sqliteTable("expense_items", {
   nameRaw: text("name_raw").notNull(),
   nameZh: text("name_zh").notNull(),
   categoryZh: text("category_zh").notNull(),
+  // Wave 3: model's raw category output, populated by the schema transform
+  // when category_zh was coerced (alias or unknown). Null when the model
+  // already produced a canonical value. Old rows have null.
+  categoryRaw: text("category_raw"),
   quantity: text("quantity"),
   specText: text("spec_text"),
   foodAmountValue: real("food_amount_value"),
@@ -103,6 +128,25 @@ export const expenseItems = sqliteTable("expense_items", {
 });
 
 export type ExpenseItemRow = typeof expenseItems.$inferSelect;
+
+// Wave 3: a receipt can have N images (1:N). Used for the multi-screenshot
+// flow where a single shopping order is split across 2-3 mobile screenshots.
+// `position` is 0-based display order so the uploader's intent survives a
+// reload. Receipts always have at least one row here; the legacy
+// expense_receipts.image_path is kept only for backward compat with rows
+// that pre-date this table — a startup migration backfills it.
+export const expenseReceiptImages = sqliteTable("expense_receipt_images", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  receiptId: integer("receipt_id")
+    .notNull()
+    .references(() => expenseReceipts.id, { onDelete: "cascade" }),
+  imagePath: text("image_path").notNull(),
+  imageMimeType: text("image_mime_type").notNull(),
+  position: integer("position").notNull(),
+  createdAt: text("created_at").notNull()
+});
+
+export type ExpenseReceiptImageRow = typeof expenseReceiptImages.$inferSelect;
 
 // Wave 3 dedup: SHA-256 hex of the raw receipt bytes, mapped 1:1 to the
 // receipt that was created from them. Primary key on the hash gives O(1)

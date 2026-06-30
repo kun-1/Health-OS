@@ -166,14 +166,15 @@ export async function cleanupOrphanReceiptFiles(): Promise<{
   orphans_removed: number;
   errors: number;
 }> {
-  // Wave 3 worker: DB is source of truth. A file is "referenced" if any
-  // expense_receipt_jobs row, any expense_receipts row (image_path), or any
-  // expense_receipts row (thumbnail_path) points at it. Anything else is an
-  // orphan candidate.
+  // DB is source of truth. Include every live receipt image row and every
+  // image path embedded in a queued job; otherwise multi-screenshot uploads
+  // can lose their second image during orphan cleanup.
   const rows = rawDb
     .prepare(
       `
         SELECT image_path AS p FROM expense_receipt_jobs
+        UNION
+        SELECT image_path AS p FROM expense_receipt_images
         UNION
         SELECT image_path AS p FROM expense_receipts
         UNION
@@ -182,6 +183,20 @@ export async function cleanupOrphanReceiptFiles(): Promise<{
     )
     .all() as { p: string }[];
   const referenced = new Set(rows.map((r) => r.p));
+  const jobRows = rawDb
+    .prepare("SELECT image_paths_json AS imagePathsJson FROM expense_receipt_jobs WHERE image_paths_json IS NOT NULL")
+    .all() as { imagePathsJson: string | null }[];
+  for (const row of jobRows) {
+    if (!row.imagePathsJson) continue;
+    try {
+      const parsed = JSON.parse(row.imagePathsJson) as Array<{ path?: unknown }>;
+      for (const entry of parsed) {
+        if (typeof entry.path === "string") referenced.add(entry.path);
+      }
+    } catch {
+      // Keep cleanup conservative when a legacy/corrupt job has bad JSON.
+    }
+  }
 
   let scanned = 0;
   let orphans_removed = 0;
@@ -331,7 +346,8 @@ async function runSingleRecurringRule(rule: ReturnType<typeof getDueRecurringExp
         {
           name_raw: rule.merchant_name,
           name_zh: rule.merchant_name,
-          category_zh: rule.category_zh as Parameters<typeof createTransactionFromExtracted>[1]["items"][number]["category_zh"],
+          category_zh: rule.category_zh,
+          category_raw: null,
           quantity: "1",
           spec_text: null,
           food_amount_value: null,

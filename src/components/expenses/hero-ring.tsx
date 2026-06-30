@@ -19,16 +19,14 @@ export function HeroRing({
   spent,
   budget,
   currency,
-  daysRemaining,
-  dailyBudget,
   projectedOverBudget,
   projectedMonthEnd,
   otherCurrencies
 }: Props) {
   const ratio = budget > 0 ? Math.min(1.4, spent / budget) : 0;
   const visibleRatio = Math.min(1, ratio);
-  const size = 220;
-  const stroke = 16;
+  const size = 200;
+  const stroke = 10;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const dash = circumference * visibleRatio;
@@ -67,26 +65,13 @@ export function HeroRing({
         <div className="exp-ring__center">
           <span className="exp-ring__label">本月已花</span>
           <span className="exp-ring__value">{formatMoney(spent, currency)}</span>
-          <span className="exp-ring__sub">
-            / <strong>{formatMoney(budget, currency)}</strong> 预算 · {percentLabel}%
-          </span>
+          <span className="exp-ring__sub">{percentLabel}%</span>
         </div>
-      </div>
-
-      <div className="exp-hero__meta">
-        <span className="exp-hero__meta-pill">
-          <span aria-hidden>📅</span>
-          剩 <strong>{daysRemaining}</strong> 天
-        </span>
-        <span className="exp-hero__meta-pill">
-          <span aria-hidden>☕</span>
-          每天可花 <strong>{formatMoney(dailyBudget, currency)}</strong>
-        </span>
       </div>
 
       {otherCurrencies.length > 0 ? (
         <div className="exp-card__meta">
-          <span aria-hidden>🌐</span> 另有
+          另有
           {" "}
           {otherCurrencies.map((entry) => formatMoney(fromCents(entry.cents), entry.currency)).join(" / ")}
           {" "}未计入预算
@@ -95,8 +80,7 @@ export function HeroRing({
 
       {projectedOverBudget ? (
         <div className="exp-hero__warn" role="status">
-          <span aria-hidden>⚠️</span>
-          按当前节奏月底预计 {formatMoney(projectedMonthEnd, currency)}，会超预算
+          预算 {formatMoney(budget, currency)}，按当前节奏月底预计 {formatMoney(projectedMonthEnd, currency)}
         </div>
       ) : null}
     </div>

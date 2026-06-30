@@ -1,5 +1,7 @@
-import { ExpensesClient } from "@/components/expenses/expenses-client";
+import { NutritionDashboard } from "@/components/nutrition/nutrition-dashboard";
+
+export const dynamic = "force-dynamic";
 
 export default function ExpensesPage() {
-  return <ExpensesClient />;
+  return <NutritionDashboard />;
 }

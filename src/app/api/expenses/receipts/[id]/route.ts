@@ -10,6 +10,12 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+async function unlinkReceiptFiles(paths: Array<string | null | undefined>) {
+  for (const filePath of Array.from(new Set(paths.filter((value): value is string => Boolean(value))))) {
+    await fs.unlink(filePath).catch(() => undefined);
+  }
+}
+
 export async function GET(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   const receiptId = Number(id);
@@ -33,7 +39,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const body = await request.json().catch(() => null);
   const parsed = confirmExpenseReceiptSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid receipt", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "Invalid receipt",
+        details: parsed.error.flatten(),
+        issues: parsed.error.issues.map((issue) => ({
+          message: issue.message,
+          path: issue.path.join(".")
+        }))
+      },
+      { status: 400 }
+    );
   }
 
   try {
@@ -56,7 +72,11 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
   try {
     const receipt = deleteExpenseReceipt(receiptId);
-    await fs.unlink(receipt.image_path).catch(() => undefined);
+    await unlinkReceiptFiles([
+      receipt.image_path,
+      receipt.thumbnail_path,
+      ...receipt.images.map((image) => image.image_path)
+    ]);
     return NextResponse.json({ receipt });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Delete failed" }, { status: 404 });

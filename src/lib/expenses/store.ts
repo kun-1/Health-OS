@@ -2,12 +2,14 @@ import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, ne, or, sql } from "
 
 import {
   expenseItems,
+  expenseReceiptImages,
   expenseReceiptJobs,
   expenseReceipts,
   expenseTransactions,
   receiptHashes,
   recurringExpenses,
   type ExpenseItemRow,
+  type ExpenseReceiptImageRow,
   type ExpenseReceiptJobRow,
   type ExpenseReceiptRow,
   type ExpenseTransactionRow,
@@ -15,7 +17,7 @@ import {
 } from "@/db/schema";
 import { db, rawDb } from "@/lib/db";
 import { fromCents, formatMoney, toCents } from "@/lib/expenses/money";
-import { evaluateReceiptForPosting } from "@/lib/expenses/rules";
+import { calibrateConfidence, evaluateReceiptForPosting } from "@/lib/expenses/rules";
 import { extractedExpenseReceiptSchema, getBlockingFields } from "@/lib/expenses/validation";
 import type {
   ExpenseAnalytics,
@@ -27,6 +29,8 @@ import type {
   ExpenseReceiptSummary,
   ExpenseTransaction,
   ExtractedExpenseReceipt,
+  JobImage,
+  ReceiptImage,
   RecurringExpense,
   RecurringFrequency
 } from "@/lib/expenses/types";
@@ -178,6 +182,13 @@ function withDefaultReceiptFields(extracted: ExtractedExpenseReceipt): Extracted
     recognitionNote = appendRecognitionNote(recognitionNote, "购买日期缺失，已按当前日期补入，可在确认前修改");
   }
 
+  // Wave 3.5: calibrate confidence based on structural completeness so the
+  // stored row reflects both the OCR quality AND how complete the data is.
+  // Applied here (not just in evaluateReceiptForPosting) so confirmReceipt
+  // and updateExpenseTransaction also pick up the calibrated value when the
+  // user edits a receipt manually.
+  calibrateConfidence(normalized);
+
   // Wave 1 fix: do NOT filter needs_review_reasons here. The single source of
   // truth is evaluation.reviewReasons which is written to review_reasons_json
   // (and normalized_json) by the caller. Mutating the input list causes drift
@@ -223,6 +234,11 @@ function overlapRatio(a: string[], b: string[]): number {
   return shared / Math.min(left.size, right.size);
 }
 
+function isPublicTransitCandidate(candidate: DuplicateCandidate): boolean {
+  const text = normalizeDuplicateText([candidate.merchant, ...candidate.itemNames].filter(Boolean).join(" "));
+  return ["地铁", "公交", "公共交通", "轨道交通", "metro", "bus"].some((pattern) => text.includes(pattern));
+}
+
 function daysBetween(a: string | null, b: string | null): number | null {
   if (!a || !b) return null;
   const left = Date.parse(a);
@@ -234,6 +250,7 @@ function daysBetween(a: string | null, b: string | null): number | null {
 function duplicateHintFor(a: DuplicateCandidate, b: DuplicateCandidate): ExpenseDuplicateHint | null {
   if (a.id === b.id && a.kind === b.kind) return null;
   if (a.currency !== b.currency || a.totalAmount === null || b.totalAmount === null) return null;
+  if (isPublicTransitCandidate(a) && isPublicTransitCandidate(b)) return null;
 
   const amountDiff = Math.abs(a.totalAmount - b.totalAmount);
   const dayDiff = daysBetween(a.purchasedAt, b.purchasedAt);
@@ -325,7 +342,7 @@ function annotateDuplicateHints<
   };
 }
 
-function receiptFromRow(row: ExpenseReceiptRow): ExpenseReceiptSummary {
+function receiptFromRow(row: ExpenseReceiptRow, images: ReceiptImage[] = []): ExpenseReceiptSummary {
   const extracted = withDerivedFoodAmounts(extractedExpenseReceiptSchema.parse(JSON.parse(row.normalizedJson)));
   return {
     id: row.id,
@@ -334,6 +351,13 @@ function receiptFromRow(row: ExpenseReceiptRow): ExpenseReceiptSummary {
     image_mime_type: row.imageMimeType,
     // Wave 2 feature: image compression
     thumbnail_path: row.thumbnailPath,
+    // Wave 3 multi-image: pre-loaded by the caller via loadImagesForReceipts
+    // for batched paths (e.g. listExpenseReceipts). Single-receipt paths
+    // (getExpenseReceipt) pass a 1-element lookup as a fallback so the field
+    // is never undefined for downstream consumers. Empty array is correct
+    // for a receipt whose images were never populated (shouldn't happen
+    // post-migration, but harmless).
+    images,
     confidence: confidenceFromInt(row.confidence),
     review_reasons: JSON.parse(row.reviewReasonsJson) as string[],
     extracted,
@@ -343,11 +367,58 @@ function receiptFromRow(row: ExpenseReceiptRow): ExpenseReceiptSummary {
   };
 }
 
+function parseJobImagePaths(row: ExpenseReceiptJobRow): JobImage[] {
+  // Legacy rows (pre-Wave 3 multi-image) have image_paths_json = null.
+  // Synthesise a 1-element array from image_path/image_mime_type so the
+  // worker can iterate uniformly without special-casing legacy rows.
+  if (row.imagePathsJson) {
+    try {
+      const parsed = JSON.parse(row.imagePathsJson) as unknown;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const out: JobImage[] = [];
+        for (const entry of parsed) {
+          if (
+            entry &&
+            typeof entry === "object" &&
+            typeof (entry as JobImage).path === "string" &&
+            typeof (entry as JobImage).mime === "string"
+          ) {
+            out.push({ path: (entry as JobImage).path, mime: (entry as JobImage).mime });
+          }
+        }
+        if (out.length > 0) return out;
+      }
+    } catch {
+      // Malformed JSON — fall through to the legacy single-image fallback.
+    }
+  }
+  // Hardening: the legacy fallback used to silently return
+  // `[{ path: "", mime: "" }]` when row.imagePath was an empty string
+  // (the schema says notNull but doesn't enforce non-empty). That made
+  // downstream OCR errors opaque ("file '' not found") and produced the
+  // confusing "imagePaths: []" / "imagePaths: ['']" lines in the worker
+  // log. We log loudly and return [] — the worker catches this in its
+  // pre-flight file-existence check (and the enriched failure log now
+  // includes image_count + legacy_image_path + legacy_image_mime_type
+  // so the empty case is self-describing). Returning instead of throwing
+  // here is deliberate: listDueExpenseReceiptJobs iterates many rows
+  // and a throw from one corrupted row would block every other queued
+  // job from being processed until the bad row is manually cleaned up.
+  if (!row.imagePath || !row.imageMimeType) {
+    console.error(
+      `[expenses:store] receipt job ${row.id} has no usable image paths (image_path=${JSON.stringify(row.imagePath)}, image_mime_type=${JSON.stringify(row.imageMimeType)}, image_paths_json=${JSON.stringify(row.imagePathsJson)}) — returning empty image_paths; the worker will surface a clear error`
+    );
+    return [];
+  }
+  return [{ path: row.imagePath, mime: row.imageMimeType }];
+}
+
 function jobFromRow(row: ExpenseReceiptJobRow): ExpenseReceiptJob {
   return {
     id: row.id,
     image_path: row.imagePath,
     image_mime_type: row.imageMimeType,
+    image_paths: parseJobImagePaths(row),
     original_filename: row.originalFilename,
     status: row.status as ExpenseReceiptJobStatus,
     error_message: row.errorMessage,
@@ -360,13 +431,72 @@ function jobFromRow(row: ExpenseReceiptJobRow): ExpenseReceiptJob {
   };
 }
 
+// Wave 3 multi-image: batch-load the receipt-image rows for many receipts in
+// one query so listExpenseReceipts (and similar callers) don't fall into the
+// classic N+1 trap. Returns a Map keyed by receipt_id. Positions are
+// returned in ascending order — callers that render a carousel can rely on
+// the order matching the user's upload intent.
+function loadImagesForReceipts(receiptIds: number[]): Map<number, ReceiptImage[]> {
+  const map = new Map<number, ReceiptImage[]>();
+  if (receiptIds.length === 0) return map;
+  const rows = db
+    .select()
+    .from(expenseReceiptImages)
+    .where(inArray(expenseReceiptImages.receiptId, receiptIds))
+    .orderBy(asc(expenseReceiptImages.receiptId), asc(expenseReceiptImages.position))
+    .all() as ExpenseReceiptImageRow[];
+  for (const row of rows) {
+    const list = map.get(row.receiptId) ?? [];
+    list.push({
+      id: row.id,
+      image_path: row.imagePath,
+      image_mime_type: row.imageMimeType,
+      position: row.position
+    });
+    map.set(row.receiptId, list);
+  }
+  return map;
+}
+
+function loadImagesForOneReceipt(receiptId: number): ReceiptImage[] {
+  return loadImagesForReceipts([receiptId]).get(receiptId) ?? [];
+}
+
+// Wave 3 multi-image: insert N receipt-image rows inside a single SQLite
+// transaction. The caller is responsible for saving the bytes to disk and
+// generating thumbnails — this only writes the relational records. The
+// position field is supplied by the caller so the upload endpoint can
+// preserve upload order (multi-image receipts must show screenshots in the
+// user's intended sequence).
+function insertReceiptImages(
+  receiptId: number,
+  images: Array<{ imagePath: string; imageMimeType: string; position: number }>
+): void {
+  if (images.length === 0) return;
+  const now = new Date().toISOString();
+  db.transaction((tx) => {
+    for (const image of images) {
+      tx.insert(expenseReceiptImages)
+        .values({
+          receiptId,
+          imagePath: image.imagePath,
+          imageMimeType: image.imageMimeType,
+          position: image.position,
+          createdAt: now
+        })
+        .run();
+    }
+  });
+}
+
 function itemFromRow(row: ExpenseItemRow): ExpenseItem {
   return {
     id: row.id,
     transaction_id: row.transactionId,
     name_raw: row.nameRaw,
     name_zh: row.nameZh,
-    category_zh: row.categoryZh as ExpenseItem["category_zh"],
+    category_zh: row.categoryZh,
+    category_raw: row.categoryRaw ?? null,
     quantity: row.quantity,
     spec_text: cleanSpecText(row.specText),
     food_amount_value: row.foodAmountValue,
@@ -482,6 +612,7 @@ export function createTransactionFromExtracted(
           nameRaw: item.name_raw,
           nameZh: item.name_zh,
           categoryZh: item.category_zh,
+          categoryRaw: item.category_raw,
           quantity: item.quantity,
           specText: cleanSpecText(item.spec_text),
           foodAmountValue: item.food_amount_value,
@@ -515,17 +646,36 @@ export function createReceipt(input: {
   // can short-circuit with a 409. Hash is secondary; failures are logged
   // and never block the receipt itself.
   contentHash?: string | null;
+  contentHashes?: string[];
+  // Wave 3 multi-image: every image that belongs to this receipt, in display
+  // order. The first entry's path is what we write into the parent row's
+  // legacy `image_path` column for back-compat with queue/UI code that
+  // hasn't migrated to the `images` sub-array. If omitted, we synthesise a
+  // single image from `imagePath` + `imageMimeType` so single-image callers
+  // (the existing worker / reprocess path) don't need to change.
+  images?: Array<{ imagePath: string; imageMimeType: string; thumbnailPath?: string | null }>;
 }): ExpenseReceiptSummary {
   const now = new Date().toISOString();
   const extracted = withDefaultReceiptFields(input.extracted);
   const evaluation = evaluateReceiptForPosting(extracted);
   const status: ExpenseReceiptStatus = evaluation.canAutoPost ? "auto_posted" : "pending_review";
+  const images = input.images ?? [
+    {
+      imagePath: input.imagePath,
+      imageMimeType: input.imageMimeType,
+      thumbnailPath: input.thumbnailPath ?? null
+    }
+  ];
+  if (images.length === 0) {
+    throw new Error("createReceipt: at least one image is required");
+  }
   const result = db
     .insert(expenseReceipts)
     .values({
-      imagePath: input.imagePath,
-      imageMimeType: input.imageMimeType,
-      thumbnailPath: input.thumbnailPath ?? null,
+      // Legacy compat: keep the first image's path/mime on the parent row.
+      imagePath: images[0].imagePath,
+      imageMimeType: images[0].imageMimeType,
+      thumbnailPath: images[0].thumbnailPath ?? input.thumbnailPath ?? null,
       status,
       rawModelJson: JSON.stringify(input.rawModelJson),
       normalizedJson: JSON.stringify({ ...extracted, needs_review_reasons: evaluation.reviewReasons }),
@@ -538,6 +688,20 @@ export function createReceipt(input: {
     .run();
 
   const receiptId = Number(result.lastInsertRowid);
+  // Wave 3 multi-image: write the sub-table inside the same insert flow. The
+  // first row's position=0 is implicit; for legacy single-image callers the
+  // synthesised array has exactly one entry. Thumbnail paths are not stored
+  // on the sub-table rows — they share the parent's `thumbnail_path` for
+  // now (we only render the first image as the card thumbnail; the rest
+  // open full-size from the receipt detail).
+  insertReceiptImages(
+    receiptId,
+    images.map((image, index) => ({
+      imagePath: image.imagePath,
+      imageMimeType: image.imageMimeType,
+      position: index
+    }))
+  );
   if (status === "auto_posted") {
     const transaction = createTransactionFromExtracted(receiptId, extracted);
     db.update(expenseReceipts)
@@ -548,12 +712,14 @@ export function createReceipt(input: {
   // Wave 3 dedup: record the hash outside the receipt insert. PRIMARY KEY
   // collision means a previous upload already owns this hash — log and move
   // on rather than failing the receipt (hash table is secondary).
-  if (input.contentHash) {
+  const hashes = Array.from(new Set([input.contentHash, ...(input.contentHashes ?? [])].filter(Boolean) as string[]));
+  for (const hash of hashes) {
     try {
-      recordReceiptHash(receiptId, input.contentHash);
+      recordReceiptHash(receiptId, hash);
     } catch (error) {
       console.warn("[expenses:dedup] recordReceiptHash failed", {
         receiptId,
+        hash,
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -596,14 +762,23 @@ export function replaceExpenseReceiptExtraction(
 export function createReceiptJob(input: {
   imagePath: string;
   imageMimeType: string;
+  // Wave 3 multi-image: ordered list of every image this job should OCR.
+  // When omitted, the job is treated as a legacy single-image job and the
+  // store synthesises a 1-element list from imagePath/imageMimeType. The
+  // first entry always equals `{ path: imagePath, mime: imageMimeType }` so
+  // the legacy `image_path` column stays correct for queue-UI code.
+  imagePaths?: Array<{ path: string; mime: string }>;
   originalFilename: string;
 }): ExpenseReceiptJob {
   const now = new Date().toISOString();
+  const imagePaths = input.imagePaths ?? [{ path: input.imagePath, mime: input.imageMimeType }];
+  const imagePathsJson = imagePaths.length > 0 ? JSON.stringify(imagePaths) : null;
   const result = db
     .insert(expenseReceiptJobs)
     .values({
       imagePath: input.imagePath,
       imageMimeType: input.imageMimeType,
+      imagePathsJson,
       originalFilename: input.originalFilename,
       status: "queued",
       errorMessage: null,
@@ -675,18 +850,23 @@ export function listDueExpenseReceiptJobs(limit = 2): ExpenseReceiptJob[] {
 
 export function markReceiptJobProcessing(id: number): ExpenseReceiptJob {
   const now = new Date().toISOString();
-  // Wave 3 polish (H3): migrated to drizzle. The attempts increment uses
-  // sql`` because Drizzle's typed set() doesn't allow column references on
-  // the right-hand side of an assignment.
-  db.update(expenseReceiptJobs)
-    .set({
-      status: "processing",
-      attempts: sql`${expenseReceiptJobs.attempts} + 1`,
-      lastAttemptAt: now,
-      updatedAt: now
-    })
-    .where(eq(expenseReceiptJobs.id, id))
-    .run();
+  const result = rawDb
+    .prepare(
+      `
+        UPDATE expense_receipt_jobs
+        SET status = 'processing',
+            attempts = attempts + 1,
+            last_attempt_at = ?,
+            updated_at = ?
+        WHERE id = ?
+          AND status IN ('queued', 'failed')
+      `
+    )
+    .run(now, now, id);
+  if (result.changes !== 1) {
+    const current = getExpenseReceiptJob(id);
+    throw new Error(`Receipt job ${id} cannot be processed from status ${current.status}`);
+  }
   return getExpenseReceiptJob(id);
 }
 
@@ -742,25 +922,116 @@ export function deleteExpenseReceiptJob(id: number): ExpenseReceiptJob {
   return job;
 }
 
+// Wave 3: bring a dead (or any non-completed) job back to the queue with a
+// fresh attempts budget. Used when the user wants to retry a job that hit
+// MAX_JOB_ATTEMPTS under an old config (e.g. 180s wall timeout) and a code
+// change has made the new pipeline more likely to succeed. Doesn't touch
+// the on-disk image — if it's been deleted upstream, processExpenseReceiptJob
+// will surface a clean error instead of silently producing garbage.
+export function resetExpenseReceiptJobForRetry(id: number): ExpenseReceiptJob {
+  const job = getExpenseReceiptJob(id);
+  if (job.status === "completed") {
+    throw new Error("Cannot reset a completed job");
+  }
+  const now = new Date().toISOString();
+  db.update(expenseReceiptJobs)
+    .set({
+      status: "queued",
+      attempts: 0,
+      errorMessage: null,
+      nextAttemptAt: now,
+      lastAttemptAt: null,
+      updatedAt: now
+    })
+    .where(eq(expenseReceiptJobs.id, id))
+    .run();
+  return getExpenseReceiptJob(id);
+}
+
 export function confirmReceipt(id: number, extracted: ExtractedExpenseReceipt): ExpenseReceiptSummary {
   const existing = getExpenseReceipt(id);
   if (existing.transaction_id) {
     return existing;
   }
   const normalizedExtracted = withDefaultReceiptFields(extracted);
-  const transaction = createTransactionFromExtracted(id, { ...normalizedExtracted, needs_review_reasons: [] });
+  const blockers = getBlockingFields(normalizedExtracted);
+  if (blockers.length > 0) {
+    throw new Error(`Cannot confirm incomplete receipt: ${blockers.join("、")}`);
+  }
+  if (!normalizedExtracted.merchant_name || !normalizedExtracted.purchased_at || normalizedExtracted.total_amount === null) {
+    throw new Error("Cannot confirm incomplete receipt");
+  }
   const now = new Date().toISOString();
-  db.update(expenseReceipts)
-    .set({
-      status: "confirmed",
-      normalizedJson: JSON.stringify({ ...normalizedExtracted, needs_review_reasons: [] }),
-      confidence: confidenceToInt(normalizedExtracted.confidence),
-      reviewReasonsJson: JSON.stringify([]),
-      transactionId: transaction.id,
-      updatedAt: now
-    })
-    .where(eq(expenseReceipts.id, id))
-    .run();
+  const merchantName = normalizedExtracted.merchant_name;
+  const purchasedAt = normalizedExtracted.purchased_at;
+  db.transaction((tx) => {
+    const existingTransaction = tx
+      .select()
+      .from(expenseTransactions)
+      .where(eq(expenseTransactions.receiptId, id))
+      .get();
+    const transactionId = existingTransaction
+      ? existingTransaction.id
+      : Number(
+          tx
+            .insert(expenseTransactions)
+            .values({
+              receiptId: id,
+              merchantName,
+              purchasedAt,
+              subtotalAmountCents:
+                normalizedExtracted.subtotal_amount === null ? null : toCents(normalizedExtracted.subtotal_amount),
+              totalAmountCents: toCents(normalizedExtracted.total_amount),
+              currency: normalizedExtracted.currency,
+              taxAmountCents: toCents(normalizedExtracted.tax_amount),
+              processingFeeCents: toCents(normalizedExtracted.processing_fee),
+              deliveryFeeCents: toCents(normalizedExtracted.delivery_fee),
+              deliveryDiscountCents: toCents(normalizedExtracted.delivery_discount),
+              discountAmountCents: toCents(normalizedExtracted.discount_amount),
+              notes: normalizedExtracted.user_note,
+              excludedFromBudget: 0,
+              createdAt: now,
+              updatedAt: now
+            })
+            .run().lastInsertRowid
+        );
+    if (!existingTransaction) {
+      for (const item of normalizedExtracted.items) {
+        tx.insert(expenseItems)
+          .values({
+            transactionId,
+            nameRaw: item.name_raw,
+            nameZh: item.name_zh,
+            categoryZh: item.category_zh,
+            categoryRaw: item.category_raw,
+            quantity: item.quantity,
+            specText: cleanSpecText(item.spec_text),
+            foodAmountValue: item.food_amount_value,
+            foodAmountUnit: item.food_amount_unit,
+            unitPriceCents: item.unit_price === null ? null : toCents(item.unit_price),
+            discountedUnitPriceCents:
+              item.discounted_unit_price === null ? null : toCents(item.discounted_unit_price),
+            amountCents: item.amount === null ? null : toCents(item.amount),
+            confidence: confidenceToInt(item.confidence),
+            notes: item.notes,
+            createdAt: now,
+            updatedAt: now
+          })
+          .run();
+      }
+    }
+    tx.update(expenseReceipts)
+      .set({
+        status: "confirmed",
+        normalizedJson: JSON.stringify({ ...normalizedExtracted, needs_review_reasons: [] }),
+        confidence: confidenceToInt(normalizedExtracted.confidence),
+        reviewReasonsJson: JSON.stringify([]),
+        transactionId,
+        updatedAt: now
+      })
+      .where(eq(expenseReceipts.id, id))
+      .run();
+  });
   return getExpenseReceipt(id);
 }
 
@@ -824,6 +1095,7 @@ export function updateExpenseTransaction(
           nameRaw: item.name_raw,
           nameZh: item.name_zh,
           categoryZh: item.category_zh,
+          categoryRaw: item.category_raw,
           quantity: item.quantity,
           specText: cleanSpecText(item.spec_text),
           foodAmountValue: item.food_amount_value,
@@ -911,7 +1183,80 @@ export function deleteExpenseReceipt(id: number): ExpenseReceiptSummary {
 export function getExpenseReceipt(id: number): ExpenseReceiptSummary {
   const row = db.select().from(expenseReceipts).where(eq(expenseReceipts.id, id)).get();
   if (!row) throw new Error(`Expense receipt ${id} not found`);
-  return receiptFromRow(row);
+  // Wave 3 multi-image: single-receipt path loads its own sub-table rows.
+  // Hot path (analytics pending list) takes the batched variant below.
+  return receiptFromRow(row, loadImagesForOneReceipt(id));
+}
+
+// Wave 3 multi-image: append N images to an existing receipt's sub-table.
+// Used by the "add more screenshots" flow on pending_review receipts — the
+// caller is responsible for saving bytes to disk first and for re-running
+// OCR afterwards (this function only writes the relational records).
+// Returns the freshly-inserted rows so callers can render thumbnails without
+// a second query.
+export function addReceiptImages(
+  receiptId: number,
+  images: Array<{ imagePath: string; imageMimeType: string }>
+): ReceiptImage[] {
+  const existing = loadImagesForOneReceipt(receiptId);
+  const startPosition = existing.length;
+  const toInsert = images.map((image, index) => ({
+    imagePath: image.imagePath,
+    imageMimeType: image.imageMimeType,
+    position: startPosition + index
+  }));
+  insertReceiptImages(receiptId, toInsert);
+  // Return the freshly-inserted rows (best-effort: re-query so we get the
+  // synthesised `id` values the sub-table assigned).
+  return loadImagesForOneReceipt(receiptId).slice(startPosition);
+}
+
+// Wave 3 multi-image: replace ALL of a receipt's image rows with a new set.
+// Used by reprocess flows that need to swap in updated images without
+// leaving dangling rows from a prior session. The first new row's path is
+// also written to the parent's legacy `image_path` column for the queue
+// thumbnails.
+export function replaceReceiptImages(
+  receiptId: number,
+  images: Array<{ imagePath: string; imageMimeType: string }>
+): ReceiptImage[] {
+  const now = new Date().toISOString();
+  db.transaction((tx) => {
+    tx.delete(expenseReceiptImages).where(eq(expenseReceiptImages.receiptId, receiptId)).run();
+    for (let i = 0; i < images.length; i += 1) {
+      const image = images[i];
+      tx.insert(expenseReceiptImages)
+        .values({
+          receiptId,
+          imagePath: image.imagePath,
+          imageMimeType: image.imageMimeType,
+          position: i,
+          createdAt: now
+        })
+        .run();
+    }
+    if (images.length > 0) {
+      tx.update(expenseReceipts)
+        .set({
+          imagePath: images[0].imagePath,
+          imageMimeType: images[0].imageMimeType,
+          updatedAt: now
+        })
+        .where(eq(expenseReceipts.id, receiptId))
+        .run();
+    }
+  });
+  return loadImagesForOneReceipt(receiptId);
+}
+
+// Wave 3 multi-image: helper for the "add more images" + "reprocess" paths.
+// Returns the receipt's image paths + mime types, preserving position order.
+// Empty array = receipt has no images (shouldn't happen post-migration).
+export function getReceiptImageInputs(receiptId: number): Array<{ imagePath: string; imageMimeType: string }> {
+  return loadImagesForOneReceipt(receiptId).map((row) => ({
+    imagePath: row.image_path,
+    imageMimeType: row.image_mime_type
+  }));
 }
 
 // Wave 3 dedup: O(1) lookup by hash. Returns the existing receipt summary
@@ -955,7 +1300,12 @@ export function setExpenseTransactionExclusion(id: number, excluded: boolean): E
 }
 
 export function listExpenseReceipts(limit = 20): ExpenseReceiptSummary[] {
-  return db.select().from(expenseReceipts).orderBy(desc(expenseReceipts.createdAt)).limit(limit).all().map(receiptFromRow);
+  // Wave 3 multi-image: batch-load the image rows for all selected receipts
+  // in one query, then pass the per-receipt slices into receiptFromRow so
+  // ExpenseReceiptSummary.images is populated without N+1.
+  const rows = db.select().from(expenseReceipts).orderBy(desc(expenseReceipts.createdAt)).limit(limit).all();
+  const imagesByReceipt = loadImagesForReceipts(rows.map((row) => row.id));
+  return rows.map((row) => receiptFromRow(row, imagesByReceipt.get(row.id) ?? []));
 }
 
 export function getExpenseTransaction(id: number): ExpenseTransaction {
@@ -1104,59 +1454,53 @@ export function monthRange(month: string, tz: string) {
 
 export const DEFAULT_EXPENSE_TZ = "Asia/Shanghai";
 
+// Apple Card chart: local re-implementation of expenses-client.tsx's
+// offsetMonth helper. We don't export it from the client to avoid a circular
+// server→client import. 5 lines, so duplication is cheaper than the wiring.
+function shiftMonth(month: string, delta: number): string {
+  const [yStr, mStr] = month.split("-");
+  const y = Number(yStr);
+  const m = Number(mStr);
+  if (!y || !m) return month;
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function computeDailyTotalsFromTransactions(transactions: ExpenseTransaction[], tz: string, currency: string): { day: string; amount: number }[] {
+  const buckets = new Map<string, number>();
+  for (const transaction of transactions) {
+    if (transaction.currency !== currency) continue;
+    const day = dayKeyInTimezone(transaction.purchased_at, tz);
+    buckets.set(day, (buckets.get(day) ?? 0) + toCents(transaction.total_amount));
+  }
+  return Array.from(buckets.entries())
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([day, cents]) => ({ day, amount: fromCents(cents) }));
+}
+
+// Apple Card chart: convert a UTC ISO string to the YYYY-MM-DD local day in
+// `tz`. We use Intl.DateTimeFormat so DST transitions land on the right day
+// for IANA zones (Shanghai is fixed at +08:00, but other users may not be).
+function dayKeyInTimezone(iso: string, tz: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date(iso));
+  const y = parts.find((p) => p.type === "year")?.value ?? "0000";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
+}
+
 export function getExpenseAnalytics(
   month = new Date().toISOString().slice(0, 7),
   tz: string = DEFAULT_EXPENSE_TZ,
   // Wave 2 feature: budget settings — caller-supplied overrides take
   // precedence over the hardcoded fallback below.
-  overrides: { budgetCents?: number | null; primaryCurrency?: string | null } = {}
+  overrides: { budgetCents?: number | null; budgetTopUpCents?: number | null; primaryCurrency?: string | null } = {}
 ): ExpenseAnalytics {
-  const { start, end } = monthRange(month, tz);
-  const totals = rawDb
-    .prepare(
-      `
-        SELECT
-          COALESCE(SUM(total_amount_cents), 0) AS total
-        FROM expense_transactions
-        WHERE purchased_at >= ?
-          AND purchased_at < ?
-          AND excluded_from_budget = 0
-      `
-    )
-    .get(start, end) as { total: number };
-
-  // Wave 1 (Feature #3): also sum the excluded transactions so we can show
-  // the user how much was carved out of the budget.
-  const excludedRow = rawDb
-    .prepare(
-      `
-        SELECT
-          COALESCE(SUM(total_amount_cents), 0) AS total
-        FROM expense_transactions
-        WHERE purchased_at >= ?
-          AND purchased_at < ?
-          AND excluded_from_budget = 1
-      `
-    )
-    .get(start, end) as { total: number };
-
-  const categoryRows = rawDb
-    .prepare(
-      `
-        SELECT i.category_zh AS category_zh, COALESCE(SUM(i.amount_cents), 0) AS amount
-        FROM expense_items i
-        JOIN expense_transactions t ON t.id = i.transaction_id
-        WHERE t.purchased_at >= ?
-          AND t.purchased_at < ?
-          AND t.excluded_from_budget = 0
-        GROUP BY i.category_zh
-        ORDER BY amount DESC
-      `
-    )
-    .all(start, end) as { category_zh: ExpenseAnalytics["category_totals"][number]["category_zh"]; amount: number }[];
-
-  // Wave 1 cleanup: group totals by currency so the page-level KPI / hero /
-  // donut can show per-currency figures instead of silently mixing units.
   // Wave 2 feature: budget settings — primary currency is now caller-
   // overridable. Fallback is the hardcoded constant for back-compat.
   const primaryCurrency =
@@ -1164,66 +1508,47 @@ export function getExpenseAnalytics(
       ? overrides.primaryCurrency
       : "CNY";
   const budgetCurrency = primaryCurrency;
-  const budgetCents =
+  const baseBudgetCents =
     typeof overrides.budgetCents === "number" && overrides.budgetCents > 0
       ? overrides.budgetCents
       : MONTHLY_EXPENSE_BUDGET * 100;
+  const budgetTopUpCents =
+    typeof overrides.budgetTopUpCents === "number" && overrides.budgetTopUpCents > 0
+      ? Math.round(overrides.budgetTopUpCents)
+      : 0;
+  const budgetCents = baseBudgetCents + budgetTopUpCents;
 
-  const totalByCurrencyRows = rawDb
-    .prepare(
-      `
-        SELECT currency, COALESCE(SUM(total_amount_cents), 0) AS total
-        FROM expense_transactions
-        WHERE purchased_at >= ?
-          AND purchased_at < ?
-          AND excluded_from_budget = 0
-        GROUP BY currency
-      `
-    )
-    .all(start, end) as { currency: string; total: number }[];
-
-  const excludedByCurrencyRows = rawDb
-    .prepare(
-      `
-        SELECT currency, COALESCE(SUM(total_amount_cents), 0) AS total
-        FROM expense_transactions
-        WHERE purchased_at >= ?
-          AND purchased_at < ?
-          AND excluded_from_budget = 1
-        GROUP BY currency
-      `
-    )
-    .all(start, end) as { currency: string; total: number }[];
+  const monthTransactions = listExpenseTransactions(5000, 0, month, tz).rows;
+  const countedTransactions = monthTransactions.filter((transaction) => !transaction.excluded_from_budget);
+  const excludedTransactions = monthTransactions.filter((transaction) => transaction.excluded_from_budget);
 
   const totalByCurrency: Record<string, number> = {};
-  for (const row of totalByCurrencyRows) {
-    totalByCurrency[row.currency] = row.total;
+  for (const transaction of countedTransactions) {
+    totalByCurrency[transaction.currency] = (totalByCurrency[transaction.currency] ?? 0) + toCents(transaction.total_amount);
   }
   const excludedByCurrency: Record<string, number> = {};
-  for (const row of excludedByCurrencyRows) {
-    excludedByCurrency[row.currency] = row.total;
+  for (const transaction of excludedTransactions) {
+    excludedByCurrency[transaction.currency] = (excludedByCurrency[transaction.currency] ?? 0) + toCents(transaction.total_amount);
   }
 
   const primarySpentCents = totalByCurrency[budgetCurrency] ?? 0;
   const budgetRemainingCents = budgetCents - primarySpentCents;
 
-  // Wave 1 cleanup: category breakdown scoped to the primary currency so the
-  // donut percentages sum to 100% of what counts against the budget.
-  const categoryBreakdownRows = rawDb
-    .prepare(
-      `
-        SELECT i.category_zh AS category_zh, COALESCE(SUM(i.amount_cents), 0) AS amount
-        FROM expense_items i
-        JOIN expense_transactions t ON t.id = i.transaction_id
-        WHERE t.purchased_at >= ?
-          AND t.purchased_at < ?
-          AND t.excluded_from_budget = 0
-          AND t.currency = ?
-        GROUP BY i.category_zh
-        ORDER BY amount DESC
-      `
-    )
-    .all(start, end, budgetCurrency) as { category_zh: ExpenseAnalytics["category_totals"][number]["category_zh"]; amount: number }[];
+  const primaryCategoryTotals = new Map<string, number>();
+  for (const transaction of countedTransactions) {
+    if (transaction.currency !== budgetCurrency) continue;
+    for (const item of transaction.items) {
+      primaryCategoryTotals.set(item.category_zh, (primaryCategoryTotals.get(item.category_zh) ?? 0) + toCents(item.amount ?? 0));
+    }
+  }
+  const categoryRows = Array.from(primaryCategoryTotals.entries())
+    .map(([category_zh, amount]) => ({
+      category_zh: category_zh as ExpenseAnalytics["category_totals"][number]["category_zh"],
+      amount
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const categoryBreakdownRows = categoryRows;
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1232,8 +1557,8 @@ export function getExpenseAnalytics(
   const todayOfMonth = now.getDate();
   const elapsedDays = Math.max(1, todayOfMonth);
   const remainingDays = Math.max(1, totalDays - todayOfMonth);
-  const spent = fromCents(totals.total);
-  const excluded = fromCents(excludedRow.total);
+  const spent = fromCents(primarySpentCents);
+  const excluded = fromCents(excludedByCurrency[budgetCurrency] ?? 0);
   // Wave 1 fix (Bug #14): the effective spend is what hits the budget; this
   // stays the same in single-currency usage and is documented for multi-currency.
   const effectiveSpent = spent;
@@ -1246,8 +1571,10 @@ export function getExpenseAnalytics(
   // Wave 1 (Feature #3): build a friendly "已剔除 X 不计预算" label when there
   // are excluded transactions this month.
   // Wave 2 feature: budget settings — label uses the user-selected currency.
-  const budgetProgressLabel =
-    excluded > 0 ? `已剔除 ${formatMoney(excluded, primaryCurrency)} 不计预算` : null;
+  const budgetProgressParts = [
+    excluded > 0 ? `已剔除 ${formatMoney(excluded, primaryCurrency)} 不计预算` : null
+  ].filter(Boolean);
+  const budgetProgressLabel = budgetProgressParts.length > 0 ? budgetProgressParts.join(" · ") : null;
 
   // Wave 1 fix (Bug #14): pre-format every transaction's total in its own
   // currency so cards don't have to call Intl on the client and so the page
@@ -1258,9 +1585,22 @@ export function getExpenseAnalytics(
   const pendingReceipts = listExpenseReceipts(20).filter((receipt) => receipt.status === "pending_review");
   const duplicateAnnotated = annotateDuplicateHints(pendingReceipts, recentTransactions);
 
+  // Apple Card chart: per-day totals for the current and previous month.
+  // We fetch raw `purchased_at` + `total_amount_cents` and bucket them in JS
+  // using Intl.DateTimeFormat with the user's timezone — SQLite's
+  // `date(..., 'localtime')` would use the server's local TZ instead of the
+  // user's, which silently shifts day boundaries for non-UTC users.
+  const currentMonthDailyTotals = computeDailyTotalsFromTransactions(countedTransactions, tz, budgetCurrency);
+  const prevMonth = shiftMonth(month, -1);
+  const prevMonthTransactions = listExpenseTransactions(5000, 0, prevMonth, tz).rows;
+  const prevCountedTransactions = prevMonthTransactions.filter((transaction) => !transaction.excluded_from_budget);
+  const prevMonthDailyTotals = computeDailyTotalsFromTransactions(prevCountedTransactions, tz, budgetCurrency);
+
   return {
     month,
     timezone: tz,
+    base_monthly_budget: fromCents(baseBudgetCents),
+    budget_top_up: fromCents(budgetTopUpCents),
     monthly_budget: monthlyBudgetYuan,
     spent_this_month: spent,
     excluded_this_month: excluded,
@@ -1293,7 +1633,9 @@ export function getExpenseAnalytics(
       category_zh: row.category_zh,
       amount: row.amount,
       currency: budgetCurrency
-    }))
+    })),
+    daily_totals: currentMonthDailyTotals,
+    prev_month_daily_totals: prevMonthDailyTotals
   };
 }
 

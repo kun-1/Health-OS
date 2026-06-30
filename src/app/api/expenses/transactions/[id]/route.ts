@@ -18,6 +18,12 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+async function unlinkReceiptFiles(paths: Array<string | null | undefined>) {
+  for (const filePath of Array.from(new Set(paths.filter((value): value is string => Boolean(value))))) {
+    await fs.unlink(filePath).catch(() => undefined);
+  }
+}
+
 // Wave 1 (Feature #3): allow a "just toggle the budget exclusion" PATCH
 // without sending the full receipt payload.
 // Wave 1 review fix (H4): .strict() rejects unknown keys with a 400 instead
@@ -89,7 +95,11 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     const receipt = transaction.receipt_id ? getExpenseReceipt(transaction.receipt_id) : null;
     const deleted = deleteExpenseTransaction(transactionId);
     if (receipt) {
-      await fs.unlink(receipt.image_path).catch(() => undefined);
+      await unlinkReceiptFiles([
+        receipt.image_path,
+        receipt.thumbnail_path,
+        ...receipt.images.map((image) => image.image_path)
+      ]);
     }
     return NextResponse.json({ transaction: deleted });
   } catch (error) {

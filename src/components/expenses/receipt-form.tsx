@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { formatMoney } from "@/lib/expenses/money";
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from "@/lib/expenses/settings";
@@ -13,11 +13,95 @@ type Props = {
   onChange: (next: ExtractedExpenseReceipt) => void;
 };
 
+type PreviewData = {
+  name_zh: string;
+  category: string;
+  confidence: number;
+  matchedPattern: string | null;
+  color: string | null;
+  excludedFromPlate: boolean;
+  isUserOverridden: boolean;
+};
+
+type PreviewState =
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "ok"; data: PreviewData }
+  | { kind: "error" };
+
+// Per-item live preview of the nutrition classifier. Debounced 250 ms
+// after the user stops typing so we're not pinging the API per keystroke.
+// Errors are silent — the chip just disappears; the user shouldn't see a
+// "preview failed" toast every time they type a new word.
+function NamePreview({ name }: { name: string }) {
+  const [state, setState] = useState<PreviewState>({ kind: "idle" });
+
+  useEffect(() => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) {
+      setState({ kind: "idle" });
+      return;
+    }
+    setState({ kind: "loading" });
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch(`/api/nutrition/preview?name_zh=${encodeURIComponent(trimmed)}`)
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return (await res.json()) as PreviewData;
+        })
+        .then((data) => {
+          if (cancelled) return;
+          setState({ kind: "ok", data });
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setState({ kind: "error" });
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [name]);
+
+  if (state.kind === "idle" || state.kind === "error") return null;
+  if (state.kind === "loading") {
+    return (
+      <div className="exp-form__preview exp-form__preview--loading">
+        匹配中…
+      </div>
+    );
+  }
+
+  const { data } = state;
+  const matched = data.matchedPattern
+    ? `匹配: ${data.matchedPattern}`
+    : "未匹配";
+  return (
+    <div className="exp-form__preview">
+      <span
+        className={
+          data.color
+            ? `exp-form__preview-dot exp-form__preview-dot--${data.color}`
+            : "exp-form__preview-dot exp-form__preview-dot--none"
+        }
+      />
+      <span className="exp-form__preview-cat">{data.category}</span>
+      {data.excludedFromPlate ? (
+        <span className="exp-form__preview-flag">已滤出餐盘</span>
+      ) : null}
+      <span className="exp-form__preview-matched">{matched}</span>
+    </div>
+  );
+}
+
 function emptyItem(): ExtractedExpenseItem {
   return {
     name_raw: "",
     name_zh: "",
     category_zh: "其他",
+    category_raw: null,
     quantity: null,
     spec_text: null,
     food_amount_value: null,
@@ -55,7 +139,11 @@ function lineAmountFromUnitPrices(item: ExtractedExpenseItem, count: number | nu
 }
 
 export function ReceiptForm({ value, onChange }: Props) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Wave 3 polish (M7): <details> is now uncontrolled — we removed the
+  // controlled `open` prop + React state. The previous version had both
+  // `open={showAdvanced}` and `onToggle` writing to the same state, which
+  // created a render loop on mobile where tapping the summary sometimes
+  // toggled twice in a row.
 
   const itemsTotal = useMemo(() => {
     return roundMoney(value.items.reduce((sum, item) => sum + (item.amount ?? 0), 0));
@@ -64,11 +152,19 @@ export function ReceiptForm({ value, onChange }: Props) {
   const lineAmountTarget = useMemo(() => {
     if (value.total_amount === null) return null;
     const tax = value.tax_amount ?? 0;
+    const discount = value.discount_amount ?? 0;
     const processingFee = value.processing_fee ?? 0;
     const deliveryFee = value.delivery_fee ?? 0;
     const deliveryDiscount = value.delivery_discount ?? 0;
-    return roundMoney(value.total_amount - tax - processingFee - deliveryFee + deliveryDiscount);
-  }, [value.delivery_discount, value.delivery_fee, value.processing_fee, value.tax_amount, value.total_amount]);
+    return roundMoney(value.total_amount - tax - processingFee - deliveryFee + deliveryDiscount + discount);
+  }, [
+    value.delivery_discount,
+    value.delivery_fee,
+    value.discount_amount,
+    value.processing_fee,
+    value.tax_amount,
+    value.total_amount
+  ]);
 
   const lineAmountDiff = useMemo(() => {
     if (lineAmountTarget === null || value.items.some((item) => item.amount === null)) return null;
@@ -92,11 +188,11 @@ export function ReceiptForm({ value, onChange }: Props) {
     const item = value.items[index];
     const count = quantityCount(quantity);
     const patch: Partial<ExtractedExpenseItem> = { quantity };
+    // 数量 × 单价 = 小计 是核心联动。改数量时按当前 unit_price 重算 amount。
+    // amount 为 null 时也按 lineAmountFromUnitPrices 算（OCR/手动填单价后会立即拿到小计）。
     const amount = lineAmountFromUnitPrices(item, count);
     if (amount !== null) {
       patch.amount = amount;
-    } else if (count && item.amount !== null) {
-      patch.discounted_unit_price = roundMoney(item.amount / count);
     }
     updateItem(index, patch);
   }
@@ -105,6 +201,8 @@ export function ReceiptForm({ value, onChange }: Props) {
     const item = value.items[index];
     const count = quantityCount(item.quantity);
     const nextItem = { ...item, unit_price: unitPrice };
+    // 改原价/单价总是按 unit_price × count 重算 amount。
+    // 如果 amount 算不出（count null），保留原 amount。
     updateItem(index, {
       unit_price: unitPrice,
       amount: lineAmountFromUnitPrices(nextItem, count) ?? item.amount
@@ -112,27 +210,23 @@ export function ReceiptForm({ value, onChange }: Props) {
   }
 
   function updateItemDiscountedUnitPrice(index: number, discountedUnitPrice: number | null) {
-    const item = value.items[index];
-    const count = quantityCount(item.quantity);
-    const nextItem = { ...item, discounted_unit_price: discountedUnitPrice };
-    updateItem(index, {
-      discounted_unit_price: discountedUnitPrice,
-      amount: lineAmountFromUnitPrices(nextItem, count) ?? item.amount
-    });
+    // 改优惠价不重算 amount。
+    // 理由：discounted_unit_price 是"替代价"，跟 unit_price 互斥；
+    // 如果 OCR 已经给了一个跟 unit_price 不同的 amount，再被重算会覆盖 user 的输入。
+    updateItem(index, { discounted_unit_price: discountedUnitPrice });
   }
 
   function updateItemAmount(index: number, amount: number | null) {
+    // 改小计不反推 unit_price 或 discounted_unit_price。
+    // user 主动调整小计时，单价/优惠价应保持不变，避免覆盖之前填的字段。
+    updateItem(index, { amount });
+  }
+
+  function updateItemName(index: number, name: string) {
     const item = value.items[index];
-    const count = quantityCount(item.quantity);
-    const unitPatch =
-      amount !== null && count
-        ? item.discounted_unit_price !== null
-          ? { discounted_unit_price: roundMoney(amount / count) }
-          : { unit_price: roundMoney(amount / count) }
-        : {};
     updateItem(index, {
-      amount,
-      ...unitPatch
+      name_zh: name,
+      name_raw: item.name_raw.trim() ? item.name_raw : name
     });
   }
 
@@ -215,14 +309,11 @@ export function ReceiptForm({ value, onChange }: Props) {
 
       <div className="exp-form__items">
         <div className="exp-form__items-head">
-          <span>商品</span>
-          <span>分类</span>
           <span>数量</span>
           <span>食物量</span>
           <span>单价</span>
           <span>优惠价</span>
           <span>小计</span>
-          <span />
         </div>
         <div className="exp-form__items-scroll">
           {value.items.length === 0 ? (
@@ -232,84 +323,105 @@ export function ReceiptForm({ value, onChange }: Props) {
           ) : null}
           {value.items.map((item, index) => (
           <div className="exp-form__item" key={index}>
-            <input
-              className="exp-form__input"
-              onChange={(event) => updateItem(index, { name_zh: event.target.value })}
-              placeholder="商品名"
-              type="text"
-              value={item.name_zh}
-            />
-            <select
-              className="exp-form__select"
-              onChange={(event) =>
-                updateItem(index, { category_zh: event.target.value as ExtractedExpenseItem["category_zh"] })
-              }
-              value={item.category_zh}
-            >
-              {categoryNames.map((name) => (
-                <option key={name} value={name}>
-                  {categoryEmoji(name)} {categoryLabel(name)}
-                </option>
-              ))}
-            </select>
-            <input
-              className="exp-form__input"
-              onChange={(event) => updateItemQuantity(index, event.target.value || null)}
-              placeholder="1"
-              type="text"
-              value={item.quantity ?? ""}
-            />
-            <div className="exp-form__amount-pair">
+            <div className="exp-form__item-top">
               <input
                 className="exp-form__input"
-                onChange={(event) => updateItem(index, { food_amount_value: num(event.target.value) })}
-                placeholder="250"
+                onChange={(event) => updateItemName(index, event.target.value)}
+                placeholder="商品名"
+                type="text"
+                value={item.name_zh}
+              />
+              <select
+                className="exp-form__select"
+                onChange={(event) =>
+                  updateItem(index, {
+                    category_zh: event.target.value,
+                    category_raw: null
+                  })
+                }
+                value={item.category_zh}
+              >
+                {/*
+                 * When the model's value is non-canonical, the selected option
+                 * isn't in the 12 canonical entries, so the <select> would
+                 * render blank. Render the raw value as a disabled placeholder
+                 * option so the user sees "模型识别：'咖啡'" until they pick a
+                 * canonical one. Once they pick, the raw-vs-resolved gap is
+                 * closed and the placeholder disappears.
+                 */}
+                {item.category_raw && !categoryNames.includes(item.category_zh as never) ? (
+                  <option disabled value={item.category_zh}>
+                    模型识别: &lsquo;{item.category_zh}&rsquo;
+                  </option>
+                ) : null}
+                {categoryNames.map((name) => (
+                  <option key={name} value={name}>
+                    {categoryEmoji(name)} {categoryLabel(name)}
+                  </option>
+                ))}
+              </select>
+              <button
+                aria-label="删除商品"
+                className="exp-form__remove"
+                onClick={() => removeItem(index)}
+                type="button"
+              >
+                <svg fill="none" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+              </button>
+            </div>
+            <NamePreview name={item.name_zh} />
+            <div className="exp-form__item-bottom">
+              <input
+                className="exp-form__input"
+                onChange={(event) => updateItemQuantity(index, event.target.value || null)}
+                placeholder="1"
+                type="text"
+                value={item.quantity ?? ""}
+              />
+              <div className="exp-form__amount-pair">
+                <input
+                  className="exp-form__input"
+                  onChange={(event) => updateItem(index, { food_amount_value: num(event.target.value) })}
+                  placeholder="250"
+                  step="0.01"
+                  type="number"
+                  value={item.food_amount_value ?? ""}
+                />
+                <input
+                  className="exp-form__input"
+                  onChange={(event) => updateItem(index, { food_amount_unit: event.target.value || null })}
+                  placeholder="g"
+                  type="text"
+                  value={item.food_amount_unit ?? ""}
+                />
+              </div>
+              <input
+                className="exp-form__input"
+                onChange={(event) => updateItemUnitPrice(index, num(event.target.value))}
+                placeholder="原价"
                 step="0.01"
                 type="number"
-                value={item.food_amount_value ?? ""}
+                value={item.unit_price ?? ""}
               />
               <input
                 className="exp-form__input"
-                onChange={(event) => updateItem(index, { food_amount_unit: event.target.value || null })}
-                placeholder="g"
-                type="text"
-                value={item.food_amount_unit ?? ""}
+                onChange={(event) => updateItemDiscountedUnitPrice(index, num(event.target.value))}
+                placeholder="优惠后"
+                step="0.01"
+                type="number"
+                value={item.discounted_unit_price ?? ""}
+              />
+              <input
+                className="exp-form__input"
+                onChange={(event) => updateItemAmount(index, num(event.target.value))}
+                placeholder="0.00"
+                step="0.01"
+                type="number"
+                value={item.amount ?? ""}
               />
             </div>
-            <input
-              className="exp-form__input"
-              onChange={(event) => updateItemUnitPrice(index, num(event.target.value))}
-              placeholder="原价"
-              step="0.01"
-              type="number"
-              value={item.unit_price ?? ""}
-            />
-            <input
-              className="exp-form__input"
-              onChange={(event) => updateItemDiscountedUnitPrice(index, num(event.target.value))}
-              placeholder="优惠后"
-              step="0.01"
-              type="number"
-              value={item.discounted_unit_price ?? ""}
-            />
-            <input
-              className="exp-form__input"
-              onChange={(event) => updateItemAmount(index, num(event.target.value))}
-              placeholder="0.00"
-              step="0.01"
-              type="number"
-              value={item.amount ?? ""}
-            />
-            <button
-              aria-label="删除商品"
-              className="exp-form__remove"
-              onClick={() => removeItem(index)}
-              type="button"
-            >
-              <svg fill="none" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-            </button>
           </div>
           ))}
         </div>
@@ -371,11 +483,7 @@ export function ReceiptForm({ value, onChange }: Props) {
         />
       </label>
 
-      <details
-        className="exp-form__details"
-        onToggle={(event) => setShowAdvanced((event.currentTarget as HTMLDetailsElement).open)}
-        open={showAdvanced}
-      >
+      <details className="exp-form__details">
         <summary>
           <svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 9l6 6 6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />

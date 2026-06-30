@@ -29,7 +29,9 @@ export function BulkToolbar({ mode, receiptDrafts, reload, onError, onMessage }:
   const receiptCount = selected.filter((it) => it.kind === "receipt").length;
   const transactionCount = selected.filter((it) => it.kind === "transaction").length;
 
-  if (selected.length === 0) return null;
+  if (selected.length === 0) {
+    return null;
+  }
 
   async function bulkDelete() {
     if (transactionCount === 0) return;

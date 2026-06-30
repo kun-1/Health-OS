@@ -3,15 +3,65 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-  background: #f6f8f7;
-  color: #17201c;
+  color-scheme: dark;
+  background: #05090b;
+  color: #f5f7f6;
 }
 
 body {
   margin: 0;
-  background: #f6f8f7;
+  background: #05090b;
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Bug B fix: at 375px the dashboard nav overflows and the user can't tell
+   there's more to scroll. We add a soft right-edge mask that fades the
+   last ~12px of the scroll container. The mask is enabled only when the
+   inline script on <nav> detects scrollLeft < scrollWidth - clientWidth.
+   On desktop everything fits, the data attribute is "none", and no mask
+   is applied — so the fade never appears. The mobile-only media query
+   also hides the scrollbar so it doesn't compete with the fade cue. */
+.nav-scroll {
+  position: relative;
+}
+@media (max-width: 640px) {
+  .brand-wordmark {
+    display: none;
+  }
+  .nav-scroll {
+    scrollbar-width: none;
+  }
+  .nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .nav-scroll[data-nav-overflow="right"] {
+    -webkit-mask-image: linear-gradient(90deg, black calc(100% - 14px), transparent 100%);
+    mask-image: linear-gradient(90deg, black calc(100% - 14px), transparent 100%);
+  }
+}
+@media (max-width: 1199px) {
+  .nav-scroll {
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+  }
+  .nav-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  .nav-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 2px;
+  }
+}
+
+.nav-link {
+  flex-shrink: 0;
+}
+.nav-link[data-active="true"] {
+  background-color: rgba(17, 215, 198, 0.12);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 button,
@@ -122,4 +172,161 @@ textarea {
   border-radius: 8px;
   background: rgb(255 255 255 / 58%);
   padding: 0.9rem 1rem;
+}
+
+/* ---------- Confirm dialog (replaces window.confirm) ----------
+   Centered modal with a click-capturing backdrop. Esc and backdrop
+   click both bubble up to onCancel via the ConfirmDialog component. */
+.exp-confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+.exp-confirm__backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(10, 10, 10, 0.32);
+  backdrop-filter: blur(2px);
+  cursor: default;
+}
+.exp-confirm__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgb(38 55 49 / 14%);
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(10, 10, 10, 0.22);
+  padding: 22px 24px 18px;
+  display: grid;
+  gap: 10px;
+}
+.exp-confirm__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  color: #17201c;
+}
+.exp-confirm__message {
+  margin: 0;
+  color: #45524c;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.exp-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+/* ---------- Inline spinner (per-action loading states) ---------- */
+.exp-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: exp-spin 800ms linear infinite;
+  vertical-align: -2px;
+}
+@keyframes exp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Note: html[data-theme] is set by the inline boot script in layout.tsx as
+   a handoff signal to React (no CSS driven off it here). All visible
+   expenses dark-mode rules live in expenses.css under
+   .exp[data-expenses-theme="dark"] — intentionally not touched. */
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+  }
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

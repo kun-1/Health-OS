@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { formatMoney } from "@/lib/expenses/money";
+import { formatDateTime } from "@/lib/expenses/format";
 import type { ExpenseDuplicateHint, ExpenseTransaction, ExtractedExpenseItem, ExtractedExpenseReceipt } from "@/lib/expenses/types";
 
 import { ReceiptForm } from "./receipt-form";
-import { categoryEmoji } from "./category-colors";
+import { categoryColor, categoryEmoji, categoryLabel } from "./category-colors";
 import { receiptImageUrl } from "./receipt-image-url";
 // Wave 3 bulk: optional bulk-selection context. When wrapped in
 // <BulkSelectionProvider>, the card auto-wires a top-left checkbox + shift
@@ -26,6 +28,10 @@ type Props = {
   onDraftChange: (next: ExtractedExpenseReceipt) => void;
   onSave: () => void;
   onDelete: () => void;
+  // Optional loading flags driven by ExpensesClient's busyIds set. Default
+  // false so callers that don't pass them keep the prior behavior.
+  saving?: boolean;
+  deleting?: boolean;
 };
 
 function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpenseReceipt {
@@ -49,6 +55,7 @@ function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpen
       name_raw: item.name_raw,
       name_zh: item.name_zh,
       category_zh: item.category_zh,
+      category_raw: item.category_raw,
       quantity: item.quantity,
       spec_text: item.spec_text,
       food_amount_value: item.food_amount_value,
@@ -65,10 +72,31 @@ function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpen
 function ReceiptImage({ imagePath, alt }: { imagePath: string | null | undefined; alt: string }) {
   const src = receiptImageUrl(imagePath);
   if (!src) return null;
-  return <img alt={alt} className="exp-receipt-thumb" decoding="async" loading="lazy" src={src} />;
+  return (
+    <div className="exp-thumb-wrap">
+      <Image alt={alt} className="exp-receipt-thumb" height={220} loading="lazy" src={src} unoptimized width={220} />
+      <div className="exp-thumb-preview" aria-hidden="true">
+        <Image alt="" height={200} src={src} unoptimized width={160} />
+      </div>
+    </div>
+  );
 }
 
-export function TransactionCard({ transaction, draft, onDraftChange, onSave, onDelete }: Props) {
+// Compact "6月10日" style for the new collapsible row. Sourced from the
+// zh-CN locale with the same Asia/Shanghai TZ pinning as formatDate so the
+// server and client first render produce the same string.
+function shortChineseDate(value: string | null): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    timeZone: "Asia/Shanghai"
+  }).format(d);
+}
+
+export function TransactionCard({ transaction, draft, onDraftChange, onSave, onDelete, saving = false, deleting = false }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [excludeBusy, setExcludeBusy] = useState(false);
@@ -78,13 +106,7 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
   const selectable = bulk !== null && !editing;
   const selected = bulk ? bulk.isSelected(transaction.id) : false;
 
-  const date = new Date(transaction.purchased_at).toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const date = formatDateTime(transaction.purchased_at);
 
   const items = transaction.items;
   const itemsTotal = items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
@@ -157,8 +179,19 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
             <ReceiptForm onChange={onDraftChange} value={draft} />
           </div>
           <div className="exp-form__actions">
-            <button className="exp-btn exp-btn--danger" onClick={onDelete} type="button">
-              删除
+            <button
+              className="exp-btn exp-btn--danger"
+              disabled={deleting}
+              onClick={onDelete}
+              type="button"
+            >
+              {deleting ? (
+                <>
+                  <span className="exp-spinner" aria-hidden /> 删除中...
+                </>
+              ) : (
+                "删除"
+              )}
             </button>
             <button
               className="exp-btn exp-btn--secondary"
@@ -173,6 +206,7 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
             </button>
             <button
               className="exp-btn exp-btn--primary"
+              disabled={saving}
               onClick={() => {
                 onSave();
                 setEditing(false);
@@ -180,7 +214,13 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
               }}
               type="button"
             >
-              保存修改
+              {saving ? (
+                <>
+                  <span className="exp-spinner" aria-hidden /> 保存中...
+                </>
+              ) : (
+                "保存修改"
+              )}
             </button>
           </div>
         </div>
@@ -192,77 +232,85 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
     <article
       className={`exp-card ${transaction.duplicate_hint ? "exp-card--duplicate" : ""} ${expanded ? "exp-card--expanded" : ""} ${expanded ? "" : "exp-card--clickable"} ${selected ? "exp-card--selected" : ""}`}
     >
-      <div
-        className="exp-card__row"
-        onClick={(e) => {
-          // Wave 3 bulk: shift-click selects a range; plain click still expands.
-          if (selectable && e.shiftKey && bulk) {
-            e.preventDefault();
-            bulk.handleClick(transaction.id, true);
-            return;
-          }
-          if (!expanded) setExpanded(true);
-        }}
-        role={expanded ? undefined : "button"}
-      >
-        {selectable ? (
-          <input
-            aria-label="多选此笔交易"
-            checked={selected}
-            className="exp-card__select-checkbox"
-            onChange={() => undefined}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!bulk) return;
-              bulk.handleClick(transaction.id, e.shiftKey);
-            }}
-            type="checkbox"
-          />
-        ) : null}
-        <div className="exp-card__title">
-          <span className="exp-tag exp-tag--success">
-            <span aria-hidden>✅</span>
-            已入账
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <div className="exp-card__merchant">{transaction.merchant_name}</div>
-            <div className="exp-card__meta">
-              #{transaction.id} · {date} · {items.length} 个商品
-              {transaction.duplicate_hint ? (
-                <>
-                  {" · "}
-                  <span className="exp-card__meta-duplicate" title={transaction.duplicate_hint.reason}>
-                    疑似重复 #{transaction.duplicate_hint.matched_id}
-                  </span>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </div>
-        <div className="exp-card__actions" onClick={(e) => e.stopPropagation()}>
-          <div className="exp-card__amount-wrap">
-            {transaction.subtotal_amount !== null ? (
+      {!expanded ? (
+        <div
+          className="exp-card__compact-row"
+          onClick={(e) => {
+            // Wave 3 bulk: shift-click selects a range; plain click still expands.
+            if (selectable && e.shiftKey && bulk) {
+              e.preventDefault();
+              bulk.handleClick(transaction.id, true);
+              return;
+            }
+            setExpanded(true);
+          }}
+          role="button"
+        >
+          {selectable ? (
+            <input
+              aria-label="多选此笔交易"
+              checked={selected}
+              className="exp-card__select-checkbox"
+              onChange={() => undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!bulk) return;
+                bulk.handleClick(transaction.id, e.shiftKey);
+              }}
+              type="checkbox"
+            />
+          ) : null}
+          {(() => {
+            const firstItem = items[0];
+            const accentColor = firstItem?.category_zh ? categoryColor(firstItem.category_zh) : "var(--exp-text-subtle)";
+            const primaryEmoji = firstItem?.category_zh ? categoryEmoji(firstItem.category_zh) : "📦";
+            const primaryCategoryLabel = firstItem?.category_zh ? categoryLabel(firstItem.category_zh) : "未分类";
+            const compactSubText = `${shortChineseDate(transaction.purchased_at)} · ${primaryCategoryLabel}${
+              transaction.duplicate_hint ? " · 疑似重复" : ""
+            }`;
+            return (
+              <>
+                <div className="exp-card__accent-bar" style={{ background: accentColor }} />
+                <span aria-hidden className="exp-card__compact-emoji">
+                  {primaryEmoji}
+                </span>
+                <div className="exp-card__compact-main">
+                  <div className="exp-card__compact-name">{transaction.merchant_name}</div>
+                  <div className="exp-card__compact-sub" title={compactSubText}>
+                    {compactSubText}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+          <div className="exp-card__compact-right">
+            {transaction.subtotal_amount !== null && transaction.subtotal_amount !== transaction.total_amount ? (
               <span className="exp-card__amount-sub">
                 小计 {formatMoney(transaction.subtotal_amount, transaction.currency)}
               </span>
             ) : null}
-            <span className="exp-card__amount">{formatMoney(transaction.total_amount, transaction.currency)}</span>
+            <span className="exp-card__compact-amount">
+              {formatMoney(transaction.total_amount, transaction.currency)}
+            </span>
+            <button
+              aria-label="展开"
+              className="exp-card__expand"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(true);
+              }}
+              type="button"
+            >
+              <svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </button>
           </div>
-          <button
-            aria-label={expanded ? "收起" : "展开"}
-            className="exp-card__expand"
-            onClick={() => setExpanded((v) => !v)}
-            type="button"
-          >
-            <svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-            </svg>
-          </button>
         </div>
-      </div>
+      ) : null}
 
       {expanded ? (
-        <>
+        <div className="exp-card__drawer-scope" style={{ ["--exp-drawer-width"]: "min(820px, calc(100vw - 36px))" } as Record<string, string>}>
           <button
             aria-label="关闭票据详情"
             className="exp-card__backdrop"
@@ -270,6 +318,16 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
             type="button"
           />
           <div className="exp-card__details">
+            <button
+              aria-label="关闭"
+              className="exp-card__details-close"
+              onClick={() => setExpanded(false)}
+              type="button"
+            >
+              <svg fill="none" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+              </svg>
+            </button>
             <div className="exp-card__details-body">
               {/* Wave 1 (Feature #6): receipt image preview. The receipt row
                   is fetched via the analytics response; we only need its
@@ -348,15 +406,26 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
                 </svg>
                 编辑
               </button>
-              <button className="exp-btn exp-btn--danger" onClick={onDelete} type="button">
-                删除
+              <button
+                className="exp-btn exp-btn--danger"
+                disabled={deleting}
+                onClick={onDelete}
+                type="button"
+              >
+                {deleting ? (
+                  <>
+                    <span className="exp-spinner" aria-hidden /> 删除中...
+                  </>
+                ) : (
+                  "删除"
+                )}
               </button>
               <button className="exp-btn exp-btn--ghost" onClick={() => setExpanded(false)} type="button">
                 关闭
               </button>
             </div>
           </div>
-        </>
+        </div>
       ) : null}
     </article>
   );

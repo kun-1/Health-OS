@@ -16,11 +16,16 @@ export async function GET(request: NextRequest) {
   // trusts the values (single-user app). Missing/empty falls back to the
   // hardcoded constant inside getExpenseAnalytics.
   const budgetParam = request.nextUrl.searchParams.get("budget");
+  const budgetTopUpParam = request.nextUrl.searchParams.get("budgetTopUp");
   const currencyParam = request.nextUrl.searchParams.get("primaryCurrency");
-  const overrides: { budgetCents?: number | null; primaryCurrency?: string | null } = {};
+  const overrides: { budgetCents?: number | null; budgetTopUpCents?: number | null; primaryCurrency?: string | null } = {};
   if (budgetParam !== null) {
     const parsed = Number(budgetParam);
     overrides.budgetCents = Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : null;
+  }
+  if (budgetTopUpParam !== null) {
+    const parsed = Number(budgetTopUpParam);
+    overrides.budgetTopUpCents = Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : null;
   }
   if (currencyParam !== null && currencyParam.length > 0) {
     overrides.primaryCurrency = currencyParam;

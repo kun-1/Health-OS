@@ -7,6 +7,7 @@ import type { ExpenseTransaction, ExtractedExpenseReceipt } from "@/lib/expenses
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
 import { TransactionCard } from "./transaction-card";
+import "./expenses.css";
 
 const PAGE_SIZE = 50;
 
@@ -43,6 +44,7 @@ function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpen
       name_raw: item.name_raw,
       name_zh: item.name_zh,
       category_zh: item.category_zh,
+      category_raw: item.category_raw,
       quantity: item.quantity,
       spec_text: item.spec_text,
       food_amount_value: item.food_amount_value,
@@ -140,7 +142,7 @@ export function AllTransactionsClient() {
   const canNext = offset + rows.length < total;
 
   return (
-    <div className="exp">
+    <div className="exp exp-ledger-page">
       <header className="exp-header">
         <div className="exp-header__brand">
           <span className="exp-header__mark" aria-hidden>
@@ -151,7 +153,7 @@ export function AllTransactionsClient() {
           </span>
           <div>
             <h1 className="exp-header__title">全部已入账</h1>
-            <p className="exp-header__subtitle">Wave 2 feature: full list · 共 {total} 笔</p>
+            <p className="exp-header__subtitle">共 {total} 笔已入账交易</p>
           </div>
         </div>
         <div className="exp-header__right">

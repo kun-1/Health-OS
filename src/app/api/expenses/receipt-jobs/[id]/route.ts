@@ -16,6 +16,12 @@ async function parseId(params: Promise<{ id: string }>) {
   return jobId;
 }
 
+async function unlinkReceiptFiles(paths: Array<string | null | undefined>) {
+  for (const filePath of Array.from(new Set(paths.filter((value): value is string => Boolean(value))))) {
+    await fs.unlink(filePath).catch(() => undefined);
+  }
+}
+
 export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const jobId = await parseId(params);
@@ -23,9 +29,9 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     // The frontend also disables the button, but enforcing it server-side stops
     // a manual / scripted POST from bypassing the cap.
     const job = getExpenseReceiptJob(jobId);
-    if (job.status === "dead") {
+    if (job.status === "completed" || job.status === "processing" || job.status === "dead") {
       return NextResponse.json(
-        { error: "Job has reached max attempts. Delete and re-upload to retry." },
+        { error: `Job cannot be retried from status ${job.status}` },
         { status: 409 }
       );
     }
@@ -41,7 +47,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const jobId = await parseId(params);
     const job = getExpenseReceiptJob(jobId);
     const deleted = deleteExpenseReceiptJob(jobId);
-    await fs.unlink(job.image_path).catch(() => undefined);
+    await unlinkReceiptFiles([job.image_path, ...job.image_paths.map((image) => image.path)]);
     return NextResponse.json({ job: deleted });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Delete failed" }, { status: 400 });

@@ -121,7 +121,7 @@ function loadRows(month: string | null, tz: string): ExportRow[] {
   const itemRows = rawDb
     .prepare(
       `SELECT id, transaction_id AS transactionId, name_raw AS nameRaw, name_zh AS nameZh,
-              category_zh AS categoryZh, quantity, spec_text AS specText,
+              category_zh AS categoryZh, category_raw AS categoryRaw, quantity, spec_text AS specText,
               food_amount_value AS foodAmountValue,
               food_amount_unit AS foodAmountUnit,
               unit_price_cents AS unitPriceCents,
@@ -137,6 +137,7 @@ function loadRows(month: string | null, tz: string): ExportRow[] {
     nameRaw: string;
     nameZh: string;
     categoryZh: string;
+    categoryRaw: string | null;
     quantity: string | null;
     specText: string | null;
     foodAmountValue: number | null;
@@ -182,7 +183,8 @@ function loadRows(month: string | null, tz: string): ExportRow[] {
       transaction_id: row.transactionId,
       name_raw: row.nameRaw,
       name_zh: row.nameZh,
-      category_zh: row.categoryZh as ExpenseItem["category_zh"],
+      category_zh: row.categoryZh,
+      category_raw: row.categoryRaw ?? null,
       quantity: row.quantity,
       spec_text: row.specText,
       food_amount_value: row.foodAmountValue,

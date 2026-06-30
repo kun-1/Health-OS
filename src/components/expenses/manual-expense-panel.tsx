@@ -45,6 +45,18 @@ function localDatetimeValue(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function withLocalTimezoneOffset(value: string) {
+  if (/[zZ]$|[+-]\d{2}:\d{2}$/.test(value)) return value;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absOffset = Math.abs(offsetMinutes);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const timeWithSeconds = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value) ? `${value}:00` : value;
+  return `${timeWithSeconds}${sign}${pad(Math.floor(absOffset / 60))}:${pad(absOffset % 60)}`;
+}
+
 function num(value: string): number | null {
   if (value.trim() === "") return null;
   const parsed = Number(value);
@@ -105,6 +117,7 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
       ...draft,
       merchant_name: draft.merchant_name.trim(),
       item_name: draft.item_name.trim(),
+      purchased_at: withLocalTimezoneOffset(draft.purchased_at),
       currency: draft.currency ?? "CNY"
     });
     setDraft(initialDraft());
@@ -113,8 +126,14 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
 
   if (!open) return null;
 
+  // Set --exp-drawer-width so the .exp-card__backdrop (a sibling fixed element)
+  // can size itself to the manual drawer width (560px) instead of the default
+  // 820px used by receipt/transaction edit drawers. This prevents a 260px gap
+  // in the backdrop that would otherwise let clicks fall through to the page.
+  const drawerScopeStyle = { "--exp-drawer-width": "min(560px, calc(100vw - 36px))" } as Record<string, string>;
+
   return (
-    <>
+    <div className="exp-card__drawer-scope" style={drawerScopeStyle}>
       <button aria-label="关闭手动支出" className="exp-card__backdrop" onClick={onClose} type="button" />
       <aside className="exp-manual" aria-label="手动记一笔">
         <div className="exp-manual__head">
@@ -242,6 +261,6 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
           </button>
         </div>
       </aside>
-    </>
+    </div>
   );
 }

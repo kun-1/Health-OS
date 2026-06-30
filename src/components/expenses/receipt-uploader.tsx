@@ -106,23 +106,29 @@ export function ReceiptUploader({ onUpload, maxFiles, maxBytesPerFile, hint, com
         </div>
         {compact ? null : <div className="exp-uploader__hint">{hint}</div>}
         <div className="exp-uploader__actions" onClick={(e) => e.stopPropagation()}>
+          {/* Wave 3 multi-image: both buttons are now always shown, even in
+              compact mode. The file picker (📎) on mobile triggers the
+              native action sheet (Take Photo / Photo Library / Choose File),
+              which is the only way to multi-select from the photo library —
+              the camera button (📷) below has `capture="environment"` which
+              forces camera-only mode and bypasses the library entirely. */}
           <button
-            className="exp-btn exp-btn--secondary exp-btn--sm"
+            className={compact ? "exp-pill exp-pill--ghost" : "exp-btn exp-btn--secondary exp-btn--sm"}
             disabled={overLimit}
             onClick={() => fileRef.current?.click()}
             type="button"
           >
             <span aria-hidden>📎</span>
-            浏览文件
+            {compact ? "选图" : "浏览文件"}
           </button>
           <button
-            className="exp-btn exp-btn--secondary exp-btn--sm"
+            className={compact ? "exp-pill exp-pill--ghost" : "exp-btn exp-btn--secondary exp-btn--sm"}
             disabled={overLimit}
             onClick={() => cameraRef.current?.click()}
             type="button"
           >
             <span aria-hidden>📷</span>
-            拍照识别
+            {compact ? "拍照" : "拍照识别"}
           </button>
         </div>
       </div>
