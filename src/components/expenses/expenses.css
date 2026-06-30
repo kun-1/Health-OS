@@ -2999,11 +2999,14 @@
 }
 
 .exp-tasknav__item[data-active="true"] {
-  background: linear-gradient(180deg, rgba(155, 253, 68, 0.32) 0%, rgba(155, 253, 68, 0.18) 100%);
+  /* Matches the home sidebar active pill (see life-os.css) so the active
+     affordance is visually identical whether the user is on the home
+     overview or the expense sub-tasks. */
+  background: linear-gradient(180deg, rgba(155, 253, 68, 0.22) 0%, rgba(155, 253, 68, 0.14) 100%);
   border-color: rgba(155, 234, 61, 0.4);
   color: #1a4d22;
   font-weight: 720;
-  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.18);
+  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.22);
 }
 
 /* ---------- Section head + eyebrow (used across all expense sub-tasks) ---------- */
@@ -3608,7 +3611,12 @@
   display: grid;
   gap: 8px;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(280px, 1fr) auto auto;
+  /* Uploader is the dominant control. Two trailing action buttons
+     (记一笔 / 导出 CSV) are auto-sized so they never shrink; the
+     uploader takes the remaining width. The 240px minimum on the
+     uploader still lets it fit a thumbnail preview without truncation
+     even on small desktops. */
+  grid-template-columns: minmax(240px, 1fr) auto auto;
 }
 
 .exp-workbar__button {

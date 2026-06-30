@@ -142,7 +142,7 @@ export function AllTransactionsClient() {
   const canNext = offset + rows.length < total;
 
   return (
-    <div className="exp exp-ledger-page">
+    <div className="exp">
       <header className="exp-header">
         <div className="exp-header__brand">
           <span className="exp-header__mark" aria-hidden>
