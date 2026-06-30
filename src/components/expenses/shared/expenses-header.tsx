@@ -3,14 +3,10 @@
 /**
  * Shared header for the /expenses and /expenses/receipts module pages.
  *
- * - /expenses: pass `showUploader={false}` (analysis page, no need to
- *   land a new receipt mid-analysis).
- * - /expenses/receipts: pass `showUploader={true}` and an `onUpload`
- *   handler so the user can drop new receipts without leaving the page.
- *
- * The brand text and crumb render from the `kind` prop so the two pages
- * stay visually consistent without each having to remember to update the
- * copy in two places.
+ * Every interactive affordance (BudgetSettings, uploader, manual entry,
+ * CSV export) is opt-in via a prop. /expenses (pure analysis) passes
+ * none of them so the page renders just the brand strip; /expenses/receipts
+ * (records workbench) passes all of them.
  */
 
 import type { ReactNode } from "react";
@@ -20,25 +16,32 @@ import { BudgetSettings } from "../budget-settings";
 import { ManualExpensePanel } from "../manual-expense-panel";
 import { ReceiptUploader } from "../receipt-uploader";
 
-import "../expenses.css";
+import "./../expenses.css";
 
 export type HeaderKind = "expenses" | "receipts";
 
 type Props = {
   kind: HeaderKind;
   month: string;
-  /** Receipt uploader slot. Omit to hide the uploader entirely. */
+  /** Receipt uploader slot. Omit to hide. */
   uploader?: {
     onUpload: (formData: FormData) => Promise<void> | void;
   };
-  manualExpense: {
+  /** Manual expense entry slot. Omit to hide "+ 记一笔" and the modal. */
+  manualExpense?: {
     open: boolean;
     busy: boolean;
     onOpen: () => void;
     onClose: () => void;
     onSave: Parameters<typeof ManualExpensePanel>[0]["onSave"];
   };
-  onReload: () => Promise<void>;
+  /** Show the BudgetSettings (⚙ 预算) button in the actions slot. */
+  showBudgetSettings?: boolean;
+  /** CSV export slot. Omit to hide the "导出 CSV" link. */
+  csvExport?: {
+    month: string;
+    tz: string;
+  };
 };
 
 const COPY: Record<HeaderKind, { name: string; crumb: (sub: string | null) => string; logo: ReactNode }> = {
@@ -54,13 +57,19 @@ const COPY: Record<HeaderKind, { name: string; crumb: (sub: string | null) => st
   }
 };
 
-export function ExpensesHeader({ kind, month, uploader, manualExpense, onReload }: Props) {
+export function ExpensesHeader({
+  kind,
+  month,
+  uploader,
+  manualExpense,
+  showBudgetSettings = true,
+  csvExport,
+  onReload
+}: Props & { onReload: () => Promise<void> }) {
   const copy = COPY[kind];
+  const tz = csvExport?.tz ?? "Asia/Shanghai";
 
-  const tz =
-    typeof Intl !== "undefined"
-      ? Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai"
-      : "Asia/Shanghai";
+  const showWorkbar = Boolean(uploader || manualExpense || csvExport);
 
   return (
     <>
@@ -72,41 +81,51 @@ export function ExpensesHeader({ kind, month, uploader, manualExpense, onReload 
             <div className="exp-shell__crumb">{copy.crumb(null)}</div>
           </div>
         </div>
-        <div className="exp-shell__actions">
-          <BudgetSettings month={month} onSaved={() => void onReload()} />
-        </div>
-        <div className="exp-workbar">
-          {uploader ? (
-            <ReceiptUploader
-              compact
-              hint="最多 2 张，失败会进入重试队列"
-              maxBytesPerFile={8 * 1024 * 1024}
-              maxFiles={2}
-              onUpload={uploader.onUpload}
-            />
-          ) : null}
-          <button
-            className="exp-workbar__button"
-            onClick={manualExpense.onOpen}
-            type="button"
-          >
-            <Plus aria-hidden />
-            记一笔
-          </button>
-          <a
-            className="exp-workbar__button"
-            href={`/api/expenses/export?format=csv&month=${encodeURIComponent(month)}&tz=${encodeURIComponent(tz)}`}
-          >
-            导出 CSV
-          </a>
-        </div>
+        {showBudgetSettings ? (
+          <div className="exp-shell__actions">
+            <BudgetSettings month={month} onSaved={() => void onReload()} />
+          </div>
+        ) : null}
+        {showWorkbar ? (
+          <div className="exp-workbar">
+            {uploader ? (
+              <ReceiptUploader
+                compact
+                hint="最多 2 张，失败会进入重试队列"
+                maxBytesPerFile={8 * 1024 * 1024}
+                maxFiles={2}
+                onUpload={uploader.onUpload}
+              />
+            ) : null}
+            {manualExpense ? (
+              <button
+                className="exp-workbar__button"
+                onClick={manualExpense.onOpen}
+                type="button"
+              >
+                <Plus aria-hidden />
+                记一笔
+              </button>
+            ) : null}
+            {csvExport ? (
+              <a
+                className="exp-workbar__button"
+                href={`/api/expenses/export?format=csv&month=${encodeURIComponent(csvExport.month)}&tz=${encodeURIComponent(tz)}`}
+              >
+                导出 CSV
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </header>
-      <ManualExpensePanel
-        busy={manualExpense.busy}
-        onClose={manualExpense.onClose}
-        onSave={manualExpense.onSave}
-        open={manualExpense.open}
-      />
+      {manualExpense ? (
+        <ManualExpensePanel
+          busy={manualExpense.busy}
+          onClose={manualExpense.onClose}
+          onSave={manualExpense.onSave}
+          open={manualExpense.open}
+        />
+      ) : null}
     </>
   );
 }
