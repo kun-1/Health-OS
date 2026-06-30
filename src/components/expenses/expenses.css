@@ -1,78 +1,69 @@
-.exp {
-  --exp-bg: #ffffff;
-  --exp-surface: #ffffff;
-  --exp-surface-2: #fafafa;
-  --exp-surface-3: #f4f4f5;
-  --exp-text: #0a0a0a;
-  --exp-text-muted: #6b7280;
-  --exp-text-emphasis: #5b6370;
-  --exp-text-subtle: #9ca3af;
-  --exp-border: rgba(10, 10, 10, 0.07);
-  --exp-border-strong: rgba(10, 10, 10, 0.12);
-  --exp-ring-track: #f1f1f2;
-  --exp-accent: #0a0a0a;
-  --exp-accent-fg: #ffffff;
-  --exp-accent-soft: #f4f4f5;
-  --exp-accent-strong: #0a0a0a;
-  --exp-success: #047857;
-  --exp-warn: #b45309;
-  --exp-warning: #f59e0b;
-  --exp-danger: #b91c1c;
-  --exp-text-tertiary: #9ca3af;
-  --exp-card-border-warning: 1px solid var(--exp-warning);
-  --exp-shadow-sm: 0 1px 0 rgba(10, 10, 10, 0.04);
-  --exp-shadow: 0 1px 0 rgba(10, 10, 10, 0.04);
-  --exp-radius: 14px;
-  --exp-radius-sm: 10px;
-  --exp-radius-lg: 18px;
-  --exp-radius-pill: 9999px;
-  --exp-chart-saturate: 0.7;
-  --exp-display: clamp(36px, 4.6vw, 56px);
-  --exp-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --exp-font-num: "DM Mono", ui-monospace, ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "Segoe UI", "PingFang SC", sans-serif;
+/* Phase C: expense sub-components migrated to Life OS light theme.
 
-  color: var(--exp-text);
-  font-family: var(--exp-font);
+   Class names (.exp-shell__*, .exp-panel, .exp-screen, .exp-tasknav, .exp-*,
+   .exp-receipt-*, .exp-form__*, .exp-card*, etc.) are preserved verbatim from
+   the legacy dark CSS so the JSX diff stays at zero. Only the token table is
+   rewritten: --exp-* maps to --life-* in globals.css, and the dark gradient
+   surfaces (.exp-analytics, .exp-ledger-page, [data-expenses-theme="dark"],
+   shadcn bridge overrides) are removed entirely.
+
+   The .exp root wrapper is now a thin transparent container — LifeShell already
+   provides the global sidebar + topbar + main canvas. Phase B had isolated
+   these components via .life-os-nutrition__legacy[data-variant="expense-legacy"];
+   Phase C no longer needs that bridge because the dark backgrounds are gone.
+*/
+
+/* ---------- Token bridge (legacy --exp-* names → --life-* values) ---------- */
+.exp {
+  --exp-bg: var(--life-bg);
+  --exp-surface: var(--life-card);
+  --exp-surface-2: var(--life-card-soft);
+  --exp-surface-3: var(--life-shell);
+  --exp-text: var(--life-text);
+  --exp-text-muted: var(--life-muted);
+  --exp-text-emphasis: var(--life-text);
+  --exp-text-subtle: var(--life-subtle);
+  --exp-border: var(--life-border);
+  --exp-border-strong: var(--life-border-strong);
+  --exp-ring-track: var(--life-card-soft);
+  --exp-accent: var(--life-green-strong);
+  --exp-accent-fg: var(--life-green-ink);
+  --exp-accent-soft: rgba(155, 234, 61, 0.14);
+  --exp-accent-strong: var(--life-green-strong);
+  --exp-success: var(--life-green-ink);
+  --exp-warn: #b45309;
+  --exp-warning: var(--life-yellow);
+  --exp-danger: var(--life-danger);
+  --exp-text-tertiary: var(--life-subtle);
+  --exp-card-border-warning: 1px solid var(--exp-warning);
+  --exp-shadow-sm: 0 8px 32px rgba(0, 0, 0, 0.03);
+  --exp-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  --exp-radius: 8px;
+  --exp-radius-sm: 8px;
+  --exp-radius-lg: 14px;
+  --exp-radius-pill: 999px;
+  --exp-chart-saturate: 0.85;
+  --exp-display: clamp(28px, 3.4vw, 44px);
+  --exp-font: var(--life-font);
+  --exp-font-num: var(--life-font-num);
+
+  color: var(--life-text);
+  font-family: var(--life-font);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 22px;
-  transition: color 220ms ease, background 220ms ease;
-  background: #f6f8f7;
-  margin: 0 -16px -24px -16px;
-  padding: 0 16px 56px;
-  min-height: calc(100vh - 61px);
+  gap: 18px;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  min-width: 0;
 }
 
-.exp[data-expenses-theme="dark"] {
-  --exp-bg: #0f0f11;
-  --exp-surface: #141414;
-  --exp-surface-2: #0d0d0d;
-  --exp-surface-3: #1c1c1c;
-  --exp-text: #fafafa;
-  --exp-text-muted: #a1a1aa;
-  --exp-text-emphasis: #c4c4c8;
-  --exp-text-subtle: #71717a;
-  --exp-border: rgba(255, 255, 255, 0.08);
-  --exp-border-strong: rgba(255, 255, 255, 0.16);
-  --exp-ring-track: #1f1f1f;
-  --exp-accent: #fafafa;
-  --exp-accent-fg: #0a0a0a;
-  --exp-accent-soft: #1c1c1c;
-  --exp-accent-strong: #ffffff;
-  --exp-success: #34d399;
-  --exp-warn: #fbbf24;
-  --exp-warning: #f59e0b;
-  --exp-danger: #f87171;
-  --exp-text-tertiary: #71717a;
-  --exp-card-border-warning: 1px solid var(--exp-warning);
-  --exp-shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4);
-  --exp-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
-  background: #0f0f11;
-}
-
-.exp * {
+.exp *,
+.exp *::before,
+.exp *::after {
   box-sizing: border-box;
 }
 
@@ -80,80 +71,23 @@
   font: inherit;
 }
 
-/* ---------- Header (Mercury-style: sticky, big display title) ---------- */
+/* ---------- Header (Mercury-style: still defined for legacy /expenses/recurring
+   and /expenses/all routes which mount .exp directly without LifeShell) ---------- */
 .exp-header {
-  position: sticky;
-  top: 61px;
-  z-index: 20;
-  margin: 0 -16px;
-  padding: 18px 32px 20px;
-  background: rgba(246, 248, 247, 0.78);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--exp-border);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  margin: 0;
+  padding: 18px 24px;
   display: grid;
   gap: 14px;
-  transition: padding 200ms ease;
 }
 
-/* Wave 3 polish (M9): compact mode after the user scrolls past 80px.
-   Hide the title/subtitle/eyebrow rows and tighten padding so the
-   header shrinks from ~190px to ~60px. Toolbar stays visible.
-
-   Why max-height and not height: `height: auto` doesn't interpolate, so
-   animating to `height: 0` snaps at the end of the transition. max-height
-   with a generous starting value (well above any real content) animates
-   smoothly to 0. The cubic-bezier on the wrapper gives a deceleration
-   curve so the collapse feels weighted, not robotic. */
-.exp-header {
-  transition: padding 280ms cubic-bezier(0.32, 0.72, 0, 1),
-              gap 280ms cubic-bezier(0.32, 0.72, 0, 1);
-}
 .exp-header__top,
 .exp-header__title-block {
-  max-height: 200px;
   overflow: hidden;
-  opacity: 1;
   margin: 0;
-  transition: max-height 320ms cubic-bezier(0.32, 0.72, 0, 1),
-              opacity 220ms ease 40ms,
-              margin 280ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-.exp-header[data-scrolled="true"] {
-  padding: 10px 32px;
-  gap: 0;
-}
-.exp-header[data-scrolled="true"] .exp-header__top,
-.exp-header[data-scrolled="true"] .exp-header__title-block {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  /* When expanding back (scroll back to top), start the opacity fade
-     earlier so the text reappears as the row grows. */
-  transition: max-height 320ms cubic-bezier(0.32, 0.72, 0, 1),
-              opacity 180ms ease,
-              margin 280ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.exp[data-expenses-theme="dark"] .exp-header {
-  background: rgba(10, 10, 10, 0.72);
-}
-
-/* Wave 3 polish (M10): invisible 1px sentinel for the sticky-header
-   IntersectionObserver. Sits at `position: absolute; top: 0` inside `.exp`,
-   which is `position: static`, so the sentinel resolves to the initial
-   containing block (document origin, y=0). The observer uses
-   `rootMargin: "-80px 0px 0px 0px"` to match the prior `scrollY > 80`
-   trigger point. visibility: hidden keeps it out of the accessibility
-   tree (matches aria-hidden on the JSX) and avoids any layout contribution. */
-.exp-scroll-sentinel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-  visibility: hidden;
 }
 
 .exp-header__top {
@@ -173,8 +107,8 @@
   border-radius: var(--exp-radius-pill);
   border: var(--exp-card-border-warning);
   border-left: 3px solid var(--exp-warning);
-  background: rgba(245, 158, 11, 0.08);
-  color: var(--exp-warning);
+  background: rgba(255, 226, 138, 0.18);
+  color: #b45309;
   font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -184,9 +118,9 @@
 .exp-eyebrow {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-variant-numeric: tabular-nums;
   display: inline-flex;
   align-items: center;
@@ -197,12 +131,10 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--exp-text);
+  background: var(--life-green-strong);
   display: inline-block;
 }
 
-/* The main row is now a vertical stack: title gets full width,
-   toolbar sits below on its own row (which can wrap if needed). */
 .exp-header__main {
   display: grid;
   gap: 14px;
@@ -220,27 +152,23 @@
   margin: 0;
   font-size: var(--exp-display);
   font-weight: 720;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1.04;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-feature-settings: "tnum" 1, "ss01" 1;
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
 }
 
 .exp-display__sub {
   margin: 0;
   font-size: 14px;
-  color: #444d58;
+  color: var(--life-muted);
   letter-spacing: 0;
   line-height: 1.45;
   max-width: 64ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.exp[data-expenses-theme="dark"] .exp-display__sub {
-  color: var(--exp-text-emphasis);
 }
 
 .exp-header__toolbar {
@@ -250,18 +178,17 @@
   flex-wrap: wrap;
   justify-content: flex-start;
   padding-top: 12px;
-  border-top: 1px solid var(--exp-border);
+  border-top: 1px solid var(--life-border);
 }
 
 .exp-toolbar-divider {
   width: 1px;
   height: 24px;
-  background: var(--exp-border);
+  background: var(--life-border);
   flex: 0 0 auto;
 }
 
-/* Normalize all toolbar items to the same visual height (40px) so the
-   primary button doesn't tower over the ghost pills next to it. */
+/* Normalize all toolbar items to the same visual height (40px). */
 .exp-header__toolbar > .exp-pill,
 .exp-header__toolbar > .exp-month,
 .exp-header__toolbar > .exp-theme-toggle {
@@ -290,7 +217,7 @@
   padding-bottom: 0;
 }
 
-/* Pill primitives */
+/* ---------- Pill primitives ---------- */
 .exp-pill {
   display: inline-flex;
   align-items: center;
@@ -301,9 +228,9 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  background: var(--exp-surface);
-  color: var(--exp-text);
-  border: 1px solid var(--exp-border);
+  background: var(--life-card);
+  color: var(--life-text);
+  border: 1px solid var(--life-border);
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
   white-space: nowrap;
@@ -311,34 +238,34 @@
 }
 
 .exp-pill:hover {
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border-strong);
+  background: var(--life-card-soft);
+  border-color: var(--life-border-strong);
 }
 
 .exp-pill--primary {
-  background: var(--exp-accent);
-  color: var(--exp-accent-fg);
-  border-color: var(--exp-accent);
+  background: var(--life-green-strong);
+  color: var(--life-green-ink);
+  border-color: var(--life-green-strong);
   padding: 10px 20px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .exp-pill--primary:hover {
-  background: var(--exp-accent-strong);
-  border-color: var(--exp-accent-strong);
+  background: #82d62d;
+  border-color: #82d62d;
   transform: translateY(-1px);
 }
 
 .exp-pill--ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
 }
 
 .exp-pill--ghost:hover {
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border);
-  color: var(--exp-text);
+  background: var(--life-card-soft);
+  border-color: var(--life-border);
+  color: var(--life-text);
 }
 
 .exp-pill--sm {
@@ -354,35 +281,35 @@
   height: 40px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--exp-text);
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
+  color: var(--life-text);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
   border-radius: var(--exp-radius-pill);
   cursor: pointer;
   transition: background 160ms ease, border-color 160ms ease;
 }
 
 .exp-month:hover {
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border-strong);
+  background: var(--life-card-soft);
+  border-color: var(--life-border-strong);
 }
 
 .exp-month__label {
   min-width: 90px;
   text-align: center;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
 }
 
 .exp-month input {
   background: transparent;
   border: 0;
-  color: var(--exp-text);
+  color: var(--life-text);
   font: inherit;
   font-weight: 600;
   outline: none;
-  color-scheme: light dark;
+  color-scheme: light;
   padding: 0;
 }
 .exp-month input::-webkit-calendar-picker-indicator,
@@ -393,9 +320,6 @@
   display: none;
 }
 
-/* Toolbar grouping: month | secondary actions | primary actions.
-   Each group is visually separated by a 1px border-line divider
-   (via border-left/border-right) and padded so the groups breathe. */
 .exp-header__toolbar-secondary {
   display: flex;
   align-items: center;
@@ -404,7 +328,7 @@
   min-width: 0;
   justify-content: flex-start;
   padding: 0 16px;
-  border-right: 1px solid var(--exp-border);
+  border-right: 1px solid var(--life-border);
 }
 
 .exp-header__toolbar-primary {
@@ -422,9 +346,9 @@
   width: auto;
   height: 40px;
   border-radius: var(--exp-radius-pill);
-  border: 1px solid var(--exp-border);
-  background: var(--exp-surface);
-  color: var(--exp-text);
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  color: var(--life-text);
   cursor: pointer;
   flex: 0 0 auto;
   position: relative;
@@ -452,10 +376,10 @@
   right: 0;
   z-index: 40;
   min-width: 188px;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  box-shadow: 0 14px 36px rgba(10, 10, 10, 0.12);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
   padding: 8px;
   display: grid;
   gap: 4px;
@@ -472,21 +396,20 @@
   width: 36px;
   height: 36px;
   border-radius: var(--exp-radius-pill);
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  color: var(--exp-text);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  color: var(--life-text);
   cursor: pointer;
   transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
 }
 
 .exp-theme-toggle:hover {
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border-strong);
+  background: var(--life-card-soft);
+  border-color: var(--life-border-strong);
   transform: translateY(-1px);
 }
 
-/* Legacy header aliases — old class names map to nothing visible
-   so the new structure can take over without breaking the JSX. */
+/* Legacy aliases kept as display:none so old JSX doesn't break. */
 .exp-header__brand,
 .exp-header__mark,
 .exp-header__title,
@@ -495,18 +418,19 @@
   display: contents;
 }
 
-/* ---------- Banners (slim with left dot) ---------- */
+/* ---------- Banners ---------- */
 .exp-banner {
   display: flex;
   align-items: center;
   gap: 12px;
-  border-radius: var(--exp-radius-sm);
-  padding: 10px 16px;
+  border-radius: var(--life-radius-lg);
+  padding: 12px 16px;
   font-size: 13px;
   font-weight: 500;
-  border: 1px solid var(--exp-border);
-  background: var(--exp-surface);
-  color: var(--exp-text);
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  color: var(--life-text);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
   animation: exp-banner-in 180ms ease;
 }
 
@@ -526,23 +450,23 @@
 }
 
 .exp-banner--error {
-  color: var(--exp-danger);
-  border-color: rgba(185, 28, 28, 0.18);
-  background: rgba(185, 28, 28, 0.04);
-  border-left: 3px solid var(--exp-danger);
+  color: var(--life-danger);
+  border-color: rgba(255, 107, 107, 0.25);
+  background: rgba(255, 107, 107, 0.06);
+  border-left: 3px solid var(--life-danger);
 }
 
 .exp-banner--ok {
-  color: var(--exp-success);
-  border-color: rgba(4, 120, 87, 0.18);
-  background: rgba(4, 120, 87, 0.04);
-  border-left: 3px solid var(--exp-success);
+  color: var(--life-green-ink);
+  border-color: rgba(155, 234, 61, 0.3);
+  background: rgba(155, 234, 61, 0.08);
+  border-left: 3px solid var(--life-green-strong);
 }
 
 .exp-banner--ok::before {
   content: "✓";
   font-weight: 700;
-  color: var(--exp-success);
+  color: var(--life-green-strong);
   width: auto;
   height: auto;
   background: transparent;
@@ -554,7 +478,7 @@
 .exp-banner--error::before {
   content: "✕";
   font-weight: 700;
-  color: var(--exp-danger);
+  color: var(--life-danger);
   width: auto;
   height: auto;
   background: transparent;
@@ -586,15 +510,10 @@
 }
 .exp-banner__dismiss:hover {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.06);
-}
-.exp[data-expenses-theme="dark"] .exp-banner__dismiss:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.06);
 }
 
-/* Scope for fixed drawer + backdrop pair (manual expense drawer, etc).
-   The drawer-scope wrapper sets --exp-drawer-width so the backdrop can
-   size itself to whatever drawer is open. */
+/* Scope for fixed drawer + backdrop pair (manual expense drawer, etc). */
 .exp-card__drawer-scope {
   position: fixed;
   inset: 0;
@@ -609,10 +528,11 @@
 .exp-kpis {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 3fr) minmax(0, 2fr);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  background: var(--exp-surface);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  background: var(--life-card);
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 
 .exp-kpi {
@@ -623,7 +543,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 6px;
-  border-right: 1px solid var(--exp-border);
+  border-right: 1px solid var(--life-border);
   align-content: center;
   position: relative;
   overflow: hidden;
@@ -636,7 +556,7 @@
   right: 14px;
   opacity: 0.35;
   pointer-events: none;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
 }
 
 .exp-kpi:last-child {
@@ -648,7 +568,7 @@
 }
 
 .exp-kpi__label {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -656,8 +576,8 @@
 }
 
 .exp-kpi__value {
-  color: var(--exp-text);
-  font-family: var(--exp-font-num);
+  color: var(--life-text);
+  font-family: var(--life-font-num);
   font-size: 28px;
   line-height: 1.1;
   font-weight: 700;
@@ -666,11 +586,11 @@
 }
 
 .exp-kpi__value--danger {
-  color: var(--exp-danger);
+  color: var(--life-danger);
 }
 
 .exp-kpi__meta {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
@@ -680,34 +600,33 @@
 }
 
 .exp-kpi--action .exp-kpi__value {
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 
 .exp-job-queue {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 20px 24px;
   display: grid;
   gap: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 
-/* Wave 3: dead-job callout. Sits at the top of the queue when at least one
-   job hit MAX_JOB_ATTEMPTS, so the user doesn't have to scan the list to
-   find jobs that need manual action. */
 .exp-job-banner {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  background: var(--exp-warn-soft, rgba(217, 119, 6, 0.08));
-  border: 1px solid var(--exp-warn, #d97706);
-  border-radius: var(--exp-radius-sm);
+  background: rgba(255, 226, 138, 0.18);
+  border: 1px solid rgba(255, 226, 138, 0.5);
+  border-left: 3px solid var(--life-yellow);
+  border-radius: var(--life-radius);
 }
 .exp-job-banner__icon {
   font-size: 18px;
   line-height: 1.2;
-  color: var(--exp-warn, #d97706);
+  color: #b45309;
   flex: 0 0 auto;
 }
 .exp-job-banner__body {
@@ -717,14 +636,13 @@
   gap: 4px;
 }
 .exp-job-banner__title {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
 }
 .exp-job-banner__sub {
-  color: var(--exp-text-dim, var(--exp-text));
-  opacity: 0.75;
+  color: var(--life-muted);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -745,10 +663,10 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
   padding: 12px 14px;
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
 }
 
 .exp-job__thumb {
@@ -756,8 +674,8 @@
   height: 48px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid var(--exp-border);
-  background: var(--exp-surface);
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
   flex: 0 0 auto;
 }
 
@@ -769,7 +687,7 @@
 }
 
 .exp-job__name {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-size: 13px;
   font-weight: 600;
   overflow: hidden;
@@ -778,7 +696,7 @@
 }
 
 .exp-job__error {
-  color: var(--exp-danger);
+  color: var(--life-danger);
   font-size: 12px;
   line-height: 1.45;
   max-height: 3em;
@@ -799,7 +717,7 @@
   }
   .exp-kpi {
     border-right: 0;
-    border-bottom: 1px solid var(--exp-border);
+    border-bottom: 1px solid var(--life-border);
   }
   .exp-kpi:last-child {
     border-bottom: 0;
@@ -808,7 +726,7 @@
 @media (max-width: 560px) {
   .exp-kpi {
     border-right: 0;
-    border-bottom: 1px solid var(--exp-border);
+    border-bottom: 1px solid var(--life-border);
   }
   .exp-kpi:last-child {
     border-bottom: 0;
@@ -823,10 +741,11 @@
 
 /* ---------- Uploader ---------- */
 .exp-uploader {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-uploader__zone {
   display: grid;
@@ -834,16 +753,16 @@
   align-items: center;
   gap: 12px;
   text-align: left;
-  border: 1px dashed var(--exp-border-strong);
-  border-radius: var(--exp-radius-sm);
+  border: 1px dashed var(--life-border-strong);
+  border-radius: var(--life-radius);
   padding: 12px 14px;
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
   transition: background 160ms ease, border-color 160ms ease;
   cursor: pointer;
 }
 .exp-uploader__zone:hover {
-  background: var(--exp-accent-soft);
-  border-color: var(--exp-text);
+  background: rgba(155, 234, 61, 0.08);
+  border-color: var(--life-green-strong);
 }
 .exp-uploader__icon {
   width: 36px;
@@ -852,17 +771,17 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--exp-accent-soft);
-  color: var(--exp-text);
+  background: var(--life-card-soft);
+  color: var(--life-green-ink);
 }
 .exp-uploader__title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-uploader__hint {
   font-size: 12px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   line-height: 1.5;
   max-width: none;
 }
@@ -884,20 +803,20 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  background: var(--exp-surface-2);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
   font-size: 13px;
 }
 .exp-uploader__file-name {
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .exp-uploader__file-meta {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -906,7 +825,7 @@
 .exp-uploader__note {
   margin-top: 0;
   font-size: 12px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   line-height: 1.6;
 }
 .exp-uploader--compact {
@@ -914,6 +833,7 @@
   border: 0;
   background: transparent;
   min-width: 0;
+  box-shadow: none;
 }
 .exp-uploader--compact .exp-uploader__zone {
   display: flex;
@@ -957,10 +877,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  box-shadow: 0 18px 60px rgba(10, 10, 10, 0.12);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.14);
 }
 .exp-manual__head {
   display: flex;
@@ -968,11 +888,11 @@
   justify-content: space-between;
   gap: 12px;
   padding: 22px 24px 14px;
-  border-bottom: 1px solid var(--exp-border);
+  border-bottom: 1px solid var(--life-border);
 }
 .exp-manual__hint {
   margin: 0;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -991,9 +911,9 @@
   flex-wrap: wrap;
 }
 .exp-chip {
-  border: 1px solid var(--exp-border);
-  background: var(--exp-surface-2);
-  color: var(--exp-text-muted);
+  border: 1px solid var(--life-border);
+  background: var(--life-card-soft);
+  color: var(--life-muted);
   border-radius: var(--exp-radius-pill);
   padding: 7px 13px;
   font-size: 13px;
@@ -1002,14 +922,14 @@
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 .exp-chip:hover {
-  color: var(--exp-text);
-  background: var(--exp-surface-3);
-  border-color: var(--exp-border-strong);
+  color: var(--life-text);
+  background: var(--life-shell);
+  border-color: var(--life-border-strong);
 }
 .exp-chip--active {
-  border-color: var(--exp-text);
-  color: var(--exp-text);
-  background: var(--exp-accent-soft);
+  border-color: var(--life-green-strong);
+  color: var(--life-green-ink);
+  background: rgba(155, 234, 61, 0.16);
 }
 .exp-manual__amount .exp-form__input {
   font-size: 32px;
@@ -1034,46 +954,46 @@
   transition: background 160ms ease, color 160ms ease, transform 160ms ease, border-color 160ms ease;
   white-space: nowrap;
   background: transparent;
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .exp-btn--primary {
-  background: var(--exp-accent);
-  color: var(--exp-accent-fg);
-  border-color: var(--exp-accent);
+  background: var(--life-green-strong);
+  color: var(--life-green-ink);
+  border-color: var(--life-green-strong);
 }
 .exp-btn--primary:hover:not(:disabled) {
-  background: var(--exp-accent-strong);
+  background: #82d62d;
   transform: translateY(-1px);
 }
 .exp-btn--secondary {
-  background: var(--exp-surface);
-  color: var(--exp-text);
-  border-color: var(--exp-border);
+  background: var(--life-card);
+  color: var(--life-text);
+  border-color: var(--life-border);
 }
 .exp-btn--secondary:hover:not(:disabled) {
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border-strong);
+  background: var(--life-card-soft);
+  border-color: var(--life-border-strong);
 }
 .exp-btn--ghost {
   background: transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   border-color: transparent;
 }
 .exp-btn--ghost:hover:not(:disabled) {
-  color: var(--exp-text);
-  background: var(--exp-surface-2);
+  color: var(--life-text);
+  background: var(--life-card-soft);
 }
 .exp-btn--danger {
   background: transparent;
-  color: var(--exp-danger);
-  border-color: rgba(185, 28, 28, 0.2);
+  color: var(--life-danger);
+  border-color: rgba(255, 107, 107, 0.35);
 }
 .exp-btn--danger:hover:not(:disabled) {
-  background: rgba(185, 28, 28, 0.06);
+  background: rgba(255, 107, 107, 0.06);
 }
 .exp-btn--sm {
   padding: 6px 12px;
@@ -1088,13 +1008,14 @@
   flex: 1;
   gap: 14px;
   padding: 24px;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   min-height: 0;
   max-height: 380px;
   overflow: hidden;
   box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-ring {
   position: relative;
@@ -1121,16 +1042,16 @@
 .exp-ring__label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .exp-ring__value {
   margin-top: 2px;
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 30px;
   font-weight: 760;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -1138,13 +1059,13 @@
 .exp-ring__sub {
   margin-top: 2px;
   font-size: 13px;
-  color: var(--exp-text-emphasis);
+  color: var(--life-muted);
   font-variant-numeric: tabular-nums;
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-weight: 700;
 }
 .exp-ring__sub strong {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-weight: 700;
 }
 .exp-hero__warn {
@@ -1152,12 +1073,12 @@
   align-items: flex-start;
   gap: 10px;
   font-size: 13px;
-  color: var(--exp-warn);
+  color: #b45309;
   font-weight: 500;
   line-height: 1.5;
-  background: rgba(180, 83, 9, 0.05);
-  border: 1px solid rgba(180, 83, 9, 0.18);
-  border-radius: var(--exp-radius-sm);
+  background: rgba(255, 226, 138, 0.18);
+  border: 1px solid rgba(255, 226, 138, 0.5);
+  border-radius: var(--life-radius);
   padding: 10px 14px;
 }
 .exp-hero__warn::before {
@@ -1165,16 +1086,16 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--exp-warn);
+  background: #b45309;
   flex-shrink: 0;
   margin-top: 6px;
 }
 
 /* ---------- Category bars (desaturated, restrained) ---------- */
 .exp-cats {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -1184,6 +1105,7 @@
   overflow: hidden;
   box-sizing: border-box;
   gap: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-cats .exp-section-title {
   margin: 0;
@@ -1193,40 +1115,40 @@
   height: auto;
   flex: 1;
   min-height: 0;
-  color: var(--exp-text);
+  color: var(--life-text);
   overflow: visible;
 }
 .exp-category-svg text {
-  font-family: var(--exp-font);
+  font-family: var(--life-font);
   dominant-baseline: middle;
 }
 .exp-category-svg__name {
-  fill: var(--exp-text);
+  fill: var(--life-text);
   font-size: 13px;
   font-weight: 600;
 }
 .exp-category-svg__amount {
-  fill: var(--exp-text);
-  font-family: var(--exp-font-num);
+  fill: var(--life-text);
+  font-family: var(--life-font-num);
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .exp-category-svg__pct {
-  fill: var(--exp-text-tertiary);
-  font-family: var(--exp-font-num);
+  fill: var(--life-subtle);
+  font-family: var(--life-font-num);
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .exp-category-svg__rule {
-  stroke: var(--exp-border-strong);
+  stroke: var(--life-border-strong);
   stroke-dasharray: 1 5;
   stroke-linecap: round;
 }
 .exp-cats__empty {
   font-size: 13px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-align: center;
   padding: 20px 0;
 }
@@ -1259,16 +1181,16 @@
   }
 }
 
-/* ---------- Section title (Mercury: 11px uppercase, 0.1em) ---------- */
+/* ---------- Section title (Life OS: 11px uppercase, 0.08em) ---------- */
 .exp-section-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   margin: 0 0 16px;
 }
 .exp-section-title__count {
@@ -1278,34 +1200,35 @@
   min-width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--exp-surface-2);
-  color: var(--exp-text-muted);
+  background: var(--life-card-soft);
+  color: var(--life-muted);
   font-size: 11px;
   font-weight: 700;
   padding: 0 8px;
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
 }
 
 /* ---------- Receipt / transaction cards (row-like, hairline dividers) ---------- */
 .exp-col__scroll {
   display: grid;
   gap: 0;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   flex: 1;
   min-height: 0;
   max-height: min(58vh, 620px);
   overflow-y: auto;
   padding: 0 18px;
   scrollbar-width: thin;
-  scrollbar-color: var(--exp-border-strong) transparent;
+  scrollbar-color: var(--life-border-strong) transparent;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-col__scroll::-webkit-scrollbar {
   width: 6px;
 }
 .exp-col__scroll::-webkit-scrollbar-thumb {
-  background: var(--exp-border-strong);
+  background: var(--life-border-strong);
   border-radius: 999px;
 }
 
@@ -1313,7 +1236,7 @@
   background: transparent;
   border: 0;
   border-radius: 0;
-  border-top: 1px solid var(--exp-border);
+  border-top: 1px solid var(--life-border);
   box-shadow: none;
   overflow: visible;
   transition: background 160ms ease;
@@ -1330,23 +1253,23 @@
   padding: 8px 0 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--exp-text-muted);
-  background: var(--exp-surface);
-  border-bottom: 1px solid var(--exp-border);
+  color: var(--life-muted);
+  background: var(--life-card);
+  border-bottom: 1px solid var(--life-border);
   font-variant-numeric: tabular-nums;
 }
 
 .exp-card:hover,
 .exp-card--clickable .exp-card__row:hover {
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
 }
 
 .exp-card--duplicate {
-  background: linear-gradient(90deg, rgba(180, 83, 9, 0.08), transparent 60%);
-  border-top-color: rgba(180, 83, 9, 0.3);
-  border-bottom: 1px solid rgba(180, 83, 9, 0.2);
+  background: linear-gradient(90deg, rgba(255, 226, 138, 0.18), transparent 60%);
+  border-top-color: rgba(255, 226, 138, 0.55);
+  border-bottom: 1px solid rgba(255, 226, 138, 0.4);
 }
 
 .exp-card__row {
@@ -1366,7 +1289,7 @@
 .exp-card__merchant {
   font-size: 15px;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1375,33 +1298,33 @@
 }
 .exp-card__meta {
   font-size: 12px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   margin-top: 2px;
   font-variant-numeric: tabular-nums;
 }
 .exp-card__meta-warn {
-  color: var(--exp-warn);
+  color: #b45309;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 .exp-card__meta-duplicate {
-  color: var(--exp-warn);
+  color: #b45309;
   font-weight: 700;
 }
 .exp-card__meta-ok {
-  color: var(--exp-success);
+  color: var(--life-green-ink);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 .exp-card__amount {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 22px;
   font-weight: 720;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.015em;
 }
@@ -1413,7 +1336,7 @@
 }
 .exp-card__amount-sub {
   font-size: 11px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-variant-numeric: tabular-nums;
 }
 .exp-card__actions {
@@ -1431,15 +1354,15 @@
   border-radius: 999px;
   background: transparent;
   border: 1px solid transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   cursor: pointer;
   transition: transform 200ms ease, color 160ms ease, background 160ms ease, border-color 160ms ease;
   position: relative;
 }
 .exp-card__expand:hover {
-  color: var(--exp-text);
-  background: var(--exp-surface-3);
-  border-color: var(--exp-border);
+  color: var(--life-text);
+  background: var(--life-shell);
+  border-color: var(--life-border);
 }
 .exp-card__expand svg {
   transition: transform 200ms ease;
@@ -1451,8 +1374,8 @@
   cursor: pointer;
 }
 .exp-card__details {
-  border-top: 1px solid var(--exp-border);
-  background: var(--exp-surface);
+  border-top: 1px solid var(--life-border);
+  background: var(--life-card);
   position: fixed;
   top: 18px;
   right: 18px;
@@ -1463,9 +1386,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  box-shadow: 0 18px 60px rgba(10, 10, 10, 0.14);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.14);
 }
 .exp-card__details-close {
   position: absolute;
@@ -1477,17 +1400,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--exp-border);
-  background: var(--exp-surface);
-  color: var(--exp-text-muted);
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  color: var(--life-muted);
   border-radius: 999px;
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 .exp-card__details-close:hover {
-  color: var(--exp-text);
-  background: var(--exp-surface-2);
-  border-color: var(--exp-border-strong);
+  color: var(--life-text);
+  background: var(--life-card-soft);
+  border-color: var(--life-border-strong);
 }
 .exp-card__backdrop {
   position: fixed;
@@ -1496,7 +1419,7 @@
   bottom: 0;
   width: calc(100vw - var(--exp-drawer-width, 820px) - 18px);
   z-index: 29;
-  background: rgba(10, 10, 10, 0.16);
+  background: rgba(15, 23, 42, 0.32);
   border: 0;
   padding: 0;
   cursor: default;
@@ -1508,13 +1431,13 @@
   flex: 1;
   min-height: 0;
   scrollbar-width: thin;
-  scrollbar-color: var(--exp-border-strong) transparent;
+  scrollbar-color: var(--life-border-strong) transparent;
 }
 .exp-card__details-body::-webkit-scrollbar {
   width: 6px;
 }
 .exp-card__details-body::-webkit-scrollbar-thumb {
-  background: var(--exp-border-strong);
+  background: var(--life-border-strong);
   border-radius: 999px;
 }
 
@@ -1530,7 +1453,7 @@
   gap: 12px;
   padding: 9px 0;
   font-size: 13px;
-  border-bottom: 1px solid var(--exp-border);
+  border-bottom: 1px solid var(--life-border);
 }
 .exp-items__row:last-child {
   border-bottom: 0;
@@ -1543,7 +1466,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-items__emoji {
   font-size: 14px;
@@ -1556,14 +1479,14 @@
   min-width: 0;
 }
 .exp-items__spec {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 12px;
   margin-left: 2px;
 }
 .exp-items__amount {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -1574,12 +1497,12 @@
   padding: 10px 0 4px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
 .exp-items__footer span:last-child {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1587,35 +1510,35 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: var(--exp-accent-soft);
-  color: var(--exp-text);
+  background: var(--life-card-soft);
+  color: var(--life-text);
   border-radius: 999px;
   padding: 3px 10px;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
 }
 .exp-tag--warn {
-  background: rgba(180, 83, 9, 0.08);
-  color: var(--exp-warn);
-  border-color: rgba(180, 83, 9, 0.2);
+  background: rgba(255, 226, 138, 0.22);
+  color: #b45309;
+  border-color: rgba(255, 226, 138, 0.5);
 }
 .exp-tag--duplicate {
-  background: rgba(180, 83, 9, 0.08);
-  color: var(--exp-warn);
-  border: 1px solid rgba(180, 83, 9, 0.3);
+  background: rgba(255, 226, 138, 0.22);
+  color: #b45309;
+  border: 1px solid rgba(255, 226, 138, 0.5);
 }
 .exp-tag--success {
-  background: rgba(4, 120, 87, 0.08);
-  color: var(--exp-success);
-  border-color: rgba(4, 120, 87, 0.2);
+  background: rgba(155, 234, 61, 0.16);
+  color: var(--life-green-ink);
+  border-color: rgba(155, 234, 61, 0.4);
 }
 .exp-tag--neutral {
-  background: var(--exp-surface-2);
-  color: var(--exp-text-muted);
-  border: 1px solid var(--exp-border);
+  background: var(--life-card-soft);
+  color: var(--life-muted);
+  border: 1px solid var(--life-border);
 }
 .exp-tag--toggle {
   cursor: pointer;
@@ -1623,7 +1546,7 @@
   border-style: dashed;
 }
 .exp-tag--toggle:hover {
-  background: rgba(180, 83, 9, 0.04);
+  background: rgba(255, 226, 138, 0.08);
 }
 
 .exp-reasons {
@@ -1650,7 +1573,7 @@
 .exp-form__label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1658,12 +1581,12 @@
 .exp-form__select,
 .exp-form__textarea {
   width: 100%;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
   padding: 10px 12px;
   font-size: 13px;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-family: inherit;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
@@ -1671,8 +1594,8 @@
 .exp-form__input:focus,
 .exp-form__select:focus,
 .exp-form__textarea:focus {
-  border-color: var(--exp-text);
-  box-shadow: 0 0 0 3px var(--exp-accent-soft);
+  border-color: var(--life-green-strong);
+  box-shadow: 0 0 0 3px rgba(155, 234, 61, 0.18);
 }
 .exp-form__textarea {
   resize: vertical;
@@ -1694,8 +1617,8 @@
   gap: 8px;
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--exp-text-muted);
+  letter-spacing: 0.08em;
+  color: var(--life-muted);
   font-weight: 700;
   padding: 0 4px;
   align-items: center;
@@ -1704,31 +1627,30 @@
   display: grid;
   gap: 8px;
   padding: 12px 14px;
-  background: var(--exp-surface-2);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
 }
 
-/* Live nutrition preview chip — debounced 250ms fetch of /api/nutrition/preview.
-   Renders below the name input but above the amount/price row. */
+/* Live nutrition preview chip — debounced 250ms fetch of /api/nutrition/preview. */
 .exp-form__preview {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--exp-text-muted);
-  background: var(--exp-surface-3);
-  border: 1px solid var(--exp-border);
+  color: var(--life-muted);
+  background: var(--life-shell);
+  border: 1px solid var(--life-border);
   border-radius: 9999px;
   padding: 3px 10px 3px 8px;
   width: fit-content;
   max-width: 100%;
-  font-family: var(--exp-font);
+  font-family: var(--life-font);
   font-weight: 500;
 }
 
 .exp-form__preview--loading {
-  color: var(--exp-text-subtle);
+  color: var(--life-subtle);
   font-style: italic;
 }
 
@@ -1737,7 +1659,7 @@
   height: 9px;
   border-radius: 9999px;
   display: inline-block;
-  border: 1px solid rgba(10, 10, 10, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   flex: none;
 }
 
@@ -1747,29 +1669,29 @@
 .exp-form__preview-dot--紫蓝 { background: #7c3aed; }
 .exp-form__preview-dot--白 { background: #a1a1aa; }
 .exp-form__preview-dot--黑棕 { background: #78350f; }
-.exp-form__preview-dot--none { background: transparent; border-color: var(--exp-border-strong); }
+.exp-form__preview-dot--none { background: transparent; border-color: var(--life-border-strong); }
 
 .exp-form__preview-cat {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-weight: 700;
-  font-family: var(--exp-font);
+  font-family: var(--life-font);
 }
 
 .exp-form__preview-flag {
   font-size: 11px;
-  color: var(--exp-warn);
-  background: rgba(180, 83, 9, 0.08);
-  border: 1px solid rgba(180, 83, 9, 0.2);
+  color: #b45309;
+  background: rgba(255, 226, 138, 0.22);
+  border: 1px solid rgba(255, 226, 138, 0.5);
   border-radius: 9999px;
   padding: 1px 7px;
   font-weight: 600;
-  font-family: var(--exp-font);
+  font-family: var(--life-font);
 }
 
 .exp-form__preview-matched {
   font-size: 11px;
-  color: var(--exp-text-subtle);
-  font-family: var(--exp-font);
+  color: var(--life-subtle);
+  font-family: var(--life-font);
   font-weight: 500;
   margin-left: 2px;
   white-space: nowrap;
@@ -1800,8 +1722,8 @@
   align-items: center;
   gap: 6px;
   background: transparent;
-  border: 1px dashed var(--exp-border-strong);
-  color: var(--exp-text-muted);
+  border: 1px dashed var(--life-border-strong);
+  color: var(--life-muted);
   border-radius: var(--exp-radius-pill);
   padding: 7px 14px;
   font-size: 12px;
@@ -1810,13 +1732,13 @@
   transition: color 160ms ease, border-color 160ms ease;
 }
 .exp-form__add:hover {
-  color: var(--exp-text);
-  border-color: var(--exp-text);
+  color: var(--life-text);
+  border-color: var(--life-text);
 }
 .exp-form__remove {
   background: transparent;
   border: 0;
-  color: var(--exp-text-subtle);
+  color: var(--life-subtle);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1827,17 +1749,17 @@
   transition: background 160ms ease, color 160ms ease;
 }
 .exp-form__remove:hover {
-  color: var(--exp-danger);
-  background: rgba(185, 28, 28, 0.08);
+  color: var(--life-danger);
+  background: rgba(255, 107, 107, 0.1);
 }
 .exp-form__totals {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   padding: 16px;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
 }
 .exp-form__total {
   display: grid;
@@ -1845,20 +1767,20 @@
 }
 .exp-form__total-label {
   font-size: 10px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   font-weight: 700;
 }
 .exp-form__total-value {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 15px;
   font-weight: 700;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
 }
 .exp-form__total--final .exp-form__total-value {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-size: 17px;
 }
 .exp-form__actions {
@@ -1868,18 +1790,18 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   padding: 16px 24px;
-  border-top: 1px solid var(--exp-border);
-  background: var(--exp-surface-2);
+  border-top: 1px solid var(--life-border);
+  background: var(--life-card-soft);
 }
 .exp-form__details {
-  border-top: 1px solid var(--exp-border);
+  border-top: 1px solid var(--life-border);
   padding-top: 14px;
 }
 .exp-form__details summary {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   list-style: none;
   display: inline-flex;
   align-items: center;
@@ -1897,7 +1819,7 @@
 .exp-empty {
   text-align: center;
   padding: 36px 16px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 13px;
   display: grid;
   gap: 8px;
@@ -1913,11 +1835,11 @@
   gap: 12px;
   padding: 64px 24px;
   text-align: center;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 14px;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
 }
 .exp-empty--global svg {
   opacity: 0.6;
@@ -1971,17 +1893,13 @@
     justify-content: flex-start;
   }
   .exp {
-    padding: 0 16px 40px;
+    padding: 0;
   }
 }
 
 @media (max-width: 640px) {
-  .exp {
-    margin: 0 -16px -16px -16px;
-  }
   .exp-header {
-    margin: 0 -16px;
-    top: 90px;
+    padding: 14px;
   }
   .exp-ring {
     width: 180px;
@@ -2030,10 +1948,6 @@
     justify-self: end;
   }
 
-  /* Bug A fix: collapse the toolbar to a single row at 375px.
-     9 pills wrapped to ~3-4 rows, blowing the sticky header past 280px.
-     Keep only month + primary actions visible; the rest (theme/logout/
-     budget/exports/recurring) move into a "更多" popover. */
   .exp-header__toolbar {
     flex-wrap: nowrap;
     padding-top: 10px;
@@ -2059,8 +1973,6 @@
   .exp-header__toolbar > .exp-month {
     padding: 6px 10px;
   }
-  /* Primary actions now live inside .exp-header__toolbar-primary; collapse
-     padding/dividers and shrink the inner pill to match the 32px row. */
   .exp-header__toolbar-primary {
     gap: 6px;
   }
@@ -2070,9 +1982,6 @@
     padding-right: 14px;
     font-size: 12px;
   }
-  /* Secondary pill cluster (theme, logout, budget, exports, recurring) is
-     hidden on mobile — it's reachable through the .exp-toolbar-more popover
-     rendered via the native <details>/<summary> below. */
   .exp-header__toolbar-secondary {
     display: none;
   }
@@ -2097,19 +2006,14 @@
   max-height: 220px;
   width: auto;
   height: auto;
-  border-radius: var(--exp-radius-sm);
-  border: 1px solid var(--exp-border);
+  border-radius: var(--life-radius);
+  border: 1px solid var(--life-border);
   margin: 0 auto 12px;
   object-fit: contain;
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
 }
 
-/* Wave 3 multi-image: carousel. Single-image receipts short-circuit to the
-   plain `.exp-receipt-thumb` (rendered inside `.exp-receipt-carousel`),
-   multi-image receipts get the prev/next + swipe UI. Mobile-first: arrows
-   are always visible (≥ 40px hit area), the scroller uses scroll-snap so
-   swipes always settle on an image boundary, and dots double as tap
-   targets with a 12px minimum tap area. */
+/* Multi-image: carousel. */
 .exp-receipt-carousel {
   display: flex;
   flex-direction: column;
@@ -2134,8 +2038,6 @@
   flex: 1 1 auto;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  /* pan-y lets the page scroll vertically while swiping horizontally inside
-     the carousel. Without this, mobile browsers hijack vertical swipes. */
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -2162,18 +2064,18 @@
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  border: 1px solid var(--exp-border-strong);
-  background: var(--exp-surface);
-  color: var(--exp-text);
+  border: 1px solid var(--life-border-strong);
+  background: var(--life-card);
+  color: var(--life-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 160ms ease, transform 120ms ease, opacity 160ms ease;
-  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .exp-receipt-carousel__nav:hover:not(:disabled) {
-  background: var(--exp-surface-3);
+  background: var(--life-shell);
 }
 .exp-receipt-carousel__nav:active:not(:disabled) {
   transform: scale(0.96);
@@ -2195,8 +2097,6 @@
   height: 10px;
   min-width: 44px;
   min-height: 28px;
-  /* Use a transparent inner element for the actual dot so the touch target
-     stays ≥ 28px tall without making the dot itself visually large. */
   background: transparent;
   border: 0;
   padding: 0;
@@ -2210,20 +2110,20 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--exp-border-strong);
+  background: var(--life-border-strong);
   transition: background 160ms ease, transform 160ms ease;
 }
 .exp-receipt-carousel__dot--active::before {
-  background: var(--exp-accent);
+  background: var(--life-green-strong);
   transform: scale(1.25);
 }
 .exp-receipt-carousel__add-dot {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px dashed var(--exp-border-strong);
+  border: 1px dashed var(--life-border-strong);
   background: transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 16px;
   line-height: 1;
   display: inline-flex;
@@ -2236,8 +2136,8 @@
   transition: background 160ms ease, color 160ms ease;
 }
 .exp-receipt-carousel__add-dot:hover:not(:disabled) {
-  background: var(--exp-surface-3);
-  color: var(--exp-text);
+  background: var(--life-shell);
+  color: var(--life-text);
 }
 .exp-receipt-carousel__add-dot:disabled {
   opacity: 0.5;
@@ -2248,9 +2148,6 @@
   display: inline-flex;
 }
 @media (max-width: 540px) {
-  /* On phones the carousel should fill the drawer width. Hide the prev/next
-     arrows entirely and rely on swipe + dot taps — the arrows crowd the
-     small viewport and users find swipe more natural on touch devices. */
   .exp-receipt-carousel__nav {
     display: none;
   }
@@ -2271,13 +2168,13 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   margin-top: 4px;
 }
 .exp-manual__exclude input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--exp-text);
+  accent-color: var(--life-green-strong);
 }
 
 /* Budget settings popover. */
@@ -2287,10 +2184,10 @@
   right: 0;
   z-index: 40;
   width: min(320px, calc(100vw - 32px));
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  box-shadow: 0 14px 36px rgba(10, 10, 10, 0.12);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.14);
   padding: 14px;
   display: grid;
   gap: 10px;
@@ -2298,7 +2195,7 @@
 .exp-budget-pop__title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-budget-pop__actions {
   display: flex;
@@ -2309,7 +2206,7 @@
 .exp-budget-pop__section {
   display: grid;
   gap: 8px;
-  border-top: 1px solid var(--exp-border);
+  border-top: 1px solid var(--life-border);
   padding-top: 10px;
 }
 .exp-budget-pop__subtitle,
@@ -2322,10 +2219,10 @@
 }
 .exp-budget-pop__subtitle {
   font-size: 12px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
 }
 .exp-budget-pop__subtitle strong {
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-budget-pop__row .exp-form__input {
   min-width: 0;
@@ -2337,10 +2234,10 @@
   overflow-y: auto;
 }
 .exp-budget-pop__topup {
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
   border-radius: 10px;
   padding: 7px 8px;
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
 }
 .exp-budget-pop__topup div {
   display: grid;
@@ -2348,12 +2245,12 @@
   min-width: 0;
 }
 .exp-budget-pop__topup strong {
-  color: var(--exp-success);
+  color: var(--life-green-ink);
   font-size: 13px;
 }
 .exp-budget-pop__topup span,
 .exp-budget-pop__empty {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 12px;
 }
 .exp-budget-pop__delete {
@@ -2364,12 +2261,12 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   cursor: pointer;
 }
 .exp-budget-pop__delete:hover {
-  background: var(--exp-accent-soft);
-  color: var(--exp-danger);
+  background: rgba(255, 107, 107, 0.12);
+  color: var(--life-danger);
 }
 
 /* Bulk select checkbox + selected card + sticky bulk toolbar. */
@@ -2380,21 +2277,15 @@
   height: 18px;
   margin: 2px 0 0;
   cursor: pointer;
-  accent-color: var(--exp-text);
+  accent-color: var(--life-green-strong);
   z-index: 2;
 }
 .exp-card--selected {
-  background: var(--exp-accent-soft);
+  background: rgba(155, 234, 61, 0.1);
 }
 
 .exp-bulk-toolbar {
   position: sticky;
-  /* Sit just below the 61px-tall dashboard nav. z-index is still > nav's
-     z-10 so the toolbar wins where they overlap visually, but with
-     top:61px the toolbar renders in the strip directly under the nav
-     instead of stacking on top of it. The mobile media query below pins
-     it to the bottom instead — the nav overlap there is moot since the
-     bulk toolbar only appears after scrolling past the pending receipts. */
   top: 61px;
   z-index: 25;
   display: flex;
@@ -2402,12 +2293,12 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 18px;
-  background: var(--exp-accent-soft);
-  border: 1px solid var(--exp-border-strong);
-  border-radius: var(--exp-radius);
+  background: rgba(155, 234, 61, 0.12);
+  border: 1px solid rgba(155, 234, 61, 0.4);
+  border-radius: var(--life-radius-lg);
   font-size: 13px;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   flex-wrap: wrap;
 }
 .exp-bulk-toolbar__count {
@@ -2421,14 +2312,13 @@
   justify-content: flex-end;
 }
 
-/* Discoverability hint shown before the user has selected anything.
-   Quieter than the active toolbar so it nudges without competing. */
 .exp-bulk-toolbar--hint {
-  background: var(--exp-surface-2);
+  background: var(--life-card-soft);
   border-style: dashed;
+  border-color: var(--life-border);
   font-size: 12px;
   font-weight: 500;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   justify-content: flex-start;
 }
 .exp-bulk-toolbar__hint-text {
@@ -2445,15 +2335,15 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--exp-text-subtle);
+  color: var(--life-subtle);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease;
 }
 .exp-bulk-toolbar__hint-dismiss:hover {
-  color: var(--exp-text);
-  background: var(--exp-surface-3);
+  color: var(--life-text);
+  background: var(--life-shell);
 }
 
 @media (max-width: 720px) {
@@ -2464,14 +2354,29 @@
   }
 }
 
-/* Recurring manager (used by sub-component, keep selectors working). */
+@media (max-width: 640px) {
+  .exp-bulk-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .exp-bulk-toolbar--hint {
+    align-items: center;
+    flex-direction: row;
+  }
+  .exp-bulk-toolbar__actions {
+    justify-content: stretch;
+  }
+}
+
+/* Recurring manager. */
 .exp-recurring-form {
   display: grid;
   gap: 14px;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 18px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-recurring-radios {
   display: flex;
@@ -2483,17 +2388,17 @@
   align-items: center;
   gap: 0;
   padding: 7px 14px;
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
   border-radius: var(--exp-radius-pill);
-  background: var(--exp-surface-2);
-  color: var(--exp-text);
+  background: var(--life-card-soft);
+  color: var(--life-text);
   font-size: 13px;
   cursor: pointer;
 }
 .exp-recurring-radios .exp-chip:has(input:checked) {
-  border-color: var(--exp-text);
-  background: var(--exp-accent-soft);
-  color: var(--exp-text);
+  border-color: var(--life-green-strong);
+  background: rgba(155, 234, 61, 0.18);
+  color: var(--life-green-ink);
   font-weight: 600;
 }
 .exp-recurring-list {
@@ -2513,13 +2418,13 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--exp-accent);
-  color: var(--exp-accent-fg);
+  background: var(--life-green-strong);
+  color: var(--life-green-ink);
   font-size: 24px;
   font-weight: 500;
   line-height: 1;
   border: 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
   z-index: 25;
   cursor: pointer;
   transition: transform 160ms ease, background 160ms ease;
@@ -2529,7 +2434,7 @@
 }
 .exp-fab:hover {
   transform: scale(1.08);
-  background: var(--exp-accent-strong);
+  background: #82d62d;
 }
 @media (max-width: 560px) {
   .exp-fab {
@@ -2552,14 +2457,14 @@
   left: 0;
   width: 160px;
   height: 200px;
-  border-radius: var(--exp-radius-sm);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  border-radius: var(--life-radius);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
   z-index: 40;
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms ease;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
   overflow: hidden;
 }
 .exp-thumb-preview img {
@@ -2592,8 +2497,8 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: var(--exp-warn);
-  color: #ffffff;
+  background: var(--life-yellow);
+  color: #5b3700;
   font-size: 10px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -2611,18 +2516,18 @@
   min-width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--exp-surface-2);
-  color: var(--exp-text-muted);
+  background: var(--life-card-soft);
+  color: var(--life-muted);
   font-size: 11px;
   font-weight: 700;
   padding: 0 8px;
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
   margin-left: 6px;
 }
 .exp-card-list {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   display: grid;
   gap: 0;
   padding: 0 18px;
@@ -2649,13 +2554,13 @@
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid var(--exp-border);
+  border: 1px solid var(--life-border);
 }
 .exp-card__compact-emoji {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--exp-surface-3);
+  background: var(--life-shell);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2669,7 +2574,7 @@
 .exp-card__compact-name {
   font-size: 15px;
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2677,14 +2582,14 @@
 }
 .exp-card__compact-sub {
   font-size: 11px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .exp-card__compact-warn {
-  color: var(--exp-warn);
+  color: #b45309;
   font-weight: 600;
 }
 .exp-card__compact-right {
@@ -2694,19 +2599,19 @@
   flex-shrink: 0;
 }
 .exp-card__compact-amount {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 17px;
   font-weight: 720;
   letter-spacing: -0.015em;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
 }
 .exp-card__confirm-btn {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--exp-accent);
-  color: var(--exp-accent-fg);
+  background: var(--life-green-strong);
+  color: var(--life-green-ink);
   border: none;
   font-size: 13px;
   cursor: pointer;
@@ -2720,10 +2625,6 @@
 }
 .exp-card__confirm-btn:hover:not(:disabled) { transform: scale(1.1); }
 .exp-card__confirm-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-/* Mobile tap target: extend the small 28px buttons to the 44px iOS/HIG
-   minimum without changing their visual size. The pseudo-element sits
-   behind/under the actual button (we keep background: transparent so the
-   visible button is unchanged) and gets pointer events. */
 .exp-card__confirm-btn::before,
 .exp-card__expand::before {
   content: "";
@@ -2731,25 +2632,16 @@
   inset: -8px;
   border-radius: 999px;
 }
-/* Dark mode: the white-on-white confirm button is invisible against the
-   dark surface. Use the accent-soft surface with text/border tokens. */
-.exp[data-expenses-theme="dark"] .exp-card__confirm-btn {
-  background: var(--exp-surface-3);
-  color: var(--exp-text);
-  border: 1px solid var(--exp-border-strong);
-}
-.exp[data-expenses-theme="dark"] .exp-card__confirm-btn:hover:not(:disabled) {
-  background: var(--exp-accent-soft);
-}
 
 /* ---------- CategoryProgress ---------- */
 .exp-cat-progress {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-lg);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 20px 24px;
   display: grid;
   gap: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-cat-progress__head {
   display: flex;
@@ -2761,15 +2653,15 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .exp-cat-progress__total {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 18px;
   font-weight: 700;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
 }
 .exp-cat-progress__row {
@@ -2784,7 +2676,7 @@
   text-align: center;
 }
 .exp-cat-progress__name {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-weight: 500;
   min-width: 0;
   white-space: nowrap;
@@ -2793,7 +2685,7 @@
 }
 .exp-cat-progress__track {
   height: 4px;
-  background: var(--exp-surface-3);
+  background: var(--life-shell);
   border-radius: 2px;
   overflow: hidden;
   min-width: 80px;
@@ -2805,23 +2697,23 @@
   transition: width 500ms ease-out;
 }
 .exp-cat-progress__amount {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 .exp-cat-progress__pct {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 .exp-cat-progress__other {
   font-size: 12px;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   background: transparent;
-  border: 1px dashed var(--exp-border-strong);
+  border: 1px dashed var(--life-border-strong);
   border-radius: var(--exp-radius-pill);
   padding: 6px 12px;
   cursor: pointer;
@@ -2829,20 +2721,21 @@
   font-weight: 500;
 }
 .exp-cat-progress__other:hover {
-  color: var(--exp-text);
-  border-color: var(--exp-text);
+  color: var(--life-text);
+  border-color: var(--life-text);
 }
 
-/* ---------- SpendingChart (Apple Card style) ---------- */
+/* ---------- SpendingChart ---------- */
 .exp-chart-card {
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-lg);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   padding: 20px 24px 16px;
   display: grid;
   gap: 12px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .exp-chart-card__head {
   display: flex;
@@ -2854,16 +2747,16 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .exp-chart-card__total {
-  font-family: var(--exp-font-num);
+  font-family: var(--life-font-num);
   font-size: 36px;
   font-weight: 720;
   letter-spacing: -0.025em;
-  color: var(--exp-text);
+  color: var(--life-text);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -2872,9 +2765,9 @@
   font-weight: 600;
   margin-top: 4px;
 }
-.exp-chart-card__delta--up { color: var(--exp-danger); }
-.exp-chart-card__delta--down { color: var(--exp-success); }
-.exp-chart-card__delta--flat { color: var(--exp-text-muted); }
+.exp-chart-card__delta--up { color: var(--life-danger); }
+.exp-chart-card__delta--down { color: var(--life-green-ink); }
+.exp-chart-card__delta--flat { color: var(--life-muted); }
 
 .exp-chart-svg-wrap {
   position: relative;
@@ -2889,33 +2782,33 @@
 .exp-chart-tooltip {
   position: absolute;
   pointer-events: none;
-  background: var(--exp-surface);
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius-sm);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
   padding: 8px 12px;
   font-size: 12px;
   box-shadow: var(--exp-shadow);
   white-space: nowrap;
   transform: translateX(-50%);
-  color: var(--exp-text);
+  color: var(--life-text);
 }
 .exp-chart-tooltip__date {
   font-weight: 600;
-  color: var(--exp-text);
+  color: var(--life-text);
   margin-bottom: 4px;
 }
 .exp-chart-tooltip__row {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
 }
 .exp-chart-tooltip__row strong {
-  color: var(--exp-text);
+  color: var(--life-text);
   font-weight: 600;
 }
 
 .exp-chart-tabs {
   display: flex;
   gap: 4px;
-  border-top: 1px solid var(--exp-border);
+  border-top: 1px solid var(--life-border);
   padding-top: 12px;
 }
 .exp-chart-tab {
@@ -2925,18 +2818,18 @@
   border-radius: var(--exp-radius-pill);
   border: none;
   background: transparent;
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease;
 }
-.exp-chart-tab:hover:not(:disabled) { color: var(--exp-text); }
+.exp-chart-tab:hover:not(:disabled) { color: var(--life-text); }
 .exp-chart-tab:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 .exp-chart-tab--active {
-  background: var(--exp-accent-soft);
-  color: var(--exp-text);
+  background: rgba(155, 234, 61, 0.18);
+  color: var(--life-green-ink);
 }
 
 @keyframes exp-chart-draw {
@@ -2947,730 +2840,94 @@
   animation: exp-chart-draw 600ms ease-out;
 }
 
-/* ---------- Reduced motion ---------- */
-@media (prefers-reduced-motion: reduce) {
-  .exp *,
-  .exp *::before,
-  .exp *::after,
-  .exp-analytics *,
-  .exp-analytics *::before,
-  .exp-analytics *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Final shadcn bridge overrides. Placed last so legacy bulk styles cannot
-   reintroduce the old dashed callout. */
-.exp-bulk-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--background);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-  padding: 10px 12px;
-  color: var(--foreground);
-}
-
-.exp-bulk-toolbar--hint {
-  border-style: solid;
-  background: color-mix(in oklch, var(--muted) 52%, transparent);
-}
-
-.exp-bulk-toolbar__hint-text,
-.exp-bulk-toolbar__count {
-  color: var(--muted-foreground);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.exp-bulk-toolbar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.exp-bulk-toolbar__hint-dismiss {
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  height: 28px;
-  width: 28px;
-}
-
-.exp-bulk-toolbar__hint-dismiss:hover {
-  background: var(--muted);
-  color: var(--foreground);
-}
-
-@media (max-width: 640px) {
-  .exp-bulk-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .exp-bulk-toolbar--hint {
-    align-items: center;
-    flex-direction: row;
-  }
-  .exp-bulk-toolbar__actions {
-    justify-content: stretch;
-  }
-}
-
-/* shadcn dashboard bridge: keep legacy bulk controls visually aligned with
-   the new card system until the selection UX is migrated fully. */
-.exp-bulk-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--background);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-  padding: 10px 12px;
-  color: var(--foreground);
-}
-
-.exp-bulk-toolbar--hint {
-  border-style: solid;
-  background: color-mix(in oklch, var(--muted) 52%, transparent);
-}
-
-.exp-bulk-toolbar__hint-text,
-.exp-bulk-toolbar__count {
-  color: var(--muted-foreground);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.exp-bulk-toolbar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.exp-bulk-toolbar__hint-dismiss {
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-}
-
-.exp-bulk-toolbar__hint-dismiss:hover {
-  background: var(--muted);
-  color: var(--foreground);
-}
-
-@media (max-width: 640px) {
-  .exp-bulk-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .exp-bulk-toolbar__actions {
-    justify-content: stretch;
-  }
-}
-
-/* ---------- 2026 visual rebuild: compact finance workbench ---------- */
-.exp {
-  --exp-bg: #f4f1ea;
-  --exp-surface: rgba(255, 252, 246, 0.88);
-  --exp-surface-2: rgba(255, 255, 255, 0.72);
-  --exp-surface-3: rgba(236, 241, 235, 0.9);
-  --exp-text: #171a16;
-  --exp-text-muted: #677064;
-  --exp-text-emphasis: #384139;
-  --exp-text-subtle: #8b938a;
-  --exp-border: rgba(36, 45, 34, 0.1);
-  --exp-border-strong: rgba(36, 45, 34, 0.18);
-  --exp-accent: #163f3a;
-  --exp-accent-fg: #fbfaf4;
-  --exp-accent-soft: rgba(31, 107, 99, 0.1);
-  --exp-accent-strong: #0f2f2b;
-  --exp-success: #13795b;
-  --exp-warn: #b45a32;
-  --exp-warning: #d29022;
-  --exp-danger: #bf3d42;
-  --exp-radius: 8px;
-  --exp-radius-sm: 8px;
-  --exp-radius-lg: 10px;
-  --exp-shadow: 0 18px 50px rgba(35, 31, 23, 0.08);
-  --exp-shadow-sm: 0 8px 28px rgba(35, 31, 23, 0.06);
-  --exp-display: clamp(28px, 3.4vw, 44px);
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  margin: -12px 0 0;
-  padding: 14px 0 56px;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1fr);
-  min-height: calc(100vh - 88px);
-  overflow-x: clip;
-  background:
-    radial-gradient(circle at 12% -10%, rgba(240, 178, 93, 0.22), transparent 28%),
-    radial-gradient(circle at 88% 0%, rgba(43, 118, 135, 0.14), transparent 26%),
-    linear-gradient(135deg, #f8f4ec 0%, #eef3ed 50%, #f7f1e6 100%);
-}
-
-.exp::before {
-  content: "";
-  position: absolute;
+/* ---------- Confirm dialog ---------- */
+.exp-confirm__backdrop {
+  position: fixed;
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(26, 35, 28, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26, 35, 28, 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 62%);
+  background: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(2px);
+  z-index: 40;
 }
-
-.exp[data-expenses-theme="dark"] {
-  --exp-bg: #101411;
-  --exp-surface: rgba(22, 27, 23, 0.9);
-  --exp-surface-2: rgba(31, 38, 33, 0.86);
-  --exp-surface-3: rgba(42, 50, 44, 0.9);
-  --exp-text: #f4f0e7;
-  --exp-text-muted: #a9b0a8;
-  --exp-text-emphasis: #d2d9d1;
-  --exp-text-subtle: #788178;
-  --exp-border: rgba(244, 240, 231, 0.1);
-  --exp-border-strong: rgba(244, 240, 231, 0.18);
-  --exp-accent: #f0c36e;
-  --exp-accent-fg: #15130e;
-  --exp-accent-soft: rgba(240, 195, 110, 0.12);
-  --exp-accent-strong: #ffd889;
-  background:
-    radial-gradient(circle at 15% -8%, rgba(240, 195, 110, 0.18), transparent 28%),
-    radial-gradient(circle at 85% 0%, rgba(73, 151, 137, 0.14), transparent 30%),
-    linear-gradient(135deg, #0d1110 0%, #151b17 52%, #18140f 100%);
-}
-
-.exp-header {
-  top: 58px;
-  margin: 0;
-  padding: 16px;
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  background: color-mix(in srgb, var(--exp-surface) 90%, transparent);
-  box-shadow: var(--exp-shadow-sm);
-  gap: 12px;
-}
-
-.exp[data-expenses-theme="dark"] .exp-header {
-  background: color-mix(in srgb, var(--exp-surface) 92%, transparent);
-}
-
-.exp-header[data-scrolled="true"] {
-  padding: 12px 16px;
-  gap: 10px;
-}
-
-.exp-header__top,
-.exp-header__title-block,
-.exp-header[data-scrolled="true"] .exp-header__top,
-.exp-header[data-scrolled="true"] .exp-header__title-block {
-  max-height: 240px;
-  opacity: 1;
-  overflow: visible;
-}
-
-.exp-header__top {
-  min-height: 24px;
-}
-
-.exp-eyebrow {
-  color: var(--exp-text-emphasis);
-  letter-spacing: 0.08em;
-}
-
-.exp-eyebrow__dot {
-  background: #e76f51;
-  box-shadow: 10px 0 0 #2a9d8f, 20px 0 0 #e9c46a;
-}
-
-.exp-header__badge {
-  height: 26px;
-  border-color: rgba(191, 61, 66, 0.22);
-  border-left-color: var(--exp-danger);
-  background: rgba(191, 61, 66, 0.08);
-  color: var(--exp-danger);
-}
-
-.exp-header__main {
-  grid-template-columns: minmax(220px, 1fr) auto;
-  align-items: end;
-  gap: 12px;
-}
-
-.exp-display {
-  letter-spacing: 0;
-  line-height: 0.98;
-}
-
-.exp-display__sub {
-  max-width: 70ch;
-  white-space: normal;
-  overflow: visible;
-  color: var(--exp-text-emphasis);
-}
-
-.exp-header__toolbar {
-  justify-content: flex-end;
-  padding-top: 0;
-  border-top: 0;
-}
-
-.exp-header__toolbar-secondary {
-  flex: 0 1 auto;
-  padding: 0;
-  border-right: 0;
-}
-
-.exp-header__toolbar-primary {
-  margin-left: 0;
-}
-
-.exp-pill,
-.exp-month,
-.exp-theme-toggle,
-.exp-toolbar-more {
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-}
-
-.exp[data-expenses-theme="dark"] .exp-pill,
-.exp[data-expenses-theme="dark"] .exp-month,
-.exp[data-expenses-theme="dark"] .exp-theme-toggle,
-.exp[data-expenses-theme="dark"] .exp-toolbar-more {
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.exp-pill--primary,
-.exp-btn--primary,
-.exp-card__confirm-btn {
-  background: linear-gradient(135deg, #163f3a, #1f6b63);
-  border-color: transparent;
-  color: #fffaf0;
-}
-
-.exp-pill--primary:hover,
-.exp-btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0f2f2b, #24756c);
-}
-
-.exp-kpis {
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.9fr);
-  border: 0;
-  border-radius: var(--exp-radius);
-  background: transparent;
-  overflow: visible;
-  gap: 10px;
-}
-
-.exp-kpi,
-.exp-card,
-.exp-job-queue,
-.exp-hero,
-.exp-cats,
-.exp-details,
-.exp-chart-card,
-.exp-cat-progress,
-.exp-section,
-.exp-uploader,
-.exp-manual,
-.exp-budget-pop,
-.exp-recurring-form,
-.exp-recurring-list,
-.exp-empty {
-  border: 1px solid var(--exp-border);
-  border-radius: var(--exp-radius);
-  background: var(--exp-surface);
-  box-shadow: var(--exp-shadow-sm);
-}
-
-.exp-kpi {
-  min-height: 112px;
-  padding: 16px 18px;
-  border-right: 0;
-  border-bottom: 0;
-}
-
-.exp-kpi::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(90deg, #1f6b63, #e9c46a, #e76f51);
-}
-
-.exp-kpi__label,
-.exp-section-title,
-.exp-chart-card__title,
-.exp-cat-progress__title {
-  letter-spacing: 0.07em;
-}
-
-.exp-kpi__value {
-  font-size: clamp(24px, 2.4vw, 34px);
-  letter-spacing: 0;
-}
-
-.exp-hero,
-.exp-cats {
-  max-height: none;
-  min-height: 360px;
-  padding: 18px;
-}
-
-.exp-ring {
-  width: min(230px, 62vw);
-  height: min(230px, 62vw);
-}
-
-.exp-ring__value {
-  font-size: clamp(28px, 3.2vw, 42px);
-}
-
-.exp-grid {
-  gap: 14px;
-}
-
-.exp-grid--equal {
-  align-items: stretch;
-}
-
-@media (min-width: 960px) {
-  .exp-grid--equal {
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  }
-  .exp-grid--aside {
-    grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
-  }
-}
-
-.exp-col {
-  gap: 10px;
-}
-
-.exp-card {
-  overflow: hidden;
-}
-
-.exp-card__row,
-.exp-card__compact-row {
-  min-width: 0;
-}
-
-.exp-chart-card,
-.exp-cat-progress,
-.exp-section {
-  padding: 16px;
-}
-
-.exp-chart-svg-wrap {
-  height: 150px;
-}
-
-.exp-fab {
-  border-radius: 16px;
-  background: linear-gradient(135deg, #163f3a, #e76f51);
-  box-shadow: 0 18px 42px rgba(45, 61, 48, 0.28);
-}
-
-@media (max-width: 880px) {
-  .exp {
-    margin-top: -10px;
-    padding-bottom: 82px;
-    overflow-x: hidden;
-  }
-  .exp-header {
-    position: static;
-    padding: 14px;
-  }
-  .exp-header__main {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .exp-header__toolbar {
-    justify-content: flex-start;
-  }
-  .exp-kpis {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .exp-kpi {
-    min-height: 104px;
-  }
-}
-
-@media (max-width: 640px) {
-  .exp {
-    margin: -12px 0 0;
-    padding: 10px 0 86px;
-    gap: 10px;
-  }
-  .exp::before {
-    background-size: 24px 24px;
-  }
-  .exp-header {
-    margin: 0;
-    top: auto;
-    gap: 10px;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-  }
-  .exp-header__top {
-    align-items: flex-start;
-  }
-  .exp-header__badge {
-    max-width: 132px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .exp-display {
-    font-size: 30px;
-  }
-  .exp-display__sub {
-    font-size: 12px;
-    line-height: 1.45;
-  }
-  .exp-header__toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    gap: 7px;
-  }
-  .exp-header__toolbar > .exp-month,
-  .exp-header__toolbar > .exp-pill,
-  .exp-header__toolbar > .exp-theme-toggle,
-  .exp-header__toolbar-primary > .exp-pill--primary,
-  .exp-toolbar-more {
-    height: 38px;
-    min-width: 0;
-    border-radius: 8px;
-    font-size: 12px;
-  }
-  .exp-month {
-    width: 100%;
-    min-width: 0;
-  }
-  .exp-toolbar-divider,
-  .exp-header__toolbar > .exp-theme-toggle {
-    display: none;
-  }
-  .exp-month__label {
-    min-width: 0;
-    flex: 1;
-  }
-  .exp-header__toolbar-primary {
-    display: flex;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    gap: 7px;
-  }
-  .exp-header__toolbar-primary > .exp-pill--primary {
-    display: inline-flex !important;
-    flex: 1 1 auto;
-    padding-inline: 12px;
-  }
-  .exp-header__toolbar-primary > .exp-uploader--compact {
-    display: none;
-  }
-  .exp-toolbar-more {
-    width: 38px;
-    flex: 0 0 38px;
-  }
-  .exp-toolbar-more__pop {
-    right: 0;
-    max-width: calc(100vw - 32px);
-  }
-  .exp-toolbar-more > summary {
-    font-size: 0;
-  }
-  .exp-toolbar-more > summary span[aria-hidden] {
-    display: inline;
-    font-size: 18px;
-    line-height: 1;
-  }
-  .exp-kpis {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .exp-kpi {
-    min-height: 88px;
-    padding: 14px;
-  }
-  .exp-kpi__meta {
-    white-space: normal;
-  }
-  .exp-hero,
-  .exp-cats,
-  .exp-chart-card,
-  .exp-cat-progress,
-  .exp-section,
-  .exp-job-queue {
-    padding: 14px;
-  }
-  .exp-hero,
-  .exp-cats {
-    min-height: 0;
-  }
-  .exp-ring {
-    width: min(210px, 70vw);
-    height: min(210px, 70vw);
-  }
-  .exp-chart-svg-wrap {
-    height: 130px;
-  }
-}
-
-/* shadcn dashboard bridge: keep legacy expense widgets visually quiet inside the redesigned shell. */
-.exp-shadcn-bridge .exp-pill,
-.exp-shadcn-bridge .exp-budget-pop {
-  box-shadow: none;
-}
-
-.exp-shadcn-bridge .exp-pill {
-  min-height: 36px;
-  border-color: color-mix(in oklch, var(--border) 70%, transparent);
-  background: color-mix(in oklch, var(--background) 10%, transparent);
-  color: currentColor;
-}
-
-.exp-shadcn-bridge .exp-budget-pop {
-  color: var(--foreground);
-}
-
-.exp-theme-toggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border-color: var(--border);
-  background: var(--background);
-  color: var(--foreground);
-  box-shadow: var(--shadow-sm);
-}
-
-.exp-uploader--compact {
-  min-width: 0;
-}
-
-.exp-uploader--compact .exp-uploader__zone {
-  min-height: 26px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.exp-uploader--compact .exp-uploader__actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.exp-uploader--compact .exp-btn {
-  min-height: 28px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-.exp-uploader--compact .exp-btn--primary {
-  background: var(--foreground);
-  color: var(--background);
-}
-
-/* ---------- Task-focused dark analytics redesign ---------- */
-.exp-analytics {
-  --dash-surface: rgba(13, 20, 23, 0.92);
-  --dash-border: rgba(255, 255, 255, 0.09);
-  --dash-text: #f5f7f6;
-  --dash-muted: #7d8990;
-  --dash-accent: #11d7c6;
-  --dash-blue: #3b91ff;
-  --dash-warn: #f5b833;
-  --dash-danger: #ff5a63;
-  --dash-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --dash-font-num: "SF Mono", "Roboto Mono", ui-monospace, "SF Pro Display", system-ui, sans-serif;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(17, 215, 198, 0.12), transparent 26%),
-    radial-gradient(circle at 82% 6%, rgba(59, 145, 255, 0.08), transparent 24%),
-    linear-gradient(180deg, #081014 0%, #05090b 48%, #040708 100%);
-  color: var(--dash-text);
+.exp-confirm__panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 41;
+  width: min(420px, calc(100vw - 32px));
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  padding: 22px 24px;
   display: grid;
-  font-family: var(--dash-font);
-  gap: 20px;
+  gap: 14px;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+}
+.exp-confirm__title {
   margin: 0;
-  min-height: 100vh;
-  padding: 0 26px 40px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--life-text);
+}
+.exp-confirm__message {
+  margin: 0;
+  font-size: 13px;
+  color: var(--life-muted);
+  line-height: 1.5;
+}
+.exp-confirm__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.exp-confirm {
+  /* Root element if used standalone. */
+  display: contents;
+}
+.exp-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--life-border-strong);
+  border-top-color: var(--life-green-strong);
+  animation: exp-spin 720ms linear infinite;
+}
+@keyframes exp-spin {
+  to { transform: rotate(360deg); }
 }
 
-.exp-analytics *,
-.exp-analytics *::before,
-.exp-analytics *::after {
-  box-sizing: border-box;
-}
-
-.exp-analytics button {
-  font: inherit;
-}
-
+/* ---------- Task nav (Life OS light: pill row inside a card) ---------- */
 .exp-shell__header {
   align-items: center;
-  border-bottom: 1px solid var(--dash-border);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  column-gap: 28px;
+  grid-template-columns: auto 1fr;
+  column-gap: 24px;
   row-gap: 14px;
-  margin: 0 -26px;
-  min-height: 0;
-  padding: 18px 26px 16px;
-}
-
-.exp-shell__brand,
-.exp-shell__actions,
-.exp-tasknav__item,
-.exp-shell__actions button,
-.exp-filter {
-  align-items: center;
-  display: flex;
+  padding: 16px 22px;
+  margin: 0;
 }
 
 .exp-shell__brand {
-  gap: 14px;
+  align-items: center;
+  display: flex;
+  gap: 12px;
   min-width: 150px;
 }
 
 .exp-shell__logo {
   align-items: center;
-  background: rgba(17, 215, 198, 0.13);
-  border: 1px solid rgba(17, 215, 198, 0.22);
-  border-radius: 50%;
-  color: var(--dash-accent);
+  background: linear-gradient(135deg, var(--life-green) 0%, var(--life-green-strong) 100%);
+  border-radius: 11px;
+  box-shadow: 0 4px 12px rgba(155, 234, 61, 0.32);
+  color: var(--life-green-ink);
   display: inline-flex;
-  height: 42px;
+  height: 38px;
   justify-content: center;
-  width: 42px;
+  width: 38px;
 }
 
 .exp-shell__logo svg,
@@ -3681,79 +2938,31 @@
 }
 
 .exp-shell__name {
-  color: #fff;
-  font-size: 1.08rem;
-  font-weight: 760;
+  color: var(--life-text);
+  font-size: 1.04rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .exp-shell__crumb {
-  color: var(--dash-muted);
-  font-size: 0.82rem;
+  color: var(--life-muted);
+  font-size: 0.74rem;
   margin-top: 2px;
 }
 
 .exp-shell__actions {
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.exp-shell__actions button,
-.exp-filter {
-  background: transparent;
-  border: 0;
-  color: #aeb8bd;
-  cursor: pointer;
-  gap: 8px;
-  justify-content: center;
-  min-height: 38px;
-}
-
-.exp-shell__actions button:hover,
-.exp-tasknav__item:hover,
-.exp-filter:hover {
-  color: #fff;
-}
-
-.exp-shell__notification {
-  position: relative;
-}
-
-.exp-shell__notification span {
   align-items: center;
-  background: var(--dash-accent);
-  border-radius: 999px;
-  color: #021010;
-  display: inline-flex;
-  font-size: 0.64rem;
-  font-weight: 800;
-  height: 18px;
-  justify-content: center;
-  position: absolute;
-  right: -7px;
-  top: 2px;
-  width: 18px;
-}
-
-.exp-shell__profile {
-  background: rgba(17, 215, 198, 0.12) !important;
-  border-radius: 999px;
-  color: var(--dash-accent) !important;
-  font-size: 0.78rem;
-  font-weight: 800;
-  min-width: 62px;
-  padding: 0 12px;
-}
-
-.exp-shell__profile svg {
-  height: 14px;
-  width: 14px;
+  display: flex;
+  gap: 8px;
+  grid-column: 2;
+  justify-self: end;
 }
 
 .exp-tasknav {
   align-items: center;
   display: flex;
-  gap: 28px;
-  grid-column: auto;
+  gap: 8px;
+  grid-column: 1 / -1;
   min-width: 0;
   overflow-x: auto;
   padding-top: 0;
@@ -3765,220 +2974,163 @@
 }
 
 .exp-tasknav__item {
-  background: transparent;
-  border: 0;
-  color: #838d93;
+  align-items: center;
+  background: var(--life-card-soft);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--life-muted);
   cursor: pointer;
+  display: inline-flex;
   flex: 0 0 auto;
-  gap: 9px;
-  min-height: 38px;
-  padding: 0;
+  font-weight: 600;
+  font-size: 0.86rem;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
   position: relative;
   text-decoration: none;
-  transition: color 180ms ease, opacity 180ms ease, transform 180ms ease;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .exp-tasknav__item:hover {
+  background: rgba(155, 234, 61, 0.14);
+  color: var(--life-text);
   transform: translateY(-1px);
 }
 
 .exp-tasknav__item[data-active="true"] {
-  color: #fff;
-  font-weight: 760;
+  background: linear-gradient(180deg, rgba(155, 253, 68, 0.32) 0%, rgba(155, 253, 68, 0.18) 100%);
+  border-color: rgba(155, 234, 61, 0.4);
+  color: #1a4d22;
+  font-weight: 720;
+  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.18);
 }
 
-.exp-tasknav__item[data-active="true"]::after {
-  background: var(--dash-accent);
-  bottom: -17px;
-  box-shadow: 0 0 22px rgba(17, 215, 198, 0.75);
-  content: "";
-  height: 3px;
-  left: 0;
-  position: absolute;
-  right: 0;
-  animation: exp-tab-underline 260ms cubic-bezier(0.22, 1, 0.36, 1);
+/* ---------- Section head + eyebrow (used across all expense sub-tasks) ---------- */
+.exp-section-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
+.exp-section-head--compact {
+  margin-bottom: 12px;
+}
+
+.exp-eyebrow {
+  color: var(--life-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.exp h1,
+.exp h2 {
+  color: var(--life-text);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.exp h1 {
+  font-size: clamp(1.5rem, 2.4vw, 2.15rem);
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.exp h2 {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--life-text);
+}
+
+/* ---------- Chart panel / screen layout (used by Budget/Structure/Receipts/Ledger) ---------- */
 .exp-screen {
-  animation: exp-view-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
   display: grid;
-  gap: 16px;
+  gap: 20px;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.58fr);
-  view-transition-name: exp-task-view;
+  animation: exp-view-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .exp-panel {
-  animation: exp-panel-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
-    var(--dash-surface);
-  border: 1px solid var(--dash-border);
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
   min-width: 0;
   overflow: hidden;
   padding: 24px;
-}
-
-.exp-screen .exp-panel:nth-child(2),
-.exp-panel--wide {
-  animation-delay: 70ms;
-}
-
-.exp-screen .exp-panel:nth-child(3),
-.exp-real-card-grid .exp-card:nth-child(2),
-.exp-real-card-list .exp-card:nth-child(2) {
-  animation-delay: 120ms;
-}
-
-.exp-real-card-grid .exp-card,
-.exp-real-card-list .exp-card,
-.exp-transaction-row,
-.exp-receipt-row {
-  animation: exp-panel-in 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.exp-real-card-grid .exp-card:nth-child(3n + 2),
-.exp-real-card-list .exp-card:nth-child(3n + 2),
-.exp-transaction-row:nth-child(3n + 2),
-.exp-receipt-row:nth-child(3n + 2) {
-  animation-delay: 45ms;
-}
-
-.exp-real-card-grid .exp-card:nth-child(3n),
-.exp-real-card-list .exp-card:nth-child(3n),
-.exp-transaction-row:nth-child(3n),
-.exp-receipt-row:nth-child(3n) {
-  animation-delay: 90ms;
-}
-
-::view-transition-old(exp-task-view) {
-  animation: exp-view-out 190ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-::view-transition-new(exp-task-view) {
-  animation: exp-view-in 430ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes exp-view-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.992);
-    filter: blur(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes exp-view-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.996);
-    filter: blur(4px);
-  }
-}
-
-@keyframes exp-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes exp-tab-underline {
-  from {
-    opacity: 0;
-    transform: scaleX(0.38);
-  }
-  to {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-}
-
-.exp-panel--chart,
-.exp-panel--allocation,
-.exp-panel--list {
-  min-height: 558px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
 
 .exp-panel--wide {
   grid-column: 1 / -1;
 }
 
-.exp-section-head {
-  align-items: flex-start;
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  margin-bottom: 22px;
+.exp-panel--chart,
+.exp-panel--allocation,
+.exp-panel--list {
+  min-height: 360px;
 }
 
-.exp-section-head--compact {
-  margin-bottom: 16px;
+.exp-panel--side {
+  align-content: start;
 }
 
-.exp-analytics .exp-eyebrow {
-  color: var(--dash-muted);
-  font-size: 0.77rem;
-  font-weight: 750;
-  letter-spacing: 0.02em;
-  margin: 0 0 8px;
-  text-transform: none;
-}
-
-.exp-analytics h1,
-.exp-analytics h2 {
-  color: #fff;
-  line-height: 1.08;
-  margin: 0;
-}
-
-.exp-analytics h1 {
-  font-size: clamp(1.5rem, 2.4vw, 2.15rem);
-}
-
-.exp-analytics h2 {
-  font-size: 1.08rem;
+.exp-panel--detail {
+  align-content: start;
 }
 
 .exp-chart-metric {
   align-items: baseline;
   display: flex;
   gap: 14px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
-.exp-chart-metric strong,
-.exp-summary-number span,
-.exp-budget-meter strong {
-  color: #fff;
-  font-family: var(--dash-font-num);
+.exp-chart-metric strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
   font-size: 2.3rem;
   font-variant-numeric: tabular-nums;
   font-weight: 760;
+  letter-spacing: -0.025em;
 }
 
 .exp-chart-metric span {
-  color: var(--dash-accent);
+  color: var(--life-green-ink);
   font-weight: 700;
 }
 
+.exp-summary-number {
+  display: grid;
+  text-align: right;
+  gap: 2px;
+  color: var(--life-muted);
+  font-size: 0.72rem;
+}
+
+.exp-summary-number span {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.exp-summary-number small {
+  color: var(--life-muted);
+}
+
 .exp-segment {
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid var(--dash-border);
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
   border-radius: 8px;
   display: inline-flex;
   overflow: hidden;
@@ -3988,114 +3140,96 @@
 .exp-segment span {
   background: transparent;
   border: 0;
-  color: var(--dash-muted);
+  color: var(--life-muted);
   display: inline-flex;
   align-items: center;
   min-height: 42px;
   padding: 0 17px;
+  font-size: 0.84rem;
 }
 
 .exp-segment button[data-active="true"],
 .exp-segment span[data-active="true"] {
-  background: rgba(17, 215, 198, 0.14);
-  color: #fff;
+  background: rgba(155, 234, 61, 0.22);
+  color: #1a4d22;
+  font-weight: 700;
 }
 
 .exp-budget-meter {
   display: grid;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
-.exp-budget-meter span,
-.exp-side-stats span,
-.exp-summary-number small,
-.exp-receipt-row small,
-.exp-transaction-row span,
-.exp-detail-head span,
-.exp-receipt-visual span {
-  color: var(--dash-muted);
+.exp-budget-meter strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 2.3rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 760;
+  letter-spacing: -0.025em;
 }
 
-.exp-budget-meter i,
-.exp-range {
-  background: rgba(255, 255, 255, 0.1);
+.exp-budget-meter span {
+  color: var(--life-muted);
+  font-size: 0.78rem;
+}
+
+.exp-budget-meter i {
+  background: var(--life-card-soft);
   border-radius: 999px;
   display: block;
   height: 8px;
   overflow: hidden;
 }
 
-.exp-budget-meter b,
-.exp-range span {
-  background: var(--dash-accent);
+.exp-budget-meter b {
+  background: var(--life-green-strong);
   border-radius: inherit;
   display: block;
   height: 100%;
 }
 
-.exp-side-stats,
-.exp-bars,
-.exp-receipt-list,
-.exp-transaction-list {
-  display: grid;
-}
-
 .exp-side-stats {
-  border-top: 1px solid var(--dash-border);
+  display: grid;
+  border-top: 1px solid var(--life-border);
 }
 
 .exp-side-stats div {
   align-items: center;
-  border-bottom: 1px solid var(--dash-border);
+  border-bottom: 1px solid var(--life-border);
   display: flex;
   justify-content: space-between;
-  min-height: 72px;
+  min-height: 56px;
+  padding: 6px 0;
 }
 
-.exp-side-stats strong,
-.exp-bar-row__meta strong,
-.exp-transaction-row > strong,
-.exp-receipt-row strong,
-.exp-transaction-row strong,
-.exp-detail-head h2,
-.exp-receipt-visual strong {
-  color: #fff;
+.exp-side-stats div:last-child {
+  border-bottom: 0;
 }
 
-.exp-summary-number {
+.exp-side-stats span {
+  color: var(--life-muted);
+  font-size: 0.84rem;
+}
+
+.exp-side-stats strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.exp-bars {
   display: grid;
-  text-align: right;
-}
-
-.exp-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  justify-content: center;
-}
-
-.exp-legend span,
-.exp-bar-row__meta span {
-  align-items: center;
-  color: #aeb8bd;
-  display: inline-flex;
-  gap: 9px;
-}
-
-.exp-legend i,
-.exp-bar-row__meta i {
-  border-radius: 50%;
-  display: inline-block;
-  height: 10px;
-  width: 10px;
+  gap: 0;
 }
 
 .exp-bar-row {
-  border-top: 1px solid var(--dash-border);
+  border-top: 1px solid var(--life-border);
   display: grid;
   gap: 11px;
-  padding: 20px 0;
+  padding: 16px 0;
 }
 
 .exp-bar-row:first-child {
@@ -4110,214 +3244,67 @@
   justify-content: space-between;
 }
 
+.exp-bar-row__meta span {
+  align-items: center;
+  color: var(--life-muted);
+  display: inline-flex;
+  gap: 9px;
+}
+
+.exp-bar-row__meta strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-weight: 700;
+}
+
+.exp-bar-row__meta i {
+  border-radius: 50%;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+}
+
+.exp-range {
+  background: var(--life-card-soft);
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.exp-range span {
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
 .exp-bar-row__foot {
-  color: var(--dash-muted);
+  color: var(--life-muted);
   font-size: 0.78rem;
 }
 
-.exp-receipt-list,
-.exp-transaction-list {
-  border-top: 1px solid var(--dash-border);
-}
-
-.exp-receipt-row,
-.exp-transaction-row {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--dash-border);
-  color: inherit;
-  display: grid;
-  gap: 14px;
-  min-height: 82px;
-  text-align: left;
-  width: 100%;
-}
-
-.exp-receipt-row {
-  cursor: pointer;
-  grid-template-columns: 34px 54px minmax(160px, 1fr) auto;
-  padding: 0 12px;
-}
-
-.exp-transaction-row {
-  grid-template-columns: 36px minmax(180px, 1fr) auto auto;
-  padding: 0 4px;
-}
-
-.exp-receipt-row[data-active="true"] {
-  background: rgba(17, 215, 198, 0.09);
-  box-shadow: inset 0 0 0 1px rgba(17, 215, 198, 0.7);
-}
-
-.exp-receipt-row__check {
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 50%;
-  color: #051010;
+.exp-legend {
   display: flex;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.exp-receipt-row[data-active="true"] .exp-receipt-row__check {
-  background: var(--dash-accent);
-  border-color: var(--dash-accent);
-}
-
-.exp-receipt-row__check svg {
-  height: 14px;
-  width: 14px;
-}
-
-.exp-receipt-row__time {
-  color: #a8b2b8;
-  font-family: var(--dash-font-num);
-}
-
-.exp-receipt-row__main,
-.exp-transaction-row div {
-  display: grid;
-  gap: 6px;
-}
-
-.exp-status {
-  border: 1px solid rgba(17, 215, 198, 0.32);
-  border-radius: 999px;
-  color: var(--dash-accent);
-  font-size: 0.75rem;
-  padding: 5px 12px;
-  white-space: nowrap;
-}
-
-.exp-status[data-status="failed"] {
-  border-color: rgba(255, 90, 99, 0.38);
-  color: var(--dash-danger);
-}
-
-.exp-status[data-status="queued"] {
-  border-color: rgba(245, 184, 51, 0.38);
-  color: var(--dash-warn);
-}
-
-.exp-status[data-status="processing"] {
-  border-color: rgba(59, 145, 255, 0.38);
-  color: var(--dash-blue);
-}
-
-.exp-detail-head {
-  align-items: flex-start;
-  display: flex;
+  flex-wrap: wrap;
   gap: 18px;
-  justify-content: space-between;
-}
-
-.exp-receipt-visual {
-  align-content: center;
-  border-bottom: 1px solid var(--dash-border);
-  border-top: 1px solid var(--dash-border);
-  display: grid;
-  justify-items: center;
-  margin: 28px 0 22px;
-  min-height: 260px;
-  text-align: center;
-}
-
-.exp-receipt-visual svg {
-  color: var(--dash-accent);
-  height: 64px;
-  margin-bottom: 18px;
-  width: 64px;
-}
-
-.exp-receipt-visual strong {
-  font-size: 1.3rem;
-}
-
-.exp-detail-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.exp-detail-actions button {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--dash-border);
-  border-radius: 8px;
-  color: #dce4e5;
-  cursor: pointer;
-  min-height: 42px;
-  min-width: 124px;
-}
-
-.exp-detail-actions button[data-primary="true"] {
-  background: linear-gradient(90deg, #10c9b8, #18dfca);
-  border-color: transparent;
-  color: #011312;
-  font-weight: 820;
-}
-
-.exp-filter {
-  border: 1px solid var(--dash-border);
-  border-radius: 8px;
-  padding: 0 12px;
-}
-
-.exp-workbar {
-  align-items: stretch;
-  display: grid;
-  gap: 12px;
-  grid-column: 1 / -1;
-  grid-template-columns: minmax(280px, 1fr) auto auto;
-  padding-top: 0;
-}
-
-.exp-workbar__button {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--dash-border);
-  border-radius: 8px;
-  color: #e7eeee;
-  cursor: pointer;
-  display: inline-flex;
-  font-size: 0.88rem;
-  font-weight: 760;
-  gap: 8px;
   justify-content: center;
-  min-height: 46px;
-  padding: 0 16px;
-  text-decoration: none;
-  white-space: nowrap;
 }
 
-.exp-workbar__button:hover {
-  background: rgba(17, 215, 198, 0.12);
-  border-color: rgba(17, 215, 198, 0.45);
-}
-
-.exp-workbar__button svg {
-  height: 16px;
-  width: 16px;
-}
-
-.exp-loading-row {
+.exp-legend span {
   align-items: center;
-  color: #b5c0c4;
-  display: flex;
-  gap: 12px;
-  min-height: 180px;
+  color: var(--life-muted);
+  display: inline-flex;
+  gap: 9px;
+  font-size: 0.84rem;
 }
 
-.exp-state-pulse {
-  animation: expPulse 1.2s ease-in-out infinite;
-  background: var(--dash-accent);
+.exp-legend i {
   border-radius: 50%;
-  box-shadow: 0 0 24px rgba(17, 215, 198, 0.5);
-  height: 11px;
-  width: 11px;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
 }
 
+/* ---------- Receipt list (left column in ReceiptsTask) ---------- */
 .exp-real-card-list {
   display: grid;
   gap: 14px;
@@ -4327,6 +3314,10 @@
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.exp-real-card-grid--date {
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
 .exp-date-groups {
@@ -4341,16 +3332,14 @@
 
 .exp-ledger-date-header {
   align-items: end;
-  background:
-    linear-gradient(90deg, rgba(17, 215, 198, 0.09), rgba(255, 255, 255, 0.025)),
-    rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 8px;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  min-height: 58px;
-  padding: 10px 14px;
+  min-height: 56px;
+  padding: 12px 16px;
 }
 
 .exp-ledger-date-header div {
@@ -4364,90 +3353,316 @@
 }
 
 .exp-ledger-date-header strong {
-  color: #fff;
+  color: var(--life-text);
   font-size: 0.98rem;
   font-weight: 780;
+  font-family: var(--life-font-num);
 }
 
 .exp-ledger-date-header span {
-  color: var(--exp-text-muted);
+  color: var(--life-muted);
   font-size: 0.78rem;
 }
 
-.exp-real-card-grid--date {
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+.exp-transaction-list {
+  display: grid;
+  border-top: 1px solid var(--life-border);
 }
 
-.exp-real-card-list .exp-card,
-.exp-real-card-grid .exp-card {
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(255, 255, 255, 0.12);
+.exp-transaction-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--life-border);
+  color: inherit;
+  display: grid;
+  grid-template-columns: 36px minmax(180px, 1fr) auto auto;
+  gap: 14px;
+  min-height: 56px;
+  padding: 8px 0;
+  text-align: left;
+  width: 100%;
 }
 
-.exp-ledger-page {
-  --exp-bg: #05090b;
-  --exp-surface: rgba(13, 20, 23, 0.92);
-  --exp-surface-2: rgba(15, 25, 28, 0.78);
-  --exp-surface-3: rgba(255, 255, 255, 0.06);
-  --exp-text: #f5f7f6;
-  --exp-text-muted: #9aa6ab;
-  --exp-text-emphasis: #dce5e7;
-  --exp-text-subtle: #69767d;
-  --exp-border: rgba(255, 255, 255, 0.1);
-  --exp-border-strong: rgba(17, 215, 198, 0.35);
-  --exp-accent: #11d7c6;
-  --exp-accent-fg: #031312;
-  --exp-accent-soft: rgba(17, 215, 198, 0.13);
-  --exp-shadow: none;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(17, 215, 198, 0.12), transparent 26%),
-    linear-gradient(180deg, #081014 0%, #05090b 52%, #040708 100%);
-  color: var(--exp-text);
+.exp-transaction-row div {
+  display: grid;
+  gap: 4px;
 }
 
-.exp-ledger-page .exp-card,
-.exp-ledger-page .exp-header,
-.exp-ledger-page .exp-card__row {
-  background: rgba(13, 20, 23, 0.86) !important;
-  border-color: var(--exp-border) !important;
-  color: var(--exp-text);
+.exp-transaction-row strong {
+  color: var(--life-text);
+  font-weight: 700;
 }
 
-.exp-ledger-page .exp-card,
-.exp-ledger-page .exp-card *,
-.exp-ledger-page .exp-header,
-.exp-ledger-page .exp-header *,
-.exp-ledger-page .exp-card__row,
-.exp-ledger-page .exp-card__row * {
-  color: var(--exp-text) !important;
+.exp-transaction-row span {
+  color: var(--life-muted);
+  font-size: 0.84rem;
 }
 
-.exp-ledger-page .exp-card__meta,
-.exp-ledger-page .exp-card small,
-.exp-ledger-page .exp-header__subtitle {
-  color: var(--exp-text-muted) !important;
+.exp-receipt-list {
+  display: grid;
+  border-top: 1px solid var(--life-border);
 }
 
-.exp-ledger-page .exp-card__accent-bar {
-  opacity: 1;
+.exp-receipt-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--life-border);
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 34px 54px minmax(160px, 1fr) auto;
+  min-height: 64px;
+  padding: 0 12px;
+  text-align: left;
+  width: 100%;
 }
 
-.exp-ledger-page input {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--exp-border);
-  color: var(--exp-text);
+.exp-receipt-row[data-active="true"] {
+  background: rgba(155, 234, 61, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(155, 234, 61, 0.5);
 }
 
-@keyframes expPulse {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.86);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.exp-receipt-row__check {
+  align-items: center;
+  border: 1px solid var(--life-border-strong);
+  border-radius: 50%;
+  color: var(--life-text);
+  background: var(--life-card);
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.exp-receipt-row[data-active="true"] .exp-receipt-row__check {
+  background: var(--life-green-strong);
+  border-color: var(--life-green-strong);
+  color: var(--life-green-ink);
+}
+
+.exp-receipt-row__check svg {
+  height: 14px;
+  width: 14px;
+}
+
+.exp-receipt-row__time {
+  color: var(--life-muted);
+  font-family: var(--life-font-num);
+  font-size: 0.84rem;
+}
+
+.exp-receipt-row__main {
+  display: grid;
+  gap: 4px;
+}
+
+.exp-receipt-row__main strong {
+  color: var(--life-text);
+  font-weight: 700;
+}
+
+.exp-receipt-row__main small {
+  color: var(--life-muted);
+}
+
+.exp-status {
+  border: 1px solid rgba(155, 234, 61, 0.4);
+  border-radius: 999px;
+  color: var(--life-green-ink);
+  background: rgba(155, 234, 61, 0.14);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.exp-status[data-status="failed"] {
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--life-danger);
+}
+
+.exp-status[data-status="queued"] {
+  border-color: rgba(255, 226, 138, 0.6);
+  background: rgba(255, 226, 138, 0.22);
+  color: #b45309;
+}
+
+.exp-status[data-status="processing"] {
+  border-color: rgba(131, 183, 255, 0.5);
+  background: rgba(131, 183, 255, 0.16);
+  color: #2f5a9b;
+}
+
+.exp-detail-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.exp-detail-head div {
+  display: grid;
+  gap: 6px;
+}
+
+.exp-detail-head h2 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.exp-detail-head span {
+  color: var(--life-muted);
+  font-size: 0.84rem;
+}
+
+.exp-receipt-visual {
+  align-content: center;
+  border-bottom: 1px solid var(--life-border);
+  border-top: 1px solid var(--life-border);
+  display: grid;
+  justify-items: center;
+  margin: 18px 0;
+  min-height: 200px;
+  padding: 24px 0;
+  text-align: center;
+  gap: 12px;
+}
+
+.exp-receipt-visual svg {
+  color: var(--life-green-ink);
+  height: 56px;
+  width: 56px;
+}
+
+.exp-receipt-visual strong {
+  color: var(--life-text);
+  font-size: 1.1rem;
+}
+
+.exp-receipt-visual span {
+  color: var(--life-muted);
+  font-size: 0.86rem;
+  max-width: 32ch;
+}
+
+.exp-detail-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.exp-detail-actions button {
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: 8px;
+  color: var(--life-text);
+  cursor: pointer;
+  min-height: 38px;
+  min-width: 88px;
+  padding: 0 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.exp-detail-actions button[data-primary="true"] {
+  background: var(--life-green-strong);
+  border-color: transparent;
+  color: var(--life-green-ink);
+  font-weight: 720;
+}
+
+.exp-detail-actions button[data-primary="true"]:disabled {
+  background: var(--life-card-soft);
+  color: var(--life-muted);
+  border-color: var(--life-border);
+}
+
+.exp-filter {
+  align-items: center;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: 8px;
+  color: var(--life-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.84rem;
+  font-weight: 600;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.exp-filter:hover {
+  color: var(--life-text);
+}
+
+.exp-workbar {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+}
+
+.exp-workbar__button {
+  align-items: center;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: 8px;
+  color: var(--life-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.88rem;
+  font-weight: 600;
+  gap: 6px;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.exp-workbar__button:hover {
+  background: rgba(155, 234, 61, 0.12);
+  border-color: rgba(155, 234, 61, 0.4);
+}
+
+.exp-workbar__button svg {
+  height: 16px;
+  width: 16px;
+}
+
+.exp-loading-row {
+  align-items: center;
+  color: var(--life-muted);
+  display: flex;
+  gap: 12px;
+  min-height: 180px;
+}
+
+.exp-state-pulse {
+  animation: exp-pulse 1.2s ease-in-out infinite;
+  background: var(--life-green-strong);
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+}
+
+@keyframes exp-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.86); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+
+@keyframes exp-view-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 1060px) {
@@ -4457,41 +3672,47 @@
   .exp-panel--wide {
     grid-column: auto;
   }
-}
-
-@media (max-width: 720px) {
-  .exp-analytics {
-    margin: 0;
-    padding: 0 14px 28px;
-  }
   .exp-shell__header {
     grid-template-columns: 1fr;
-    margin: 0 -14px;
-    padding: 14px;
-  }
-  .exp-shell__brand {
-    min-width: 0;
   }
   .exp-shell__actions {
-    justify-content: flex-end;
-  }
-  .exp-tasknav {
-    gap: 22px;
+    justify-self: start;
   }
   .exp-workbar {
     grid-template-columns: 1fr;
   }
-  .exp-panel,
-  .exp-receipt-row,
-  .exp-transaction-row {
+}
+
+@media (max-width: 720px) {
+  .exp-shell__header {
+    padding: 14px;
+  }
+  .exp-tasknav {
+    gap: 22px;
+  }
+  .exp-panel {
     padding: 18px;
   }
-  .exp-section-head,
-  .exp-receipt-row,
-  .exp-transaction-row {
+  .exp-section-head {
     grid-template-columns: 1fr;
   }
-  .exp-section-head {
-    display: grid;
+  .exp-bar-row {
+    grid-template-columns: 1fr;
+  }
+  .exp-transaction-row,
+  .exp-receipt-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .exp *,
+  .exp *::before,
+  .exp *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
