@@ -1405,3 +1405,30 @@
     padding: 16px 0;
   }
 }
+
+/* ---------- exp-banner override (Life OS card skin) ----------
+   The .exp-banner lives in expenses.css with expense-specific surface tokens
+   that read as a dark/neutral panel. Inside .life-os-nutrition we want it
+   to look like a Life OS card: white surface, subtle border, soft shadow.
+   We don't touch the variants' left dot colour — it still signals state. */
+.life-os-nutrition .exp-banner {
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  color: var(--life-text);
+}
+
+.life-os-nutrition .exp-banner--error {
+  background: rgba(255, 107, 107, 0.06);
+  border-color: rgba(255, 107, 107, 0.25);
+  border-left: 3px solid var(--life-danger);
+  color: var(--life-danger);
+}
+
+.life-os-nutrition .exp-banner--ok {
+  background: rgba(155, 234, 61, 0.08);
+  border-color: rgba(155, 234, 61, 0.3);
+  border-left: 3px solid var(--life-green-strong);
+  color: var(--life-green-ink);
+}

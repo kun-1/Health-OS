@@ -127,7 +127,13 @@ const CATEGORY_LABELS: Record<NutritionCategory, string> = {
   未分类: "未分类"
 };
 
-const STRUCTURE_COLORS = ["#11d7c6", "#3b91ff", "#f5b833", "#ff5a63", "#8a939c"];
+const STRUCTURE_COLORS = [
+  "var(--life-green-strong)",
+  "var(--life-blue)",
+  "var(--life-yellow)",
+  "var(--life-danger)",
+  "var(--life-subtle)"
+];
 
 function formatYYYYMM(date: Date): string {
   const y = date.getFullYear();
@@ -343,10 +349,10 @@ function TodayView({
   const skipCount = totalSkips(report.skipBreakdown);
   const topItems = topCategoryItems(report);
   const rings = [
-    { name: "PDI", value: Math.round((report.pdi.total / report.pdi.max) * 100), fill: "#11d7c6" },
-    { name: "AHEI", value: Math.round((report.ahei.total / report.ahei.max) * 100), fill: "#3b91ff" },
-    { name: "餐盘", value: clampScore((1 - report.plate.deviation) * 100), fill: "#f5b833" },
-    { name: "UPF", value: clampScore((1 - report.upf.upfShare) * 100), fill: "#ff5a63" }
+    { name: "PDI", value: Math.round((report.pdi.total / report.pdi.max) * 100), fill: "var(--life-green-strong)" },
+    { name: "AHEI", value: Math.round((report.ahei.total / report.ahei.max) * 100), fill: "var(--life-blue)" },
+    { name: "餐盘", value: clampScore((1 - report.plate.deviation) * 100), fill: "var(--life-yellow)" },
+    { name: "UPF", value: clampScore((1 - report.upf.upfShare) * 100), fill: "var(--life-danger)" }
   ];
 
   return (
@@ -558,11 +564,11 @@ function TrendView({
   const first = rows[0]?.score ?? current;
   const delta = current - first;
   const contributions = [
-    { name: "蛋白", value: 2.3, color: "#11d7c6" },
-    { name: "蔬果", value: 1.8, color: "#2ee58f" },
-    { name: "全谷", value: 1.2, color: "#3b91ff" },
-    { name: "超加工", value: -1.1, color: "#f5b833" },
-    { name: "添加糖", value: -0.9, color: "#ff5a63" }
+    { name: "蛋白", value: 2.3, color: "var(--life-green-strong)" },
+    { name: "蔬果", value: 1.8, color: "var(--life-green)" },
+    { name: "全谷", value: 1.2, color: "var(--life-blue)" },
+    { name: "超加工", value: -1.1, color: "var(--life-yellow)" },
+    { name: "添加糖", value: -0.9, color: "var(--life-danger)" }
   ];
 
   return (
@@ -589,15 +595,15 @@ function TrendView({
           <AreaChart data={rows} margin={{ bottom: 10, left: 0, right: 20, top: 20 }}>
             <defs>
               <linearGradient id="nutrition-score-fill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#11d7c6" stopOpacity={0.34} />
-                <stop offset="95%" stopColor="#11d7c6" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="var(--life-green-strong)" stopOpacity={0.32} />
+                <stop offset="95%" stopColor="var(--life-green)" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" vertical={false} />
-            <XAxis axisLine={false} dataKey="period" tick={{ fill: "#6f7c83", fontSize: 12 }} tickLine={false} />
-            <YAxis axisLine={false} domain={[0, 100]} tick={{ fill: "#6f7c83", fontSize: 12 }} tickLine={false} />
-            <Tooltip contentStyle={{ background: "#10181b", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8 }} />
-            <Area dataKey="score" fill="url(#nutrition-score-fill)" stroke="#11d7c6" strokeWidth={2.5} type="monotone" />
+            <CartesianGrid stroke="rgba(15, 23, 42, 0.06)" strokeDasharray="3 6" vertical={false} />
+            <XAxis axisLine={false} dataKey="period" tick={{ fill: "#50585E", fontSize: 12 }} tickLine={false} />
+            <YAxis axisLine={false} domain={[0, 100]} tick={{ fill: "#50585E", fontSize: 12 }} tickLine={false} />
+            <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: 8, color: "var(--life-text)" }} />
+            <Area dataKey="score" fill="url(#nutrition-score-fill)" stroke="var(--life-green-strong)" strokeWidth={2.5} type="monotone" />
           </AreaChart>
         </ResponsiveContainer>
       </section>
