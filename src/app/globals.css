@@ -2,17 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Life OS shell tokens — referenced by src/components/life-os/*.
+   Keep these names stable; downstream modules depend on them. */
 :root {
-  color-scheme: dark;
-  background: #05090b;
-  color: #f5f7f6;
+  --life-bg: #EEF1F2;
+  --life-shell: #f7faf8;
+  --life-card: #ffffff;
+  --life-card-soft: #f4f8f5;
+  --life-border: rgba(15, 23, 42, 0.08);
+  --life-border-strong: rgba(15, 23, 42, 0.14);
+  --life-text: #101512;
+  --life-muted: #6d776f;
+  --life-subtle: #a0aaa3;
+  --life-green: #c8ff7a;
+  --life-green-strong: #9bea3d;
+  --life-green-ink: #2f6f3a;
+  --life-orange: #ff9f45;
+  --life-blue: #83b7ff;
+  --life-purple: #a891ff;
+  --life-yellow: #ffe28a;
+  --life-danger: #ff6b6b;
+  --life-radius: 8px;
+  --life-radius-lg: 14px;
+  --life-sidebar-w: 240px;
+  --life-topbar-h: 64px;
+  /* Modern sans stack covers Mac (PingFang / Hiragino) and Windows
+     (Microsoft YaHei) so Chinese never falls back to the default Song
+     serif. Numeric stack uses ui-monospace so digits render with tabular
+     widths on every platform without dragging Chinese into a monospace
+     face (Chinese characters fall back to --life-font automatically). */
+  --life-font:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Helvetica Neue", Arial, sans-serif;
+  --life-font-num:
+    ui-monospace, "SF Mono", "JetBrains Mono", "Roboto Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+  background: var(--life-bg);
+  color: var(--life-text);
 }
 
 body {
   margin: 0;
-  background: #05090b;
+  background: var(--life-bg);
+  color: var(--life-text);
+  font-family: var(--life-font);
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Bug B fix: at 375px the dashboard nav overflows and the user can't tell

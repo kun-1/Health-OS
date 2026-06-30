@@ -1,0 +1,730 @@
+/* ---------- Shell ---------- */
+.life-shell {
+  display: grid;
+  grid-template-columns: var(--life-sidebar-w) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--life-bg);
+}
+
+.life-main {
+  display: grid;
+  grid-template-rows: var(--life-topbar-h) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.life-content {
+  padding: 32px 36px 48px;
+  overflow: auto;
+}
+
+/* ---------- Sidebar ---------- */
+.life-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--life-shell);
+  border-right: 1px solid var(--life-border);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px 18px;
+  gap: 18px;
+}
+
+.life-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px 14px;
+  /* Brand sits in the same column rhythm as the nav links below — no
+     border divider, just the gap above the nav group. */
+}
+
+.life-sidebar__logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--life-green) 0%, var(--life-green-strong) 100%);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  box-shadow: 0 4px 12px rgba(155, 234, 61, 0.32);
+  flex-shrink: 0;
+}
+
+.life-sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.life-sidebar__name {
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.01em;
+}
+
+.life-sidebar__tagline {
+  font-size: 0.72rem;
+  color: #50585E;
+  margin-top: 3px;
+  letter-spacing: 0.01em;
+}
+
+.life-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.life-sidebar__group-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--life-subtle);
+  padding: 8px 12px 6px;
+  font-weight: 700;
+}
+
+.life-sidebar__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 10px;
+  color: var(--life-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.life-sidebar__link:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.life-sidebar__link[data-active="true"] {
+  /* Active state matches the highlight KPI card's visual language:
+     tinted pill + deep green text + tiny glow. The 3px left bar is kept
+     as a redundant cue so the active item is still obvious if the soft
+     pill is below contrast in some lighting. */
+  background: linear-gradient(
+    180deg,
+    rgba(155, 253, 68, 0.22) 0%,
+    rgba(155, 253, 68, 0.14) 100%
+  );
+  color: #1a4d22;
+  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.22);
+}
+
+.life-sidebar__link[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--life-green-strong);
+}
+
+.life-sidebar__link svg {
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  color: var(--life-muted);
+  transition: color 140ms ease;
+}
+
+.life-sidebar__link[data-active="true"] svg {
+  color: #1a4d22;
+}
+
+.life-sidebar__spacer {
+  flex: 1;
+}
+
+.life-sidebar__footer {
+  border-top: 1px solid var(--life-border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---------- Topbar ---------- */
+.life-topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 28px;
+  background: var(--life-shell);
+  border-bottom: 1px solid var(--life-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.life-topbar__greeting {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.life-topbar__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.01em;
+}
+
+.life-topbar__subtitle {
+  font-size: 0.78rem;
+  color: var(--life-muted);
+  margin-top: 2px;
+}
+
+.life-topbar__spacer {
+  flex: 1;
+}
+
+.life-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.life-topbar__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  color: var(--life-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.life-topbar__icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  display: grid;
+  place-items: center;
+  color: var(--life-muted);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.life-topbar__icon-btn:hover {
+  background: var(--life-card-soft);
+  color: var(--life-text);
+}
+
+.life-topbar__icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Cards ---------- */
+.life-card {
+  background: #ffffff;
+  border: none;
+  border-radius: var(--life-radius-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  height: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+}
+
+.life-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.life-card__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--life-muted);
+  letter-spacing: 0.01em;
+}
+
+.life-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--life-card-soft);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  flex-shrink: 0;
+}
+
+.life-card__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.life-card__value {
+  font-size: 2.05rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.02em;
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+  line-height: 1.05;
+}
+
+.life-card__value--sm {
+  font-size: 1.45rem;
+}
+
+.life-card__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--life-muted);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.life-card__delta[data-trend="up"] {
+  color: var(--life-green-ink);
+}
+
+.life-card__delta[data-trend="down"] {
+  color: var(--life-danger);
+}
+
+.life-card__footnote {
+  font-size: 0.72rem;
+  color: #50585E;
+  line-height: 1.45;
+  /* Anchor the footnote to the bottom of the card so all four KPI cards
+     share the same visual rhythm regardless of how many sub-lines the
+     content has. The card itself stretches in the grid via height:100%. */
+  margin-top: auto;
+}
+
+/* The highlight variant keeps the card background pure white per the
+   2026-06-30 visual revision; visual emphasis comes from a tinted icon
+   tile and a deep-green value so Nutrition Score still reads as the
+   primary KPI without breaking the all-white card system. We deliberately
+   leave title/footnote at their default colors so the title→footnote
+   hierarchy matches the other cards instead of collapsing into one tone. */
+.life-card[data-variant="highlight"] {
+  background: #ffffff;
+}
+
+.life-card[data-variant="highlight"] .life-card__icon {
+  background: rgba(155, 253, 68, 0.32);
+  color: #1a4d22;
+}
+
+.life-card[data-variant="highlight"] .life-card__value {
+  color: #1a4d22;
+}
+
+.life-card--clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.life-card--clickable:hover {
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+/* ---------- Home grid ---------- */
+.life-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.life-home__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.life-home__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.life-home__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.life-home__main-chart {
+  min-height: 320px;
+}
+
+.life-home__bottom {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* ---------- Calendar ---------- */
+.life-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.life-calendar__cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--life-muted);
+  border-radius: 8px;
+  position: relative;
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.life-calendar__cell--header {
+  font-size: 0.75rem;
+  color: #50585E;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  aspect-ratio: auto;
+  height: 22px;
+  /* Header labels are Chinese characters, not digits — keep them in the
+     sans stack so they don't get the monospace fallback. */
+  font-family: var(--life-font);
+}
+
+.life-calendar__cell--today {
+  background: #9BFD44;
+  color: #000;
+  font-weight: 600;
+}
+
+.life-calendar__cell--muted {
+  color: var(--life-subtle);
+}
+
+.life-calendar__cell--has-data::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #F94310;
+}
+
+.life-calendar__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--life-muted);
+  margin-top: 16px;
+}
+
+.life-calendar__legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F94310;
+}
+
+/* ---------- Activity ---------- */
+.life-activity__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.life-activity__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--life-card-soft);
+}
+
+.life-activity__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--life-card);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  flex-shrink: 0;
+}
+
+.life-activity__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.life-activity__body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.life-activity__title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--life-text);
+}
+
+.life-activity__meta {
+  font-size: 0.74rem;
+  color: var(--life-muted);
+}
+
+/* ---------- Breakdown (PDI / AHEI / Plate / UPF bars) ---------- */
+.life-breakdown__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.life-breakdown__row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.life-breakdown__row-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--life-text);
+}
+
+.life-breakdown__row-value {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.life-breakdown__track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--life-card-soft);
+  overflow: hidden;
+}
+
+.life-breakdown__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.life-breakdown__row-meta {
+  font-size: 0.72rem;
+  color: #50585E;
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Recent transactions ---------- */
+.life-recent__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.life-recent__row:last-child {
+  border-bottom: none;
+}
+
+.life-recent__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.life-recent__col--main {
+  flex: 1;
+}
+
+.life-recent__merchant {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--life-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.life-recent__meta {
+  font-size: 0.72rem;
+  color: #50585E;
+  margin-top: 2px;
+}
+
+.life-recent__amount {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Chart placeholder ---------- */
+.life-chart-placeholder {
+  flex: 1;
+  min-height: 240px;
+  border-radius: var(--life-radius-lg);
+  background: rgba(238, 241, 242, 0.5);
+  display: grid;
+  place-items: center;
+  color: #50585E;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+/* ---------- Empty / loading skeleton ---------- */
+.life-skeleton {
+  background: linear-gradient(90deg, var(--life-card-soft) 0%, rgba(228, 232, 230, 0.6) 50%, var(--life-card-soft) 100%);
+  background-size: 200% 100%;
+  animation: life-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.life-skeleton--value {
+  width: 60%;
+  height: 2.05rem;
+  border-radius: 8px;
+}
+
+.life-card__value-error {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 2.05rem;
+  font-weight: 800;
+  color: #a0aaa3;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.life-card__value-error-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #50585E;
+  letter-spacing: 0;
+  font-family: var(--life-font);
+}
+
+@keyframes life-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Responsive shrink (Phase A is desktop-first; this is a
+   smoke check, mobile polish is a later phase) ---------- */
+@media (max-width: 1180px) {
+  .life-home__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablet / small desktop: collapse sidebar to icon-only column so the
+   main canvas keeps breathing room. Mobile (< 900px) is handled below. */
+@media (max-width: 1180px) and (min-width: 901px) {
+  :root {
+    --life-sidebar-w: 68px;
+  }
+  .life-sidebar {
+    padding: 18px 10px;
+    align-items: center;
+  }
+  .life-sidebar__brand {
+    justify-content: center;
+    padding: 4px 0 14px;
+    border-bottom-color: transparent;
+  }
+  .life-sidebar__brand-text,
+  .life-sidebar__group-label,
+  .life-sidebar__link > span,
+  .life-sidebar__footer {
+    display: none;
+  }
+  .life-sidebar__group {
+    align-items: center;
+    gap: 6px;
+  }
+  .life-sidebar__link {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .life-shell {
+    grid-template-columns: 1fr;
+  }
+  .life-sidebar {
+    position: relative;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 14px;
+  }
+  .life-sidebar__group {
+    flex-direction: row;
+  }
+  .life-sidebar__group-label,
+  .life-sidebar__spacer,
+  .life-sidebar__footer {
+    display: none;
+  }
+  .life-home {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

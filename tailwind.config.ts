@@ -56,6 +56,9 @@ const config: Config = {
           "PingFang SC",
           "Hiragino Sans GB",
           "Microsoft YaHei",
+          "Noto Sans CJK SC",
+          "Helvetica Neue",
+          "Arial",
           "sans-serif"
         ],
         heading: [
@@ -68,6 +71,16 @@ const config: Config = {
           "Hiragino Sans GB",
           "Microsoft YaHei",
           "sans-serif"
+        ],
+        mono: [
+          "ui-monospace",
+          "SF Mono",
+          "JetBrains Mono",
+          "Roboto Mono",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
+          "monospace"
         ]
       }
     }
