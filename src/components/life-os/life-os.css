@@ -271,7 +271,9 @@
   font-weight: 800;
   color: var(--life-text);
   letter-spacing: -0.02em;
+  font-family: var(--life-font-num);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "ss01" 1;
   line-height: 1.05;
 }
 
@@ -286,6 +288,8 @@
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--life-muted);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 .life-card__delta[data-trend="up"] {
@@ -300,6 +304,10 @@
   font-size: 0.72rem;
   color: #50585E;
   line-height: 1.45;
+  /* Anchor the footnote to the bottom of the card so all four KPI cards
+     share the same visual rhythm regardless of how many sub-lines the
+     content has. The card itself stretches in the grid via height:100%. */
+  margin-top: auto;
 }
 
 /* The highlight variant keeps the card background pure white per the
@@ -388,16 +396,21 @@
   color: var(--life-muted);
   border-radius: 8px;
   position: relative;
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 .life-calendar__cell--header {
-  font-size: 0.7rem;
-  color: var(--life-subtle);
+  font-size: 0.75rem;
+  color: #50585E;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   aspect-ratio: auto;
   height: 22px;
+  /* Header labels are Chinese characters, not digits — keep them in the
+     sans stack so they don't get the monospace fallback. */
+  font-family: var(--life-font);
 }
 
 .life-calendar__cell--today {
@@ -428,7 +441,7 @@
   gap: 6px;
   font-size: 0.74rem;
   color: var(--life-muted);
-  margin-top: 4px;
+  margin-top: 16px;
 }
 
 .life-calendar__legend-dot {
@@ -492,14 +505,13 @@
 .life-chart-placeholder {
   flex: 1;
   min-height: 240px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, var(--life-card-soft) 0%, transparent 100%);
+  border-radius: var(--life-radius-lg);
+  background: rgba(238, 241, 242, 0.5);
   display: grid;
   place-items: center;
-  color: var(--life-subtle);
+  color: #50585E;
   font-size: 0.84rem;
   font-weight: 600;
-  border: 1px dashed var(--life-border-strong);
 }
 
 /* ---------- Empty / loading skeleton ---------- */

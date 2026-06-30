@@ -26,6 +26,18 @@
   --life-radius-lg: 14px;
   --life-sidebar-w: 240px;
   --life-topbar-h: 64px;
+  /* Modern sans stack covers Mac (PingFang / Hiragino) and Windows
+     (Microsoft YaHei) so Chinese never falls back to the default Song
+     serif. Numeric stack uses ui-monospace so digits render with tabular
+     widths on every platform without dragging Chinese into a monospace
+     face (Chinese characters fall back to --life-font automatically). */
+  --life-font:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Helvetica Neue", Arial, sans-serif;
+  --life-font-num:
+    ui-monospace, "SF Mono", "JetBrains Mono", "Roboto Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
   color-scheme: light;
   background: var(--life-bg);
   color: var(--life-text);
@@ -35,6 +47,7 @@ body {
   margin: 0;
   background: var(--life-bg);
   color: var(--life-text);
+  font-family: var(--life-font);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
