@@ -77,9 +77,11 @@ export function startScheduler(): void {
     void runRecurringTick();
   }, recurringInterval);
 
-  console.log(
-    `[scheduler] started (OCR ${ocrInterval}ms, cleanup ${cleanupInterval}ms, recurring ${recurringInterval}ms)`
-  );
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `[scheduler] started (OCR ${ocrInterval}ms, cleanup ${cleanupInterval}ms, recurring ${recurringInterval}ms)`
+    );
+  }
 }
 
 export function stopScheduler(): void {
@@ -103,9 +105,11 @@ async function runOcrTick(): Promise<void> {
   try {
     const summary = await processExpenseQueue();
     if (summary.processed > 0) {
-      console.log(
-        `[scheduler] ocr tick processed=${summary.processed} succeeded=${summary.succeeded} failed=${summary.failed} in ${Math.round(performance.now() - tickStart)}ms`
-      );
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          `[scheduler] ocr tick processed=${summary.processed} succeeded=${summary.succeeded} failed=${summary.failed} in ${Math.round(performance.now() - tickStart)}ms`
+        );
+      }
     }
   } catch (error) {
     console.error("[scheduler] ocr tick crashed", error);
@@ -150,9 +154,11 @@ async function runCleanupTick(): Promise<void> {
   try {
     const summary = await cleanupOrphanReceiptFiles();
     if (summary.scanned > 0) {
-      console.log(
-        `[scheduler] cleanup tick scanned=${summary.scanned} orphans_removed=${summary.orphans_removed} errors=${summary.errors}`
-      );
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          `[scheduler] cleanup tick scanned=${summary.scanned} orphans_removed=${summary.orphans_removed} errors=${summary.errors}`
+        );
+      }
     }
   } catch (error) {
     console.error("[scheduler] cleanup tick crashed", error);
@@ -303,9 +309,11 @@ export async function runRecurringTick(): Promise<{ processed: number; succeeded
       }
     }
     if (processed > 0) {
-      console.log(
-        `[scheduler] recurring tick processed=${processed} succeeded=${succeeded} failed=${failed} in ${Math.round(performance.now() - tickStart)}ms`
-      );
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          `[scheduler] recurring tick processed=${processed} succeeded=${succeeded} failed=${failed} in ${Math.round(performance.now() - tickStart)}ms`
+        );
+      }
     }
   } catch (error) {
     console.error("[scheduler] recurring tick crashed", error);

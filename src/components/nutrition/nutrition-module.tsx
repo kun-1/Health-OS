@@ -56,12 +56,12 @@ import {
   currentMonth,
   formatUtcOffsetForClient,
   LoadingPanel as ExpenseLoadingPanel,
+  uploadTimingSummary,
   type LoadError as ExpenseLoadError,
   type ManualExpenseInput,
-  type UploadFailure,
-  StructureTask as ExpenseStructureTask,
-  uploadTimingSummary
-} from "@/components/expenses/expenses-client";
+  type UploadFailure
+} from "@/components/expenses/shared/task-helpers";
+import { StructureTask as ExpenseStructureTask } from "@/components/expenses/structure-task";
 import { BudgetSettings } from "@/components/expenses/budget-settings";
 import { BulkSelectionProvider, type BulkItem } from "@/components/expenses/bulk-selection";
 import { BulkToolbar } from "@/components/expenses/bulk-toolbar";

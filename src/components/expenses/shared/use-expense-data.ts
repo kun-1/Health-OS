@@ -21,7 +21,7 @@ import {
   formatUtcOffsetForClient,
   transactionToExtracted,
   type LoadError
-} from "../expenses-client";
+} from "./task-helpers";
 
 type DraftMap = Record<number, ExtractedExpenseReceipt>;
 
