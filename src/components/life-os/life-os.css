@@ -1,0 +1,539 @@
+/* ---------- Shell ---------- */
+.life-shell {
+  display: grid;
+  grid-template-columns: var(--life-sidebar-w) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--life-bg);
+}
+
+.life-main {
+  display: grid;
+  grid-template-rows: var(--life-topbar-h) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.life-content {
+  padding: 22px 28px 36px;
+  overflow: auto;
+}
+
+/* ---------- Sidebar ---------- */
+.life-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--life-shell);
+  border-right: 1px solid var(--life-border);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 16px 18px;
+  gap: 18px;
+}
+
+.life-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 14px;
+  border-bottom: 1px solid var(--life-border);
+}
+
+.life-sidebar__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--life-green) 0%, var(--life-green-strong) 100%);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.06);
+}
+
+.life-sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.life-sidebar__name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.01em;
+}
+
+.life-sidebar__tagline {
+  font-size: 0.74rem;
+  color: var(--life-muted);
+  margin-top: 2px;
+}
+
+.life-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.life-sidebar__group-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--life-subtle);
+  padding: 8px 12px 4px;
+  font-weight: 700;
+}
+
+.life-sidebar__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px 9px 14px;
+  border-radius: var(--life-radius);
+  color: var(--life-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.life-sidebar__link:hover {
+  background: var(--life-card-soft);
+}
+
+.life-sidebar__link[data-active="true"] {
+  background: var(--life-card-soft);
+  color: var(--life-green-ink);
+}
+
+.life-sidebar__link[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--life-green-strong);
+}
+
+.life-sidebar__link svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--life-muted);
+}
+
+.life-sidebar__link[data-active="true"] svg {
+  color: var(--life-green-ink);
+}
+
+.life-sidebar__spacer {
+  flex: 1;
+}
+
+.life-sidebar__footer {
+  border-top: 1px solid var(--life-border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---------- Topbar ---------- */
+.life-topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 28px;
+  background: var(--life-shell);
+  border-bottom: 1px solid var(--life-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.life-topbar__greeting {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.life-topbar__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.01em;
+}
+
+.life-topbar__subtitle {
+  font-size: 0.78rem;
+  color: var(--life-muted);
+  margin-top: 2px;
+}
+
+.life-topbar__spacer {
+  flex: 1;
+}
+
+.life-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.life-topbar__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  color: var(--life-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.life-topbar__icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--life-border);
+  background: var(--life-card);
+  display: grid;
+  place-items: center;
+  color: var(--life-muted);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.life-topbar__icon-btn:hover {
+  background: var(--life-card-soft);
+  color: var(--life-text);
+}
+
+.life-topbar__icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Cards ---------- */
+.life-card {
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.life-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.life-card__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--life-muted);
+  letter-spacing: 0.01em;
+}
+
+.life-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--life-card-soft);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  flex-shrink: 0;
+}
+
+.life-card__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.life-card__value {
+  font-size: 2.05rem;
+  font-weight: 800;
+  color: var(--life-text);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.life-card__value--sm {
+  font-size: 1.45rem;
+}
+
+.life-card__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--life-muted);
+}
+
+.life-card__delta[data-trend="up"] {
+  color: var(--life-green-ink);
+}
+
+.life-card__delta[data-trend="down"] {
+  color: var(--life-danger);
+}
+
+.life-card__footnote {
+  font-size: 0.74rem;
+  color: var(--life-subtle);
+  line-height: 1.4;
+}
+
+.life-card[data-variant="highlight"] {
+  background: linear-gradient(135deg, var(--life-green) 0%, #d4ff8c 100%);
+  border-color: rgba(155, 234, 61, 0.4);
+}
+
+.life-card[data-variant="highlight"] .life-card__title,
+.life-card[data-variant="highlight"] .life-card__footnote {
+  color: var(--life-green-ink);
+}
+
+.life-card[data-variant="highlight"] .life-card__icon {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--life-green-ink);
+}
+
+.life-card--clickable {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.life-card--clickable:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+/* ---------- Home grid ---------- */
+.life-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  align-items: start;
+}
+
+.life-home__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.life-home__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.life-home__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.life-home__main-chart {
+  min-height: 320px;
+}
+
+.life-home__bottom {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ---------- Calendar ---------- */
+.life-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.life-calendar__cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--life-muted);
+  border-radius: 8px;
+  position: relative;
+}
+
+.life-calendar__cell--header {
+  font-size: 0.7rem;
+  color: var(--life-subtle);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  aspect-ratio: auto;
+  height: 22px;
+}
+
+.life-calendar__cell--today {
+  background: var(--life-text);
+  color: #fff;
+}
+
+.life-calendar__cell--muted {
+  color: var(--life-subtle);
+}
+
+.life-calendar__cell--has-data::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--life-orange);
+}
+
+.life-calendar__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--life-muted);
+  margin-top: 4px;
+}
+
+.life-calendar__legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--life-orange);
+}
+
+/* ---------- Activity ---------- */
+.life-activity__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.life-activity__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--life-card-soft);
+}
+
+.life-activity__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--life-card);
+  display: grid;
+  place-items: center;
+  color: var(--life-green-ink);
+  flex-shrink: 0;
+}
+
+.life-activity__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.life-activity__body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.life-activity__title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--life-text);
+}
+
+.life-activity__meta {
+  font-size: 0.74rem;
+  color: var(--life-muted);
+}
+
+/* ---------- Chart placeholder ---------- */
+.life-chart-placeholder {
+  flex: 1;
+  min-height: 240px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--life-card-soft) 0%, transparent 100%);
+  display: grid;
+  place-items: center;
+  color: var(--life-subtle);
+  font-size: 0.84rem;
+  font-weight: 600;
+  border: 1px dashed var(--life-border-strong);
+}
+
+/* ---------- Empty / loading skeleton ---------- */
+.life-skeleton {
+  background: linear-gradient(90deg, var(--life-card-soft) 0%, rgba(228, 232, 230, 0.6) 50%, var(--life-card-soft) 100%);
+  background-size: 200% 100%;
+  animation: life-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+@keyframes life-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Responsive shrink (Phase A is desktop-first; this is a
+   smoke check, mobile polish is a later phase) ---------- */
+@media (max-width: 1180px) {
+  .life-home__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .life-shell {
+    grid-template-columns: 1fr;
+  }
+  .life-sidebar {
+    position: relative;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 14px;
+  }
+  .life-sidebar__group {
+    flex-direction: row;
+  }
+  .life-sidebar__group-label,
+  .life-sidebar__spacer,
+  .life-sidebar__footer {
+    display: none;
+  }
+  .life-home {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

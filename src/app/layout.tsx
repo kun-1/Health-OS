@@ -3,20 +3,20 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Health Monitor",
-  description: "Personal health record layer",
+  title: "Life OS",
+  description: "个人生活指挥台：营养评分、支出与生活数据一屏掌控",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Health Monitor"
+    title: "Life OS"
   }
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#2f6f68"
+  themeColor: "#9bea3d"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

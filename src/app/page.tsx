@@ -1,11 +1,10 @@
-// Stage 1: home is the nutrition dashboard. The / route renders the same
-// client component as /nutrition; a single import avoids duplicating the
-// page wrapper.
+// Phase A: / is now the Life OS home. /nutrition keeps the existing
+// NutritionDashboard (see src/app/nutrition/page.tsx).
 
-import { NutritionDashboard } from "@/components/nutrition/nutrition-dashboard";
+import { LifeHome } from "@/components/life-os/life-home";
 
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  return <NutritionDashboard />;
+  return <LifeHome />;
 }
