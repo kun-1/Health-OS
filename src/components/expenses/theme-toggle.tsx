@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Theme toggle used only on legacy expenses surfaces (login-form and
+ * recurring-manager-client). Intentionally NOT mounted in the Life OS
+ * topbar — the Phase A Life OS IA does not expose a theme switch, since
+ * theme control belongs in user settings (not yet built) rather than as
+ * a global topbar action. Keep this component around for the legacy
+ * pages until they migrate or get removed.
+ */
 type Theme = "light" | "dark";
 
 function getInitialTheme(): Theme {

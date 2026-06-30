@@ -206,15 +206,19 @@ function SubTabNav({
   onTaskChange: (task: NutritionTask) => void;
 }) {
   return (
-    <nav className="exp-tasknav" aria-label="营养子任务">
+    <nav aria-label="营养子任务" className="exp-tasknav" role="tablist">
       {TASKS.map((task) => {
         const Icon = task.icon;
+        const isActive = task.id === activeTask;
         return (
           <button
+            aria-selected={isActive}
             className="exp-tasknav__item"
-            data-active={task.id === activeTask ? "true" : undefined}
+            data-active={isActive ? "true" : undefined}
+            id={`nut-task-tab-${task.id}`}
             key={task.id}
             onClick={() => onTaskChange(task.id)}
+            role="tab"
             type="button"
           >
             <Icon aria-hidden />

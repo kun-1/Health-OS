@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { ExtractedExpenseReceipt } from "@/lib/expenses/types";
 
 import { useBulkSelection } from "./bulk-selection";
+import { ConfirmDialog } from "./confirm-dialog";
 
 type Props = {
   // "main" exposes confirm + delete (the home page knows about pending receipts);
@@ -21,6 +22,11 @@ type Props = {
 export function BulkToolbar({ mode, receiptDrafts, reload, onError, onMessage }: Props) {
   const { selectedIds, items, clear } = useBulkSelection();
   const [busy, setBusy] = useState(false);
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingBulkDelete, setPendingBulkDelete] = useState<{
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   // Filter to currently visible items so stale IDs (e.g. after a delete) don't
   // inflate the count. The selectedIds Set itself is reset on data reload
@@ -35,36 +41,40 @@ export function BulkToolbar({ mode, receiptDrafts, reload, onError, onMessage }:
 
   async function bulkDelete() {
     if (transactionCount === 0) return;
-    if (!window.confirm(`确认删除 ${transactionCount} 笔交易？本地图片会一并删除。`)) return;
-    setBusy(true);
-    try {
-      const targets = selected.filter((it) => it.kind === "transaction");
-      const results = await Promise.allSettled(
-        targets.map((it) =>
-          fetch(`/api/expenses/transactions/${it.id}`, { method: "DELETE" }).then((r) => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return it.id;
-          })
-        )
-      );
-      const ok = results.filter((r) => r.status === "fulfilled").length;
-      const failedIds = results
-        .map((r, i) => (r.status === "rejected" ? targets[i].id : null))
-        .filter((x): x is number => x !== null);
-      if (failedIds.length > 0) {
-        onError(
-          `批量删除完成：成功 ${ok} 笔，失败 ${failedIds.length} 笔（#${failedIds.join("、#")}）`
-        );
-      } else {
-        onMessage(`已删除 ${ok} 笔交易`);
+    setPendingBulkDelete({
+      message: `确认删除 ${transactionCount} 笔交易？本地图片会一并删除。`,
+      run: async () => {
+        setBusy(true);
+        try {
+          const targets = selected.filter((it) => it.kind === "transaction");
+          const results = await Promise.allSettled(
+            targets.map((it) =>
+              fetch(`/api/expenses/transactions/${it.id}`, { method: "DELETE" }).then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return it.id;
+              })
+            )
+          );
+          const ok = results.filter((r) => r.status === "fulfilled").length;
+          const failedIds = results
+            .map((r, i) => (r.status === "rejected" ? targets[i].id : null))
+            .filter((x): x is number => x !== null);
+          if (failedIds.length > 0) {
+            onError(
+              `批量删除完成：成功 ${ok} 笔，失败 ${failedIds.length} 笔（#${failedIds.join("、#")}）`
+            );
+          } else {
+            onMessage(`已删除 ${ok} 笔交易`);
+          }
+          clear();
+          await reload();
+        } catch (err) {
+          onError(err instanceof Error ? err.message : "批量删除失败");
+        } finally {
+          setBusy(false);
+        }
       }
-      clear();
-      await reload();
-    } catch (err) {
-      onError(err instanceof Error ? err.message : "批量删除失败");
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function bulkConfirm() {
@@ -145,6 +155,18 @@ export function BulkToolbar({ mode, receiptDrafts, reload, onError, onMessage }:
           清除选择
         </button>
       </div>
+      <ConfirmDialog
+        danger
+        message={pendingBulkDelete?.message ?? ""}
+        onCancel={() => setPendingBulkDelete(null)}
+        onConfirm={() => {
+          const next = pendingBulkDelete;
+          setPendingBulkDelete(null);
+          void next?.run();
+        }}
+        open={pendingBulkDelete !== null}
+        title="批量删除交易"
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import type { ExpenseTransaction, ExtractedExpenseReceipt } from "@/lib/expenses
 
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
+import { ConfirmDialog } from "./confirm-dialog";
 import { TransactionCard } from "./transaction-card";
 import "./expenses.css";
 
@@ -69,6 +70,11 @@ export function AllTransactionsClient() {
   // Wave 3 bulk: status banner for the historical page (it didn't have one
   // before). Reuses the same banner style as the home page.
   const [message, setMessage] = useState<string>("");
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingDelete, setPendingDelete] = useState<{
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   // Wave 3 bulk: ordered list of currently visible transactions, used by the
   // provider to compute shift-click ranges. Pagination beyond the current
@@ -110,14 +116,18 @@ export function AllTransactionsClient() {
 
   // Wave 2 fix: all page delete
   async function handleDelete(transactionId: number) {
-    if (!window.confirm("确认删除这笔交易？")) return;
-    try {
-      const response = await fetch(`/api/expenses/transactions/${transactionId}`, { method: "DELETE" });
-      if (!response.ok) throw new Error(`服务器返回 ${response.status}`);
-      await load(offset);
-    } catch (err) {
-      alert(`删除失败：${err instanceof Error ? err.message : String(err)}`);
-    }
+    setPendingDelete({
+      message: "确认删除这笔交易？",
+      run: async () => {
+        try {
+          const response = await fetch(`/api/expenses/transactions/${transactionId}`, { method: "DELETE" });
+          if (!response.ok) throw new Error(`服务器返回 ${response.status}`);
+          await load(offset);
+        } catch (err) {
+          alert(`删除失败：${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    });
   }
 
   async function handleSave(transaction: FullListTransaction) {
@@ -233,6 +243,18 @@ export function AllTransactionsClient() {
           )}
         </div>
       </BulkSelectionProvider>
+      <ConfirmDialog
+        danger
+        message={pendingDelete?.message ?? ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const next = pendingDelete;
+          setPendingDelete(null);
+          void next?.run();
+        }}
+        open={pendingDelete !== null}
+        title="删除交易"
+      />
     </div>
   );
 }
