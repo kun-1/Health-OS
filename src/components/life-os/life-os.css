@@ -26,7 +26,7 @@
   border-right: 1px solid var(--life-border);
   display: flex;
   flex-direction: column;
-  padding: 22px 16px 18px;
+  padding: 22px 14px 18px;
   gap: 18px;
 }
 
@@ -34,19 +34,21 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 4px 8px 14px;
-  border-bottom: 1px solid var(--life-border);
+  padding: 6px 10px 14px;
+  /* Brand sits in the same column rhythm as the nav links below — no
+     border divider, just the gap above the nav group. */
 }
 
 .life-sidebar__logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   background: linear-gradient(135deg, var(--life-green) 0%, var(--life-green-strong) 100%);
   display: grid;
   place-items: center;
   color: var(--life-green-ink);
-  box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 12px rgba(155, 234, 61, 0.32);
+  flex-shrink: 0;
 }
 
 .life-sidebar__brand-text {
@@ -57,16 +59,17 @@
 }
 
 .life-sidebar__name {
-  font-size: 1.02rem;
+  font-size: 1.04rem;
   font-weight: 800;
   color: var(--life-text);
   letter-spacing: -0.01em;
 }
 
 .life-sidebar__tagline {
-  font-size: 0.74rem;
-  color: var(--life-muted);
-  margin-top: 2px;
+  font-size: 0.72rem;
+  color: #50585E;
+  margin-top: 3px;
+  letter-spacing: 0.01em;
 }
 
 .life-sidebar__group {
@@ -80,7 +83,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--life-subtle);
-  padding: 8px 12px 4px;
+  padding: 8px 12px 6px;
   font-weight: 700;
 }
 
@@ -88,33 +91,40 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px 9px 14px;
-  border-radius: var(--life-radius);
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 10px;
   color: var(--life-text);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .life-sidebar__link:hover {
-  background: var(--life-card-soft);
+  background: rgba(15, 23, 42, 0.03);
 }
 
 .life-sidebar__link[data-active="true"] {
-  background: var(--life-card-soft);
-  /* Deeper than --life-green-ink for AA contrast on the near-white sidebar
-     background (~9:1 vs the soft card background). */
-  color: #16431f;
+  /* Active state matches the highlight KPI card's visual language:
+     tinted pill + deep green text + tiny glow. The 3px left bar is kept
+     as a redundant cue so the active item is still obvious if the soft
+     pill is below contrast in some lighting. */
+  background: linear-gradient(
+    180deg,
+    rgba(155, 253, 68, 0.22) 0%,
+    rgba(155, 253, 68, 0.14) 100%
+  );
+  color: #1a4d22;
+  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.22);
 }
 
 .life-sidebar__link[data-active="true"]::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
+  left: -14px;
+  top: 12px;
+  bottom: 12px;
   width: 3px;
   border-radius: 0 3px 3px 0;
   background: var(--life-green-strong);
@@ -122,13 +132,14 @@
 
 .life-sidebar__link svg {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   color: var(--life-muted);
+  transition: color 140ms ease;
 }
 
 .life-sidebar__link[data-active="true"] svg {
-  color: #16431f;
+  color: #1a4d22;
 }
 
 .life-sidebar__spacer {
@@ -501,6 +512,105 @@
   color: var(--life-muted);
 }
 
+/* ---------- Breakdown (PDI / AHEI / Plate / UPF bars) ---------- */
+.life-breakdown__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.life-breakdown__row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.life-breakdown__row-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--life-text);
+}
+
+.life-breakdown__row-value {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.life-breakdown__track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--life-card-soft);
+  overflow: hidden;
+}
+
+.life-breakdown__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.life-breakdown__row-meta {
+  font-size: 0.72rem;
+  color: #50585E;
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Recent transactions ---------- */
+.life-recent__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.life-recent__row:last-child {
+  border-bottom: none;
+}
+
+.life-recent__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.life-recent__col--main {
+  flex: 1;
+}
+
+.life-recent__merchant {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--life-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.life-recent__meta {
+  font-size: 0.72rem;
+  color: #50585E;
+  margin-top: 2px;
+}
+
+.life-recent__amount {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* ---------- Chart placeholder ---------- */
 .life-chart-placeholder {
   flex: 1;
@@ -521,6 +631,32 @@
   animation: life-shimmer 1.4s ease-in-out infinite;
   border-radius: 6px;
   display: inline-block;
+}
+
+.life-skeleton--value {
+  width: 60%;
+  height: 2.05rem;
+  border-radius: 8px;
+}
+
+.life-card__value-error {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 2.05rem;
+  font-weight: 800;
+  color: #a0aaa3;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.life-card__value-error-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #50585E;
+  letter-spacing: 0;
+  font-family: var(--life-font);
 }
 
 @keyframes life-shimmer {

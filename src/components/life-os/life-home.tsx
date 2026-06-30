@@ -1,29 +1,92 @@
-import { CircleDollarSign, Clock3, ReceiptText, Salad, TrendingUp } from "lucide-react";
+"use client";
+
+import { ArrowUpRight, CircleDollarSign, Clock3, ReceiptText, Salad, TrendingUp } from "lucide-react";
 
 import { ActivityCard } from "./activity-card";
 import { CalendarCard } from "./calendar-card";
 import { ChartCard } from "./chart-card";
 import { LifeShell } from "./life-shell";
 import { MetricCard } from "./metric-card";
+import { NutritionBreakdown } from "./nutrition-breakdown";
+import { RecentTransactions } from "./recent-transactions";
+import { TrendChart } from "./trend-chart";
+import { useHomeData } from "./use-home-data";
 import "./life-os.css";
 
+import {
+  activeDays,
+  computeFoodSpendRatio,
+  computeSignals,
+  formatYuan,
+  pendingReceiptCount,
+  todaySpendCents
+} from "@/lib/life-os/signals";
+
+function yuan(cents: number): string {
+  return `¥${formatYuan(cents)}`;
+}
+
 /**
- * Phase A1 home page: shell + KPI placeholders + empty trend + calendar +
- * empty activity list. No API calls. Phase A2 replaces the placeholders
- * with real nutrition / expense data.
+ * Phase A2 home: shell + 4 live KPIs + main trend chart + recent
+ * transactions + nutrition breakdown + calendar + activity signals.
+ *
+ * Each KPI / chart card owns its own loading/error state via the shared
+ * `useHomeData` hook. A failure on one source does NOT take down the
+ * whole page — the others continue to render whatever data they have.
  */
 export function LifeHome() {
+  const { month, today, score, trend, analytics } = useHomeData();
+
+  const scoreState = score.kind === "ok" ? score.data : null;
+  const analyticsState = analytics.kind === "ok" ? analytics.data : null;
+  const trendState = trend.kind === "ok" ? trend.data : null;
+
+  // Derived values (only when source is ready).
+  const foodRatio =
+    analyticsState != null ? computeFoodSpendRatio(analyticsState) : null;
+  const todaySpend =
+    analyticsState != null ? todaySpendCents(analyticsState, today) : 0;
+  const pendingCount =
+    analyticsState != null ? pendingReceiptCount(analyticsState) : 0;
+
+  // Trend chart needs spend totals for the rightmost 1–2 months. The
+  // expense analytics payload already includes prev month daily totals,
+  // so we can fold them in without an extra request.
+  const spendByPeriod: Record<string, number> = {};
+  if (analyticsState) {
+    spendByPeriod[month] = analyticsState.effective_spent_this_month;
+    const prevMonth = prevMonthOf(month);
+    if (prevMonth) {
+      const sum = analyticsState.prev_month_daily_totals.reduce(
+        (acc, row) => acc + row.amount,
+        0
+      );
+      if (sum > 0) spendByPeriod[prevMonth] = sum;
+    }
+  }
+
+  // Activity signals come from the joined analytics + report.
+  const signals =
+    analyticsState != null
+      ? computeSignals(scoreState?.report ?? null, analyticsState)
+      : [];
+
   return (
     <LifeShell>
       <div className="life-home">
         <div className="life-home__primary">
-          {/* Row 1 — KPI cards. Nutrition Score is highlighted per the
-              reference image: green gradient, biggest visual weight. */}
+          {/* Row 1 — KPI cards */}
           <section className="life-home__kpis" aria-label="关键指标">
             <MetricCard
               title="营养评分"
-              value="—"
-              delta={<>本月待接入</>}
+              state={score.kind === "loading" ? "loading" : score.kind === "error" ? "error" : "ok"}
+              errorMessage={score.kind === "error" ? score.message : undefined}
+              value={scoreState ? Math.round(scoreState.score) : "—"}
+              delta={
+                scoreState
+                  ? <>本月 · 覆盖 {scoreState.report.coveragePct.toFixed(0)}%</>
+                  : undefined
+              }
               footnote="基于月度购买 / 票据数据反映饮食结构倾向，不等于每日摄入"
               icon={<Salad strokeWidth={2} />}
               variant="highlight"
@@ -31,71 +94,149 @@ export function LifeHome() {
             />
             <MetricCard
               title="今日支出"
-              value="¥0"
-              delta={<>本月 ¥—</>}
-              footnote="A2 接入 expense analytics.daily_totals"
+              state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
+              errorMessage={analytics.kind === "error" ? analytics.message : undefined}
+              value={yuan(todaySpend)}
+              delta={
+                analyticsState
+                  ? <>本月 {yuan(analyticsState.spent_this_month)}</>
+                  : undefined
+              }
+              footnote={
+                analyticsState
+                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}`
+                  : undefined
+              }
               icon={<CircleDollarSign strokeWidth={2} />}
               href="/expenses"
             />
             <MetricCard
               title="食物支出占比"
-              value="—"
-              delta={<>6 个月趋势待接入</>}
+              state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
+              errorMessage={analytics.kind === "error" ? analytics.message : undefined}
+              value={
+                foodRatio && foodRatio.ratio !== null
+                  ? `${(foodRatio.ratio * 100).toFixed(0)}%`
+                  : "—"
+              }
+              delta={
+                foodRatio && foodRatio.ratio !== null
+                  ? <>食物 {yuan(foodRatio.foodCents)} · 全部 {yuan(foodRatio.totalCents)}</>
+                  : undefined
+              }
               footnote="食物 + 外食 + 饮料咖啡 ÷ 总支出"
               icon={<TrendingUp strokeWidth={2} />}
             />
             <MetricCard
               title="待处理票据"
-              value="—"
-              delta={<>队列状态待接入</>}
+              state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
+              errorMessage={analytics.kind === "error" ? analytics.message : undefined}
+              value={pendingCount}
+              delta={
+                analyticsState
+                  ? <>队列 ${analyticsState.receipt_jobs.length} 张</>
+                  : undefined
+              }
               footnote="OCR 完成等待确认或失败的票据"
               icon={<ReceiptText strokeWidth={2} />}
               href="/expenses?task=receipts"
             />
           </section>
 
-          {/* Row 2 — main trend chart placeholder. A2 will render a real
-              Recharts area chart with nutrition + spend series. */}
+          {/* Row 2 — main trend chart */}
           <ChartCard
             title="营养评分 · 支出趋势"
             subtitle="近 6 个月"
             toolbar={
               <span className="life-topbar__chip" aria-hidden>
                 <Clock3 strokeWidth={2} style={{ width: 14, height: 14 }} />
-                A2 接入
+                实时
               </span>
             }
-            footer="A2 将叠加 PDI / AHEI / Plate / UPF 四条子线，与月度消费曲线并列。"
+            footer={
+              trendState && trendState.length > 0
+                ? "营养评分按月度分类克数推算；柱状仅显示已闭合月份支出。"
+                : "趋势数据加载中…"
+            }
           >
-            <div className="life-chart-placeholder">主趋势图占位 · Phase A2 接入 Recharts</div>
+            {trend.kind === "loading" || analytics.kind === "loading" ? (
+              <div className="life-chart-placeholder" style={{ minHeight: 280 }}>
+                趋势图加载中…
+              </div>
+            ) : trend.kind === "error" ? (
+              <div className="life-chart-placeholder" style={{ minHeight: 280, color: "#a0aaa3" }}>
+                趋势数据加载失败：{trend.message}
+              </div>
+            ) : trendState && trendState.length > 0 ? (
+              <TrendChart trend={trendState} spendByPeriod={spendByPeriod} />
+            ) : (
+              <div className="life-chart-placeholder" style={{ minHeight: 280 }}>
+                近 6 个月没有足够数据画趋势
+              </div>
+            )}
           </ChartCard>
 
-          {/* Row 3 — two cards: recent transactions + nutrition signal */}
+          {/* Row 3 — two cards: recent transactions + nutrition breakdown */}
           <section className="life-home__bottom" aria-label="详情卡片">
-            <section className="life-card">
-              <header className="life-card__header">
-                <span className="life-card__title">最近交易</span>
-              </header>
-              <div className="life-chart-placeholder" style={{ minHeight: 160 }}>
-                A2 接入 expenses.recent_transactions
-              </div>
-            </section>
-            <section className="life-card">
-              <header className="life-card__header">
-                <span className="life-card__title">营养结构 / 异常信号</span>
-              </header>
-              <div className="life-chart-placeholder" style={{ minHeight: 160 }}>
-                A2 接入 nutrition PDI / AHEI / Plate / UPF
-              </div>
-            </section>
+            {analyticsState ? (
+              <RecentTransactions
+                transactions={analyticsState.recent_transactions}
+                currency={analyticsState.primary_currency}
+              />
+            ) : analytics.kind === "loading" ? (
+              <RecentTransactions transactions={[]} currency="—" />
+            ) : (
+              <section className="life-card">
+                <header className="life-card__header">
+                  <span className="life-card__title">最近交易</span>
+                </header>
+                <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
+                  交易数据加载失败：{analytics.kind === "error" ? analytics.message : ""}
+                </div>
+              </section>
+            )}
+            {scoreState ? (
+              <NutritionBreakdown report={scoreState.report} />
+            ) : score.kind === "loading" ? (
+              <section className="life-card">
+                <header className="life-card__header">
+                  <span className="life-card__title">营养结构 · 四维</span>
+                </header>
+                <div className="life-chart-placeholder" style={{ minHeight: 160 }}>
+                  四维评分加载中…
+                </div>
+              </section>
+            ) : (
+              <section className="life-card">
+                <header className="life-card__header">
+                  <span className="life-card__title">营养结构 · 四维</span>
+                </header>
+                <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
+                  营养数据加载失败：{score.kind === "error" ? score.message : ""}
+                </div>
+              </section>
+            )}
           </section>
         </div>
 
         <aside className="life-home__aside" aria-label="侧栏">
-          <CalendarCard />
-          <ActivityCard entries={[]} />
+          <CalendarCard activeDays={analyticsState ? activeDays(analyticsState) : []} />
+          <ActivityCard entries={signals} />
         </aside>
       </div>
     </LifeShell>
   );
 }
+
+/** Compute the YYYY-MM that comes immediately before `current`. */
+function prevMonthOf(current: string): string | null {
+  const [y, m] = current.split("-").map((n) => parseInt(n, 10));
+  if (!y || !m) return null;
+  if (m === 1) return `${y - 1}-12`;
+  return `${y}-${String(m - 1).padStart(2, "0")}`;
+}
+
+// ArrowUpRight is referenced via the lucide import above so tree-shaking
+// keeps it available to A2 follow-ups (e.g. an external-link affordance).
+const _unused = ArrowUpRight;
+void _unused;
