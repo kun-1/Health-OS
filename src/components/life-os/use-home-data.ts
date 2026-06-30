@@ -68,7 +68,7 @@ export function useHomeData(): HomeData {
 
   useEffect(() => {
     const month = currentMonth();
-    const tz = "Asia/Shanghai";
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai";
     const controller = new AbortController();
 
     fetchJson<NutritionReport>(`/api/nutrition/score?period=${month}`, controller.signal)
@@ -97,7 +97,7 @@ export function useHomeData(): HomeData {
 
   return {
     month: currentMonth(),
-    tz: "Asia/Shanghai",
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
     today: todayIso(),
     score,
     trend,

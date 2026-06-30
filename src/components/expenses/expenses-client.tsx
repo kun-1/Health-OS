@@ -39,6 +39,7 @@ import { BudgetSettings } from "./budget-settings";
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
 import { categoryColor, categoryEmoji, categoryLabel } from "./category-colors";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ManualExpensePanel } from "./manual-expense-panel";
 import { PendingReceiptCard } from "./pending-card";
 import { ReceiptUploader } from "./receipt-uploader";
@@ -326,8 +327,8 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
               </linearGradient>
             </defs>
             <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
-            <XAxis axisLine={false} dataKey="label" tick={{ fill: "#6d776f", fontSize: 12 }} tickLine={false} />
-            <YAxis axisLine={false} tick={{ fill: "#6d776f", fontSize: 12 }} tickFormatter={(value) => `¥${Number(value).toFixed(0)}`} tickLine={false} />
+            <XAxis axisLine={false} dataKey="label" tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickLine={false} />
+            <YAxis axisLine={false} tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickFormatter={(value) => `¥${Number(value).toFixed(0)}`} tickLine={false} />
             <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 8, color: "#101512" }} formatter={(value) => formatMoney(Number(value), analytics.primary_currency)} />
             <Area dataKey="amount" fill="url(#expense-spend-fill)" name="累计消费" stroke="#9bea3d" strokeWidth={2.5} type="monotone" />
             <Area dataKey="budget" fill="transparent" name="预算线" stroke="#f5b833" strokeDasharray="5 5" strokeWidth={1.5} type="monotone" />
@@ -433,8 +434,8 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
         <ResponsiveContainer height={240} width="100%">
           <BarChart data={categoryData} margin={{ bottom: 0, left: 0, right: 12, top: 12 }}>
             <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
-            <XAxis axisLine={false} dataKey="category" tick={{ fill: "#6d776f", fontSize: 12 }} tickLine={false} tickFormatter={(value) => categoryLabel(String(value))} />
-            <YAxis axisLine={false} tick={{ fill: "#6d776f", fontSize: 12 }} tickFormatter={(value) => `¥${fromCents(Number(value)).toFixed(0)}`} tickLine={false} />
+            <XAxis axisLine={false} dataKey="category" tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickLine={false} tickFormatter={(value) => categoryLabel(String(value))} />
+            <YAxis axisLine={false} tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickFormatter={(value) => `¥${fromCents(Number(value)).toFixed(0)}`} tickLine={false} />
             <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 8, color: "#101512" }} formatter={(value) => formatMoney(fromCents(Number(value)), analytics.primary_currency)} />
             <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
               {categoryData.map((entry) => (
@@ -700,6 +701,12 @@ export function ExpensesClient() {
   const [transactionDrafts, setTransactionDrafts] = useState<Record<number, ExtractedExpenseReceipt>>({});
   const [manualOpen, setManualOpen] = useState(false);
   const [manualBusy, setManualBusy] = useState(false);
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingDelete, setPendingDelete] = useState<{
+    title: string;
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   const orderedItems = useMemo<BulkItem[]>(() => {
     const receipts = (analytics?.pending_receipts ?? [])
@@ -832,17 +839,22 @@ export function ExpensesClient() {
   }
 
   async function deleteJob(job: ExpenseReceiptJob) {
-    if (!window.confirm(`确认删除失败图片 ${job.original_filename}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/receipt-jobs/${job.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`队列 #${job.id} 已删除`);
-    await load();
+    setPendingDelete({
+      title: "删除失败图片",
+      message: `确认删除失败图片 ${job.original_filename}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/receipt-jobs/${job.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`队列 #${job.id} 已删除`);
+        await load();
+      }
+    });
   }
 
   async function confirmPending(receipt: ExpenseReceiptSummary) {
@@ -864,17 +876,22 @@ export function ExpensesClient() {
   }
 
   async function deletePending(receipt: ExpenseReceiptSummary) {
-    if (!window.confirm(`确认删除票据 #${receipt.id}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/receipts/${receipt.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`票据 #${receipt.id} 已删除`);
-    await load();
+    setPendingDelete({
+      title: "删除票据",
+      message: `确认删除票据 #${receipt.id}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/receipts/${receipt.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`票据 #${receipt.id} 已删除`);
+        await load();
+      }
+    });
   }
 
   async function updatePosted(transaction: ExpenseTransaction) {
@@ -896,17 +913,22 @@ export function ExpensesClient() {
   }
 
   async function deletePosted(transaction: ExpenseTransaction) {
-    if (!window.confirm(`确认删除已入账 #${transaction.id}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`已入账 #${transaction.id} 已删除`);
-    await load();
+    setPendingDelete({
+      title: "删除已入账",
+      message: `确认删除已入账 #${transaction.id}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`已入账 #${transaction.id} 已删除`);
+        await load();
+      }
+    });
   }
 
   const days = analytics ? daysRemainingInMonth(analytics.month) : 0;
@@ -971,6 +993,18 @@ export function ExpensesClient() {
           <LoadingPanel />
         )}
       </BulkSelectionProvider>
+      <ConfirmDialog
+        danger
+        message={pendingDelete?.message ?? ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const next = pendingDelete;
+          setPendingDelete(null);
+          void next?.run();
+        }}
+        open={pendingDelete !== null}
+        title={pendingDelete?.title ?? "确认"}
+      />
     </div>
   );
 }

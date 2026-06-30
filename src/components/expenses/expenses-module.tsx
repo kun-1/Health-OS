@@ -37,6 +37,7 @@ import {
   type ManualExpenseInput
 } from "./expenses-client";
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ExpenseBanners } from "./shared/expense-banners";
 import { ExpensesHeader } from "./shared/expenses-header";
 import { useExpenseData } from "./shared/use-expense-data";
@@ -58,15 +59,19 @@ function SubTabNav({
   onTaskChange: (task: ExpenseSubTask) => void;
 }) {
   return (
-    <nav className="exp-tasknav" aria-label="支出了任务">
+    <nav aria-label="支出了任务" className="exp-tasknav" role="tablist">
       {SUBTABS.map((task) => {
         const Icon = task.icon;
+        const isActive = task.id === activeTask;
         return (
           <button
+            aria-selected={isActive}
             className="exp-tasknav__item"
-            data-active={task.id === activeTask ? "true" : undefined}
+            data-active={isActive ? "true" : undefined}
+            id={`exp-task-tab-${task.id}`}
             key={task.id}
             onClick={() => onTaskChange(task.id)}
+            role="tab"
             type="button"
           >
             <Icon aria-hidden />
@@ -96,6 +101,11 @@ export function ExpensesModule() {
    *  so the analysis page doesn't feel busy until the user explicitly
    *  asks for the transactions list. */
   const [showLedger, setShowLedger] = useState(false);
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingDelete, setPendingDelete] = useState<{
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   const handleTaskChange = useCallback(
     (task: ExpenseSubTask) => {
@@ -149,17 +159,21 @@ export function ExpensesModule() {
   }
 
   async function deletePosted(transaction: ExpenseTransaction) {
-    if (!window.confirm(`确认删除已入账 #${transaction.id}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`已入账 #${transaction.id} 已删除`);
-    await reload();
+    setPendingDelete({
+      message: `确认删除已入账 #${transaction.id}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`已入账 #${transaction.id} 已删除`);
+        await reload();
+      }
+    });
   }
 
   const days = analytics ? daysRemainingInMonth(analytics.month) : 0;
@@ -250,6 +264,18 @@ export function ExpensesModule() {
       ) : (
         <ExpenseLoadingPanel />
       )}
+      <ConfirmDialog
+        danger
+        message={pendingDelete?.message ?? ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const next = pendingDelete;
+          setPendingDelete(null);
+          void next?.run();
+        }}
+        open={pendingDelete !== null}
+        title="删除已入账"
+      />
     </div>
   );
 }

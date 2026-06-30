@@ -38,6 +38,7 @@ import {
 } from "./expenses-client";
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ExpenseBanners } from "./shared/expense-banners";
 import { ExpensesHeader } from "./shared/expenses-header";
 import { useExpenseData } from "./shared/use-expense-data";
@@ -59,6 +60,12 @@ export function ReceiptsModule() {
   const [message, setMessage] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
   const [manualBusy, setManualBusy] = useState(false);
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingDelete, setPendingDelete] = useState<{
+    title: string;
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   const orderedItems = useMemo<BulkItem[]>(() => {
     const receipts = (analytics?.pending_receipts ?? [])
@@ -167,17 +174,22 @@ export function ReceiptsModule() {
   }
 
   async function deleteJob(job: ExpenseReceiptJob) {
-    if (!window.confirm(`确认删除失败图片 ${job.original_filename}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/receipt-jobs/${job.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`队列 #${job.id} 已删除`);
-    await reload();
+    setPendingDelete({
+      title: "删除失败图片",
+      message: `确认删除失败图片 ${job.original_filename}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/receipt-jobs/${job.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`队列 #${job.id} 已删除`);
+        await reload();
+      }
+    });
   }
 
   async function confirmPending(receipt: ExpenseReceiptSummary) {
@@ -199,17 +211,22 @@ export function ReceiptsModule() {
   }
 
   async function deletePending(receipt: ExpenseReceiptSummary) {
-    if (!window.confirm(`确认删除票据 #${receipt.id}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/receipts/${receipt.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`票据 #${receipt.id} 已删除`);
-    await reload();
+    setPendingDelete({
+      title: "删除票据",
+      message: `确认删除票据 #${receipt.id}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/receipts/${receipt.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`票据 #${receipt.id} 已删除`);
+        await reload();
+      }
+    });
   }
 
   async function updatePosted(transaction: ExpenseTransaction) {
@@ -231,17 +248,22 @@ export function ReceiptsModule() {
   }
 
   async function deletePosted(transaction: ExpenseTransaction) {
-    if (!window.confirm(`确认删除已入账 #${transaction.id}？本地图片也会一起删除。`)) return;
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`已入账 #${transaction.id} 已删除`);
-    await reload();
+    setPendingDelete({
+      title: "删除已入账",
+      message: `确认删除已入账 #${transaction.id}？本地图片也会一起删除。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`已入账 #${transaction.id} 已删除`);
+        await reload();
+      }
+    });
   }
 
   return (
@@ -303,6 +325,18 @@ export function ReceiptsModule() {
           <ExpenseLoadingPanel />
         )}
       </BulkSelectionProvider>
+      <ConfirmDialog
+        danger
+        message={pendingDelete?.message ?? ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const next = pendingDelete;
+          setPendingDelete(null);
+          void next?.run();
+        }}
+        open={pendingDelete !== null}
+        title={pendingDelete?.title ?? "确认"}
+      />
     </div>
   );
 }

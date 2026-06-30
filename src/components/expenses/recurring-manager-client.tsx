@@ -6,6 +6,7 @@ import { formatMoney, fromCents } from "@/lib/expenses/money";
 import type { RecurringExpense, RecurringFrequency } from "@/lib/expenses/types";
 
 import { categoryEmoji, categoryLabel, categoryNames } from "./category-colors";
+import { ConfirmDialog } from "./confirm-dialog";
 import { ThemeToggle, getInitialTheme, type Theme } from "./theme-toggle";
 import "./expenses.css";
 
@@ -148,6 +149,11 @@ export function RecurringManagerClient() {
   const [saving, setSaving] = useState(false);
   const [runningId, setRunningId] = useState<number | null>(null);
   const [theme, setTheme] = useState<Theme>("light");
+  // Replace window.confirm with the styled ConfirmDialog.
+  const [pendingDelete, setPendingDelete] = useState<{
+    message: string;
+    run: () => Promise<void>;
+  } | null>(null);
 
   useEffect(() => {
     setTheme(getInitialTheme());
@@ -243,24 +249,26 @@ export function RecurringManagerClient() {
   }
 
   async function removeRule(rule: Rule) {
-    if (!window.confirm(`确认删除规则 #${rule.id}（${rule.merchant_name}）？历史入账的交易不会自动回滚。`)) {
-      return;
-    }
-    setError("");
-    setMessage("");
-    const response = await fetch("/api/expenses/recurring", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: rule.id })
+    setPendingDelete({
+      message: `确认删除规则 #${rule.id}（${rule.merchant_name}）？历史入账的交易不会自动回滚。`,
+      run: async () => {
+        setError("");
+        setMessage("");
+        const response = await fetch("/api/expenses/recurring", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: rule.id })
+        });
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as { error?: string };
+          setError(data.error ?? "删除失败");
+          return;
+        }
+        setMessage(`已删除规则 #${rule.id}`);
+        if (editingId === rule.id) cancelForm();
+        await load();
+      }
     });
-    if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-      setError(data.error ?? "删除失败");
-      return;
-    }
-    setMessage(`已删除规则 #${rule.id}`);
-    if (editingId === rule.id) cancelForm();
-    await load();
   }
 
   async function toggleActive(rule: Rule) {
@@ -614,6 +622,18 @@ export function RecurringManagerClient() {
           </div>
         )}
       </section>
+      <ConfirmDialog
+        danger
+        message={pendingDelete?.message ?? ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const next = pendingDelete;
+          setPendingDelete(null);
+          void next?.run();
+        }}
+        open={pendingDelete !== null}
+        title="删除规则"
+      />
     </div>
   );
 }
