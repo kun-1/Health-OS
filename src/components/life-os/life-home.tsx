@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CircleDollarSign, Clock3, ReceiptText, Salad, TrendingUp } from "lucide-react";
+import { ArrowUpRight, CircleDollarSign, Clock3, Database, Salad, TrendingUp } from "lucide-react";
 
 import { ActivityCard } from "./activity-card";
 import { CalendarCard } from "./calendar-card";
@@ -16,9 +16,8 @@ import "./life-os.css";
 import {
   activeDays,
   computeFoodSpendRatio,
-  computeSignals,
+  computePhaseDInsights,
   formatYuan,
-  pendingReceiptCount,
   todaySpendCents
 } from "@/lib/life-os/signals";
 
@@ -46,8 +45,6 @@ export function LifeHome() {
     analyticsState != null ? computeFoodSpendRatio(analyticsState) : null;
   const todaySpend =
     analyticsState != null ? todaySpendCents(analyticsState, today) : 0;
-  const pendingCount =
-    analyticsState != null ? pendingReceiptCount(analyticsState) : 0;
 
   // Trend chart needs spend totals for the rightmost 1–2 months. The
   // expense analytics payload already includes prev month daily totals,
@@ -65,11 +62,15 @@ export function LifeHome() {
     }
   }
 
-  // Activity signals come from the joined analytics + report.
-  const signals =
-    analyticsState != null
-      ? computeSignals(scoreState?.report ?? null, analyticsState)
-      : [];
+  // Phase D insights: three narrative observations (nutrition delta /
+  // food ratio / data gap). Computed lazily so a single API failure
+  // doesn't blank out the whole list.
+  const insights = computePhaseDInsights(
+    scoreState?.report ?? null,
+    analyticsState,
+    trendState ?? [],
+    month
+  );
 
   return (
     <LifeShell>
@@ -128,18 +129,22 @@ export function LifeHome() {
               icon={<TrendingUp strokeWidth={2} />}
             />
             <MetricCard
-              title="待处理票据"
-              state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
-              errorMessage={analytics.kind === "error" ? analytics.message : undefined}
-              value={pendingCount}
+              title="记录完整度"
+              state={score.kind === "loading" ? "loading" : score.kind === "error" ? "error" : "ok"}
+              errorMessage={score.kind === "error" ? score.message : undefined}
+              value={scoreState ? `${scoreState.report.coveragePct.toFixed(0)}%` : "—"}
               delta={
-                analyticsState
-                  ? <>队列 ${analyticsState.receipt_jobs.length} 张</>
+                scoreState
+                  ? <>{scoreState.report.itemsWithWeight} / {scoreState.report.itemsAnalyzed} 项有重量</>
                   : undefined
               }
-              footnote="OCR 完成等待确认或失败的票据"
-              icon={<ReceiptText strokeWidth={2} />}
-              href="/expenses?task=receipts"
+              footnote={
+                analyticsState && analyticsState.pending_receipts.length > 0
+                  ? `另有 ${analyticsState.pending_receipts.length} 张票据待确认`
+                  : "有重量条目 ÷ 总食物条目"
+              }
+              icon={<Database strokeWidth={2} />}
+              href="/nutrition"
             />
           </section>
 
@@ -221,7 +226,7 @@ export function LifeHome() {
 
         <aside className="life-home__aside" aria-label="侧栏">
           <CalendarCard activeDays={analyticsState ? activeDays(analyticsState) : []} />
-          <ActivityCard entries={signals} />
+          <ActivityCard entries={insights} />
         </aside>
       </div>
     </LifeShell>

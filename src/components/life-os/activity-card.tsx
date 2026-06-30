@@ -34,9 +34,9 @@ export function ActivityCard({ entries }: Props) {
             fontWeight: 600
           }}
         >
-          还没有最近动态
+          还没有可观察的动态
           <div style={{ marginTop: 4, color: "var(--life-subtle)", fontWeight: 500 }}>
-            Phase A2 会接上营养评分和待处理票据
+            数据加载完成后会显示三条洞察
           </div>
         </div>
       ) : (
