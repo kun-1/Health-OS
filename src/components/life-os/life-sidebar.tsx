@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Activity, LayoutDashboard, ReceiptText, Settings as SettingsIcon, Wallet } from "lucide-react";
 
 import "./life-os.css";
@@ -10,8 +10,8 @@ type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  /** Receives pathname + current `task` query param (or null). */
-  isActive: (pathname: string, task: string | null) => boolean;
+  /** Receives the current pathname. */
+  isActive: (pathname: string) => boolean;
 };
 
 const PRIMARY: NavItem[] = [
@@ -31,15 +31,15 @@ const PRIMARY: NavItem[] = [
     label: "支出",
     href: "/expenses",
     icon: Wallet,
-    isActive: (pathname, task) =>
-      (pathname === "/expenses" || pathname.startsWith("/expenses/")) && task !== "receipts"
+    // /expenses highlights only the bare path; sub-routes like
+    // /expenses/receipts (票据) or /expenses/all own their own nav state.
+    isActive: (pathname) => pathname === "/expenses"
   },
   {
     label: "票据",
-    href: "/expenses?task=receipts",
+    href: "/expenses/receipts",
     icon: ReceiptText,
-    isActive: (pathname, task) =>
-      (pathname === "/expenses" || pathname.startsWith("/expenses/")) && task === "receipts"
+    isActive: (pathname) => pathname === "/expenses/receipts"
   }
 ];
 
@@ -60,8 +60,6 @@ const FOOTER: NavItem[] = [
 
 export function LifeSidebar() {
   const pathname = usePathname() ?? "/";
-  const searchParams = useSearchParams();
-  const task = searchParams?.get("task") ?? null;
 
   return (
     <aside className="life-sidebar" aria-label="主导航">
@@ -79,7 +77,7 @@ export function LifeSidebar() {
         <span className="life-sidebar__group-label">主模块</span>
         {PRIMARY.map((item) => {
           const Icon = item.icon;
-          const active = item.isActive(pathname, task);
+          const active = item.isActive(pathname);
           return (
             <Link
               key={`${item.href}-${item.label}`}
@@ -99,7 +97,7 @@ export function LifeSidebar() {
       <nav className="life-sidebar__footer" aria-label="系统">
         {FOOTER.map((item) => {
           const Icon = item.icon;
-          const active = item.isActive(pathname, task);
+          const active = item.isActive(pathname);
           return (
             <Link
               key={`${item.href}-${item.label}`}
