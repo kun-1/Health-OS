@@ -37,6 +37,7 @@ import type {
   ExpenseTransaction,
   ExtractedExpenseReceipt
 } from "@/lib/expenses/types";
+import { clampScore, structureScore } from "@/lib/life-os/selectors";
 import { rainbowColors } from "@/lib/nutrition/color-signals";
 import { type QualityReason, type SkipBreakdown } from "@/lib/nutrition/quality";
 import type {
@@ -155,18 +156,6 @@ function pct(value: number): string {
 
 function totalSkips(breakdown: SkipBreakdown): number {
   return REASON_ORDER.reduce((s, r) => s + breakdown[r], 0);
-}
-
-function clampScore(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-function structureScore(report: NutritionReport): number {
-  const pdi = (report.pdi.total / report.pdi.max) * 100;
-  const ahei = (report.ahei.total / report.ahei.max) * 100;
-  const platePenalty = report.plate.deviation * 18;
-  const upfPenalty = report.upf.upfShare * 16;
-  return clampScore((pdi + ahei) / 2 - platePenalty - upfPenalty + 18);
 }
 
 function statusTone(value: number, min: number, max: number): "good" | "warn" | "bad" {
@@ -540,7 +529,13 @@ function StructureView({ expenseAnalytics, report }: { expenseAnalytics: Expense
         </div>
       </section>
     </div>
-    {expenseAnalytics ? <ExpenseStructureTask analytics={expenseAnalytics} /> : <ExpenseLoadingPanel />}
+    {expenseAnalytics ? (
+      <div className="life-os-nutrition__legacy" data-variant="expense-legacy">
+        <ExpenseStructureTask analytics={expenseAnalytics} />
+      </div>
+    ) : (
+      <ExpenseLoadingPanel />
+    )}
     </>
   );
 }
@@ -651,7 +646,13 @@ function TrendView({
         </div>
       </section>
     </div>
-    {expenseAnalytics ? <BudgetTask analytics={expenseAnalytics} days={expenseDays} /> : <ExpenseLoadingPanel />}
+    {expenseAnalytics ? (
+      <div className="life-os-nutrition__legacy" data-variant="expense-legacy">
+        <BudgetTask analytics={expenseAnalytics} days={expenseDays} />
+      </div>
+    ) : (
+      <ExpenseLoadingPanel />
+    )}
     </>
   );
 }
@@ -734,7 +735,9 @@ function ReviewView({
           </div>
         </div>
       </section>
-      {expenseRecords}
+      <div className="life-os-nutrition__legacy" data-variant="expense-legacy">
+        {expenseRecords}
+      </div>
     </>
   );
 }
@@ -1049,7 +1052,7 @@ export function NutritionDashboard() {
   );
 
   return (
-    <div className="nut">
+    <div className="life-os-nutrition">
       <ShellHeader activeTask={activeTask} onTaskChange={handleTaskChange} />
       <ManualExpensePanel busy={manualBusy} onClose={() => setManualOpen(false)} onSave={createManualExpense} open={manualOpen} />
       {expenseError ? <div className="exp-banner exp-banner--error">{expenseError}</div> : null}
