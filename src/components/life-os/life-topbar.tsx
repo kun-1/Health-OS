@@ -7,6 +7,8 @@ type Props = {
   greeting?: string;
   /** Override the date subtitle. Defaults to today in zh-CN. */
   dateLabel?: string;
+  /** Override the month chip label. Defaults to current YYYY 年 M 月. */
+  monthLabel?: string;
 };
 
 function todayLabel(): string {
@@ -20,8 +22,14 @@ function todayLabel(): string {
   return `${y} 年 ${m} 月 ${d} 日 · ${weekdays[now.getDay()]}`;
 }
 
-export function LifeTopbar({ greeting, dateLabel }: Props) {
+function defaultMonthLabel(): string {
+  const now = new Date();
+  return `${now.getFullYear()} 年 ${now.getMonth() + 1} 月`;
+}
+
+export function LifeTopbar({ greeting, dateLabel, monthLabel }: Props) {
   const subtitle = dateLabel ?? todayLabel();
+  const month = monthLabel ?? defaultMonthLabel();
   return (
     <header className="life-topbar" role="banner">
       <div className="life-topbar__greeting">
@@ -32,9 +40,9 @@ export function LifeTopbar({ greeting, dateLabel }: Props) {
       <div className="life-topbar__spacer" />
 
       <div className="life-topbar__actions">
-        <span className="life-topbar__chip" aria-label="当前月份">
+        <span className="life-topbar__chip" aria-label={`当前月份：${month}`}>
           <CalendarDays strokeWidth={2} style={{ width: 14, height: 14 }} />
-          本月视图
+          {month}
         </span>
         <button type="button" className="life-topbar__icon-btn" aria-label="导出" title="导出（Phase A 占位）">
           <Download />

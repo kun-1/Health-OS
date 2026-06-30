@@ -13,7 +13,7 @@
 }
 
 .life-content {
-  padding: 22px 28px 36px;
+  padding: 32px 36px 48px;
   overflow: auto;
 }
 
@@ -104,7 +104,9 @@
 
 .life-sidebar__link[data-active="true"] {
   background: var(--life-card-soft);
-  color: var(--life-green-ink);
+  /* Deeper than --life-green-ink for AA contrast on the near-white sidebar
+     background (~9:1 vs the soft card background). */
+  color: #16431f;
 }
 
 .life-sidebar__link[data-active="true"]::before {
@@ -126,7 +128,7 @@
 }
 
 .life-sidebar__link[data-active="true"] svg {
-  color: var(--life-green-ink);
+  color: #16431f;
 }
 
 .life-sidebar__spacer {
@@ -222,14 +224,16 @@
 
 /* ---------- Cards ---------- */
 .life-card {
-  background: var(--life-card);
-  border: 1px solid var(--life-border);
+  background: #ffffff;
+  border: none;
   border-radius: var(--life-radius-lg);
-  padding: 18px 20px;
+  padding: 22px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+  height: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 
 .life-card__header {
@@ -293,24 +297,31 @@
 }
 
 .life-card__footnote {
-  font-size: 0.74rem;
-  color: var(--life-subtle);
-  line-height: 1.4;
+  font-size: 0.72rem;
+  color: #50585E;
+  line-height: 1.45;
 }
 
+/* The highlight variant keeps the card background pure white per the
+   2026-06-30 visual revision; visual emphasis comes from a tinted icon
+   tile and a green value, so Nutrition Score still reads as the primary
+   KPI without breaking the all-white card system. */
 .life-card[data-variant="highlight"] {
-  background: linear-gradient(135deg, var(--life-green) 0%, #d4ff8c 100%);
-  border-color: rgba(155, 234, 61, 0.4);
+  background: #ffffff;
 }
 
 .life-card[data-variant="highlight"] .life-card__title,
 .life-card[data-variant="highlight"] .life-card__footnote {
-  color: var(--life-green-ink);
+  color: #50585E;
 }
 
 .life-card[data-variant="highlight"] .life-card__icon {
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--life-green-ink);
+  background: rgba(155, 253, 68, 0.18);
+  color: #2f6f3a;
+}
+
+.life-card[data-variant="highlight"] .life-card__value {
+  color: #2f6f3a;
 }
 
 .life-card--clickable {
@@ -321,7 +332,7 @@
 }
 
 .life-card--clickable:hover {
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
 }
 
@@ -329,28 +340,29 @@
 .life-home {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 22px;
+  gap: 24px;
   align-items: start;
 }
 
 .life-home__primary {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 24px;
   min-width: 0;
 }
 
 .life-home__aside {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 24px;
   min-width: 0;
 }
 
 .life-home__kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px;
+  align-items: stretch;
 }
 
 .life-home__main-chart {
@@ -360,7 +372,7 @@
 .life-home__bottom {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 /* ---------- Calendar ---------- */
@@ -392,8 +404,9 @@
 }
 
 .life-calendar__cell--today {
-  background: var(--life-text);
-  color: #fff;
+  background: #9BFD44;
+  color: #000;
+  font-weight: 600;
 }
 
 .life-calendar__cell--muted {
@@ -409,7 +422,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--life-orange);
+  background: #F94310;
 }
 
 .life-calendar__legend {
@@ -425,7 +438,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--life-orange);
+  background: #F94310;
 }
 
 /* ---------- Activity ---------- */
@@ -511,6 +524,39 @@
 @media (max-width: 1180px) {
   .life-home__kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablet / small desktop: collapse sidebar to icon-only column so the
+   main canvas keeps breathing room. Mobile (< 900px) is handled below. */
+@media (max-width: 1180px) and (min-width: 901px) {
+  :root {
+    --life-sidebar-w: 68px;
+  }
+  .life-sidebar {
+    padding: 18px 10px;
+    align-items: center;
+  }
+  .life-sidebar__brand {
+    justify-content: center;
+    padding: 4px 0 14px;
+    border-bottom-color: transparent;
+  }
+  .life-sidebar__brand-text,
+  .life-sidebar__group-label,
+  .life-sidebar__link > span,
+  .life-sidebar__footer {
+    display: none;
+  }
+  .life-sidebar__group {
+    align-items: center;
+    gap: 6px;
+  }
+  .life-sidebar__link {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
   }
 }
 

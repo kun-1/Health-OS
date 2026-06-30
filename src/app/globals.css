@@ -5,7 +5,7 @@
 /* Life OS shell tokens — referenced by src/components/life-os/*.
    Keep these names stable; downstream modules depend on them. */
 :root {
-  --life-bg: #eef3f1;
+  --life-bg: #EEF1F2;
   --life-shell: #f7faf8;
   --life-card: #ffffff;
   --life-card-soft: #f4f8f5;
