@@ -10,9 +10,15 @@ const palette: Record<ExpenseCategory, { color: string; emoji: string; label: st
   "药品/医疗": { color: "#8C564B", emoji: "💊", label: "药品 / 医疗" },
   补剂: { color: "#BCBD22", emoji: "💪", label: "补剂" },
   交通: { color: "#6B6B6B", emoji: "🚇", label: "交通" },
-  居住: { color: "#AEC7E8", emoji: "🏠", label: "居住" },
+  // Phase C polish: deepened from #AEC7E8 (too pale on white card surfaces,
+  // legend dots disappeared against the page bg). New value keeps the blue
+  // family but with enough saturation to read on the Life OS card surface.
+  居住: { color: "#6B95D6", emoji: "🏠", label: "居住" },
   娱乐: { color: "#FF9DA6", emoji: "🎬", label: "娱乐" },
-  其他: { color: "#C49C94", emoji: "📦", label: "其他" }
+  // Phase C polish: deepened from #C49C94 (muted beige vanished next to
+  // the page bg). Now reads as a warm rose-brown that contrasts with
+  // both the card surface and adjacent slices.
+  其他: { color: "#9F6F66", emoji: "📦", label: "其他" }
 };
 
 // Wave 3: the item schema can now return non-canonical category strings

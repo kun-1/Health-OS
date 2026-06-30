@@ -321,15 +321,15 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
           <AreaChart data={line} margin={{ bottom: 10, left: 0, right: 20, top: 20 }}>
             <defs>
               <linearGradient id="expense-spend-fill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#11d7c6" stopOpacity={0.34} />
-                <stop offset="95%" stopColor="#11d7c6" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#9bea3d" stopOpacity={0.34} />
+                <stop offset="95%" stopColor="#9bea3d" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" vertical={false} />
-            <XAxis axisLine={false} dataKey="label" tick={{ fill: "#6f7c83", fontSize: 12 }} tickLine={false} />
-            <YAxis axisLine={false} tick={{ fill: "#6f7c83", fontSize: 12 }} tickFormatter={(value) => `¥${Number(value).toFixed(0)}`} tickLine={false} />
-            <Tooltip contentStyle={{ background: "#10181b", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8 }} formatter={(value) => formatMoney(Number(value), analytics.primary_currency)} />
-            <Area dataKey="amount" fill="url(#expense-spend-fill)" name="累计消费" stroke="#11d7c6" strokeWidth={2.5} type="monotone" />
+            <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
+            <XAxis axisLine={false} dataKey="label" tick={{ fill: "#6d776f", fontSize: 12 }} tickLine={false} />
+            <YAxis axisLine={false} tick={{ fill: "#6d776f", fontSize: 12 }} tickFormatter={(value) => `¥${Number(value).toFixed(0)}`} tickLine={false} />
+            <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 8, color: "#101512" }} formatter={(value) => formatMoney(Number(value), analytics.primary_currency)} />
+            <Area dataKey="amount" fill="url(#expense-spend-fill)" name="累计消费" stroke="#9bea3d" strokeWidth={2.5} type="monotone" />
             <Area dataKey="budget" fill="transparent" name="预算线" stroke="#f5b833" strokeDasharray="5 5" strokeWidth={1.5} type="monotone" />
           </AreaChart>
         </ResponsiveContainer>
@@ -384,7 +384,7 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
         </div>
         <ResponsiveContainer height={420} width="100%">
           <PieChart>
-            <Pie cx="50%" cy="50%" data={categoryData} dataKey="percent" innerRadius={112} outerRadius={184} paddingAngle={1.5} stroke="#081012" strokeWidth={2}>
+            <Pie cx="50%" cy="50%" data={categoryData} dataKey="percent" innerRadius={112} outerRadius={184} paddingAngle={1.5} stroke="#ffffff" strokeWidth={2}>
               {categoryData.map((entry) => (
                 <Cell fill={entry.color} key={entry.category} />
               ))}
@@ -432,10 +432,10 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
         </div>
         <ResponsiveContainer height={240} width="100%">
           <BarChart data={categoryData} margin={{ bottom: 0, left: 0, right: 12, top: 12 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" vertical={false} />
-            <XAxis axisLine={false} dataKey="category" tick={{ fill: "#6f7c83", fontSize: 12 }} tickLine={false} tickFormatter={(value) => categoryLabel(String(value))} />
-            <YAxis axisLine={false} tick={{ fill: "#6f7c83", fontSize: 12 }} tickFormatter={(value) => `¥${fromCents(Number(value)).toFixed(0)}`} tickLine={false} />
-            <Tooltip contentStyle={{ background: "#10181b", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8 }} formatter={(value) => formatMoney(fromCents(Number(value)), analytics.primary_currency)} />
+            <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
+            <XAxis axisLine={false} dataKey="category" tick={{ fill: "#6d776f", fontSize: 12 }} tickLine={false} tickFormatter={(value) => categoryLabel(String(value))} />
+            <YAxis axisLine={false} tick={{ fill: "#6d776f", fontSize: 12 }} tickFormatter={(value) => `¥${fromCents(Number(value)).toFixed(0)}`} tickLine={false} />
+            <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 8, color: "#101512" }} formatter={(value) => formatMoney(fromCents(Number(value)), analytics.primary_currency)} />
             <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
               {categoryData.map((entry) => (
                 <Cell fill={entry.color} key={entry.category} />
