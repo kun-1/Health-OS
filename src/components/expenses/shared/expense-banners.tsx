@@ -1,6 +1,6 @@
 "use client";
 
-import type { LoadError } from "../expenses-client";
+import type { LoadError } from "./task-helpers";
 
 import "../expenses.css";
 
