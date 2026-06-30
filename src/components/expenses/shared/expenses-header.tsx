@@ -16,11 +16,11 @@
 import type { ReactNode } from "react";
 import { Plus, ReceiptText, Wallet } from "lucide-react";
 
-import { BudgetSettings } from "./budget-settings";
-import { ManualExpensePanel } from "./manual-expense-panel";
-import { ReceiptUploader } from "./receipt-uploader";
+import { BudgetSettings } from "../budget-settings";
+import { ManualExpensePanel } from "../manual-expense-panel";
+import { ReceiptUploader } from "../receipt-uploader";
 
-import "./expenses.css";
+import "../expenses.css";
 
 export type HeaderKind = "expenses" | "receipts";
 
