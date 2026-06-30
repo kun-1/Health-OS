@@ -12,6 +12,11 @@ export type TrendMonth = {
   grams: Record<string, number>;
 };
 
+/** /api/nutrition/trend returns `{ months: TrendMonth[], tracked: ... }`,
+ *  not a bare array. We unwrap to `months` here so callers receive a flat
+ *  array of TrendMonth. */
+type TrendResponse = { months: TrendMonth[]; tracked: ReadonlyArray<string> };
+
 export type Source<T> =
   | { kind: "loading" }
   | { kind: "error"; message: string }
@@ -73,8 +78,8 @@ export function useHomeData(): HomeData {
         setScore({ kind: "error", message: err instanceof Error ? err.message : String(err) });
       });
 
-    fetchJson<TrendMonth[]>(`/api/nutrition/trend?months=6`, controller.signal)
-      .then((rows) => setTrend({ kind: "ok", data: rows }))
+    fetchJson<TrendResponse>(`/api/nutrition/trend?months=6`, controller.signal)
+      .then((res) => setTrend({ kind: "ok", data: res.months }))
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
         setTrend({ kind: "error", message: err instanceof Error ? err.message : String(err) });
