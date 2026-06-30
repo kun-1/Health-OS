@@ -1,8 +1,8 @@
 "use client";
 
-import type { LoadError } from "./expenses-client";
+import type { LoadError } from "../expenses-client";
 
-import "./expenses.css";
+import "../expenses.css";
 
 type Props = {
   error: string;

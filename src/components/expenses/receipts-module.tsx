@@ -38,9 +38,9 @@ import {
 } from "./expenses-client";
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
-import { ExpenseBanners } from "./expense-banners";
-import { ExpensesHeader } from "./expenses-header";
-import { useExpenseData } from "./use-expense-data";
+import { ExpenseBanners } from "./shared/expense-banners";
+import { ExpensesHeader } from "./shared/expenses-header";
+import { useExpenseData } from "./shared/use-expense-data";
 
 import "./expenses.css";
 
