@@ -304,24 +304,21 @@
 
 /* The highlight variant keeps the card background pure white per the
    2026-06-30 visual revision; visual emphasis comes from a tinted icon
-   tile and a green value, so Nutrition Score still reads as the primary
-   KPI without breaking the all-white card system. */
+   tile and a deep-green value so Nutrition Score still reads as the
+   primary KPI without breaking the all-white card system. We deliberately
+   leave title/footnote at their default colors so the title→footnote
+   hierarchy matches the other cards instead of collapsing into one tone. */
 .life-card[data-variant="highlight"] {
   background: #ffffff;
 }
 
-.life-card[data-variant="highlight"] .life-card__title,
-.life-card[data-variant="highlight"] .life-card__footnote {
-  color: #50585E;
-}
-
 .life-card[data-variant="highlight"] .life-card__icon {
-  background: rgba(155, 253, 68, 0.18);
-  color: #2f6f3a;
+  background: rgba(155, 253, 68, 0.32);
+  color: #1a4d22;
 }
 
 .life-card[data-variant="highlight"] .life-card__value {
-  color: #2f6f3a;
+  color: #1a4d22;
 }
 
 .life-card--clickable {
