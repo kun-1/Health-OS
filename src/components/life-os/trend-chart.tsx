@@ -134,6 +134,4 @@ export function TrendChart({ trend, spendByPeriod }: Props) {
 
 /** Filled area variant — currently unused, exported in case Phase D wants
  *  to swap the line for a soft area without rewriting the data shape. */
-export function _unused_fill_color(): string {
-  return LINE_FILL;
-}
+void LINE_FILL;

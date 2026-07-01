@@ -5,11 +5,12 @@ import Image from "next/image";
 
 import { formatMoney } from "@/lib/expenses/money";
 import { formatDateTime } from "@/lib/expenses/format";
-import type { ExpenseDuplicateHint, ExpenseTransaction, ExtractedExpenseItem, ExtractedExpenseReceipt } from "@/lib/expenses/types";
+import type { ExpenseDuplicateHint, ExpenseTransaction, ExtractedExpenseReceipt } from "@/lib/expenses/types";
 
 import { ReceiptForm } from "./receipt-form";
 import { categoryColor, categoryEmoji, categoryLabel } from "./category-colors";
 import { receiptImageUrl } from "./receipt-image-url";
+import { shortChineseDate, transactionToExtracted } from "./shared/task-helpers";
 // Wave 3 bulk: optional bulk-selection context. When wrapped in
 // <BulkSelectionProvider>, the card auto-wires a top-left checkbox + shift
 // range select. Outside the provider it behaves exactly as before.
@@ -34,41 +35,6 @@ type Props = {
   deleting?: boolean;
 };
 
-function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpenseReceipt {
-  return {
-    merchant_name: transaction.merchant_name,
-    purchased_at: transaction.purchased_at,
-    currency: transaction.currency,
-    subtotal_amount: transaction.subtotal_amount,
-    total_amount: transaction.total_amount,
-    tax_amount: transaction.tax_amount,
-    processing_fee: transaction.processing_fee,
-    delivery_fee: transaction.delivery_fee,
-    delivery_discount: transaction.delivery_discount,
-    discount_amount: transaction.discount_amount,
-    confidence: 1,
-    model_suggested_auto_post: true,
-    needs_review_reasons: [],
-    recognition_note: null,
-    user_note: transaction.notes,
-    items: transaction.items.map((item): ExtractedExpenseItem => ({
-      name_raw: item.name_raw,
-      name_zh: item.name_zh,
-      category_zh: item.category_zh,
-      category_raw: item.category_raw,
-      quantity: item.quantity,
-      spec_text: item.spec_text,
-      food_amount_value: item.food_amount_value,
-      food_amount_unit: item.food_amount_unit,
-      unit_price: item.unit_price,
-      discounted_unit_price: item.discounted_unit_price,
-      amount: item.amount,
-      confidence: item.confidence,
-      notes: item.notes
-    }))
-  };
-}
-
 function ReceiptImage({ imagePath, alt }: { imagePath: string | null | undefined; alt: string }) {
   const src = receiptImageUrl(imagePath);
   if (!src) return null;
@@ -80,20 +46,6 @@ function ReceiptImage({ imagePath, alt }: { imagePath: string | null | undefined
       </div>
     </div>
   );
-}
-
-// Compact "6月10日" style for the new collapsible row. Sourced from the
-// zh-CN locale with the same Asia/Shanghai TZ pinning as formatDate so the
-// server and client first render produce the same string.
-function shortChineseDate(value: string | null): string {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-    timeZone: "Asia/Shanghai"
-  }).format(d);
 }
 
 export function TransactionCard({ transaction, draft, onDraftChange, onSave, onDelete, saving = false, deleting = false }: Props) {

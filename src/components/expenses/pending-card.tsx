@@ -11,6 +11,7 @@ import { getBlockingFields } from "@/lib/expenses/validation";
 import { ReceiptForm } from "./receipt-form";
 import { categoryEmoji } from "./category-colors";
 import { receiptImageUrl } from "./receipt-image-url";
+import { shortChineseDate } from "./shared/task-helpers";
 // Wave 3 bulk: optional context lets the home page bulk-confirm receipts.
 import { useBulkSelectionOptional } from "./bulk-selection";
 
@@ -35,21 +36,6 @@ type Props = {
   // Disables the picker so the user can't double-submit.
   addingImages?: boolean;
 };
-
-// Compact "6月10日" style for the new collapsible row. Sourced from the
-// zh-CN locale with the same Asia/Shanghai TZ pinning as formatDate so the
-// server and client first render produce the same string (avoids hydration
-// warnings). Returns "日期待补" when the input is unparseable.
-function shortChineseDate(value: string | null): string {
-  if (!value) return "日期待补";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "日期待补";
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-    timeZone: "Asia/Shanghai"
-  }).format(d);
-}
 
 // Wave 3 multi-image: carousel. The active image changes via the prev/next
 // buttons OR via horizontal swipe (CSS scroll-snap on the underlying

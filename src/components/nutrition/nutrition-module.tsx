@@ -37,11 +37,9 @@ import {
 } from "recharts";
 
 import { fromCents, formatMoney } from "@/lib/expenses/money";
-import { getStoredBudgetCents, getStoredPrimaryCurrency } from "@/lib/expenses/settings";
 import type {
   ExpenseAnalytics,
-  ExpenseReceiptSummary,
-  ExtractedExpenseReceipt
+  ExpenseReceiptSummary
 } from "@/lib/expenses/types";
 import { clampScore, structureScore } from "@/lib/life-os/selectors";
 import { rainbowColors } from "@/lib/nutrition/color-signals";
@@ -54,19 +52,15 @@ import type {
 
 import {
   currentMonth,
-  formatUtcOffsetForClient,
   LoadingPanel as ExpenseLoadingPanel,
   uploadTimingSummary,
-  type LoadError as ExpenseLoadError,
   type ManualExpenseInput,
   type UploadFailure
 } from "@/components/expenses/shared/task-helpers";
 import { StructureTask as ExpenseStructureTask } from "@/components/expenses/structure-task";
-import { BudgetSettings } from "@/components/expenses/budget-settings";
-import { BulkSelectionProvider, type BulkItem } from "@/components/expenses/bulk-selection";
-import { BulkToolbar } from "@/components/expenses/bulk-toolbar";
-import { ManualExpensePanel } from "@/components/expenses/manual-expense-panel";
-import { ReceiptUploader } from "@/components/expenses/receipt-uploader";
+import { ExpensesHeader } from "@/components/expenses/shared/expenses-header";
+import { useExpenseData } from "@/components/expenses/shared/use-expense-data";
+import { SubTabNav, type SubTab } from "@/components/shared/sub-tab-nav";
 import type { TrendMonth } from "./nutrition-extras";
 
 import "@/components/expenses/expenses.css";
@@ -74,7 +68,7 @@ import "./nutrition.css";
 
 type NutritionTask = "today" | "structure" | "trend";
 
-const TASKS: Array<{ id: NutritionTask; label: string; icon: typeof CircleGauge }> = [
+const TASKS: ReadonlyArray<SubTab<NutritionTask>> = [
   { id: "today", label: "今日判断", icon: CircleGauge },
   { id: "structure", label: "结构诊断", icon: Leaf },
   { id: "trend", label: "趋势分析", icon: LineChartIcon }
@@ -198,38 +192,6 @@ function makeTrendRows(months: TrendMonth[]) {
   });
 }
 
-function SubTabNav({
-  activeTask,
-  onTaskChange
-}: {
-  activeTask: NutritionTask;
-  onTaskChange: (task: NutritionTask) => void;
-}) {
-  return (
-    <nav aria-label="营养子任务" className="exp-tasknav" role="tablist">
-      {TASKS.map((task) => {
-        const Icon = task.icon;
-        const isActive = task.id === activeTask;
-        return (
-          <button
-            aria-selected={isActive}
-            className="exp-tasknav__item"
-            data-active={isActive ? "true" : undefined}
-            id={`nut-task-tab-${task.id}`}
-            key={task.id}
-            onClick={() => onTaskChange(task.id)}
-            role="tab"
-            type="button"
-          >
-            <Icon aria-hidden />
-            {task.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 function LoadingState({ label }: { label: string }) {
   return (
     <div className="nut-state">
@@ -261,75 +223,10 @@ function MonthControl({ months, period, onChange }: { months: string[]; period: 
   );
 }
 
-function ExpenseWorkbar({
-  analytics,
-  month,
-  onManualOpen,
-  onUpload,
-  reload
-}: {
-  analytics: ExpenseAnalytics | null;
-  month: string;
-  onManualOpen: () => void;
-  onUpload: (formData: FormData) => Promise<void>;
-  reload: () => Promise<void>;
-}) {
-  return (
-    <section className="nut-panel nut-panel--expense-actions">
-      <div className="nut-section-head nut-section-head--compact">
-        <div>
-          <p className="nut-eyebrow">支出入口</p>
-          <h2>记录、预算和导出</h2>
-        </div>
-        <BudgetSettings month={month} onSaved={() => void reload()} />
-      </div>
-      <div className="nut-expense-workbar">
-        <ReceiptUploader
-          compact
-          hint="最多 2 张，失败会进入重试队列"
-          maxBytesPerFile={8 * 1024 * 1024}
-          maxFiles={2}
-          onUpload={onUpload}
-        />
-        <button className="exp-workbar__button" onClick={onManualOpen} type="button">
-          记一笔
-        </button>
-        <a className="exp-workbar__button" href={`/api/expenses/export?format=csv&month=${encodeURIComponent(month)}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai")}`}>
-          导出 CSV
-        </a>
-      </div>
-      {analytics ? (
-        <div className="nut-expense-stats">
-          <div>
-            <span>本月已花</span>
-            <strong>{formatMoney(fromCents(analytics.budget_progress.spent), analytics.primary_currency)}</strong>
-          </div>
-          <div>
-            <span>剩余预算</span>
-            <strong>{formatMoney(fromCents(analytics.budget_progress.remaining), analytics.budget_currency)}</strong>
-          </div>
-          <div>
-            <span>待确认票据</span>
-            <strong>{analytics.pending_receipts.length}</strong>
-          </div>
-        </div>
-      ) : (
-        <div className="nut-expense-stats">
-          <div><span>支出数据</span><strong>加载中</strong></div>
-        </div>
-      )}
-    </section>
-  );
-}
-
 function TodayView({
   expenseAnalytics,
-  expenseMonth,
   months,
-  onManualOpen,
   onPeriodChange,
-  onUploadExpense,
-  reloadExpenses,
   period,
   report
 }: {
@@ -338,10 +235,6 @@ function TodayView({
   period: string;
   onPeriodChange: (period: string) => void;
   expenseAnalytics: ExpenseAnalytics | null;
-  expenseMonth: string;
-  onManualOpen: () => void;
-  onUploadExpense: (formData: FormData) => Promise<void>;
-  reloadExpenses: () => Promise<void>;
 }) {
   const score = structureScore(report);
   const skipCount = totalSkips(report.skipBreakdown);
@@ -381,13 +274,30 @@ function TodayView({
         </div>
       </section>
 
-      <ExpenseWorkbar
-        analytics={expenseAnalytics}
-        month={expenseMonth}
-        onManualOpen={onManualOpen}
-        onUpload={onUploadExpense}
-        reload={reloadExpenses}
-      />
+      {expenseAnalytics ? (
+        <section className="nut-panel nut-panel--expense-stats">
+          <div className="nut-expense-stats">
+            <div>
+              <span>本月已花</span>
+              <strong>{formatMoney(fromCents(expenseAnalytics.budget_progress.spent), expenseAnalytics.primary_currency)}</strong>
+            </div>
+            <div>
+              <span>剩余预算</span>
+              <strong>{formatMoney(fromCents(expenseAnalytics.budget_progress.remaining), expenseAnalytics.budget_currency)}</strong>
+            </div>
+            <div>
+              <span>待确认票据</span>
+              <strong>{expenseAnalytics.pending_receipts.length}</strong>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="nut-panel nut-panel--expense-stats">
+          <div className="nut-expense-stats">
+            <div><span>支出数据</span><strong>加载中</strong></div>
+          </div>
+        </section>
+      )}
 
       <section className="nut-panel nut-panel--wide">
         <div className="nut-section-head nut-section-head--compact">
@@ -683,53 +593,11 @@ export function NutritionModule() {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [trend, setTrend] = useState<TrendState>({ kind: "loading" });
   const [expenseMonth] = useState(currentMonth());
-  const [expenseAnalytics, setExpenseAnalytics] = useState<ExpenseAnalytics | null>(null);
-  const [expenseLoadError, setExpenseLoadError] = useState<ExpenseLoadError | null>(null);
+  const { analytics: expenseAnalytics, loadError: expenseLoadError, reload: loadExpenses } = useExpenseData(expenseMonth);
   const [expenseError, setExpenseError] = useState("");
   const [expenseMessage, setExpenseMessage] = useState("");
-  const [pendingDrafts, setPendingDrafts] = useState<Record<number, ExtractedExpenseReceipt>>({});
   const [manualOpen, setManualOpen] = useState(false);
   const [manualBusy, setManualBusy] = useState(false);
-
-  const orderedExpenseItems = useMemo<BulkItem[]>(() => {
-    const receipts = (expenseAnalytics?.pending_receipts ?? [])
-      .filter((r) => r.status === "pending_review")
-      .map((r) => ({ id: r.id, kind: "receipt" as const }));
-    const transactions = (expenseAnalytics?.recent_transactions ?? []).map((t) => ({
-      id: t.id,
-      kind: "transaction" as const
-    }));
-    return [...receipts, ...transactions];
-  }, [expenseAnalytics]);
-
-  const loadExpenses = useCallback(async () => {
-    setExpenseLoadError(null);
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || `UTC${formatUtcOffsetForClient()}`;
-    const query = new URLSearchParams({
-      month: expenseMonth,
-      tz,
-      budget: String(getStoredBudgetCents()),
-      primaryCurrency: getStoredPrimaryCurrency()
-    });
-    let response: Response;
-    try {
-      response = await fetch(`/api/expenses?${query.toString()}`);
-    } catch (err) {
-      setExpenseLoadError({ kind: "network", message: err instanceof Error ? err.message : "网络请求失败" });
-      return;
-    }
-    if (!response.ok) {
-      setExpenseLoadError({ kind: response.status >= 500 ? "server" : "client", message: `服务器返回 ${response.status}` });
-      return;
-    }
-    try {
-      const data = (await response.json()) as ExpenseAnalytics;
-      setExpenseAnalytics(data);
-      setPendingDrafts(Object.fromEntries(data.pending_receipts.map((r) => [r.id, r.extracted])));
-    } catch (err) {
-      setExpenseLoadError({ kind: "client", message: err instanceof Error ? err.message : "解析响应失败" });
-    }
-  }, [expenseMonth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -768,19 +636,6 @@ export function NutritionModule() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    loadExpenses().catch((err) => {
-      setExpenseLoadError({ kind: "network", message: err instanceof Error ? err.message : "支出数据加载失败" });
-    });
-  }, [loadExpenses]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      loadExpenses().catch(() => undefined);
-    }, 90_000);
-    return () => window.clearInterval(timer);
-  }, [loadExpenses]);
 
   const handleTaskChange = useCallback((task: NutritionTask) => {
     if (task === activeTask) return;
@@ -840,8 +695,28 @@ export function NutritionModule() {
 
   return (
     <div className="life-os-nutrition">
-      <SubTabNav activeTask={activeTask} onTaskChange={handleTaskChange} />
-      <ManualExpensePanel busy={manualBusy} onClose={() => setManualOpen(false)} onSave={createManualExpense} open={manualOpen} />
+      <ExpensesHeader
+        kind="receipts"
+        month={expenseMonth}
+        uploader={{ onUpload: uploadReceipt }}
+        manualExpense={{
+          open: manualOpen,
+          busy: manualBusy,
+          onOpen: () => setManualOpen(true),
+          onClose: () => setManualOpen(false),
+          onSave: createManualExpense
+        }}
+        showBudgetSettings
+        csvExport={{ month: expenseMonth, tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai" }}
+        onReload={loadExpenses}
+      />
+      <SubTabNav
+        activeTab={activeTask}
+        ariaLabel="营养子任务"
+        idPrefix="nut-task-tab"
+        onTabChange={handleTaskChange}
+        tabs={TASKS}
+      />
       {expenseError ? <div className="exp-banner exp-banner--error">{expenseError}</div> : null}
       {expenseLoadError ? (
         <div className="exp-banner exp-banner--error" role="alert">
@@ -861,27 +736,20 @@ export function NutritionModule() {
       ) : state.kind === "error" ? (
         <ErrorState message={state.message} />
       ) : (
-        <BulkSelectionProvider clearKey={expenseMonth} items={orderedExpenseItems}>
-          {expenseAnalytics ? (
-            <BulkToolbar mode="main" onError={setExpenseError} onMessage={setExpenseMessage} receiptDrafts={pendingDrafts} reload={() => loadExpenses()} />
-          ) : null}
+        <>
           {activeTask === "today" ? (
             <TodayView
               expenseAnalytics={expenseAnalytics}
-              expenseMonth={expenseMonth}
               months={months}
-              onManualOpen={() => setManualOpen(true)}
               onPeriodChange={setPeriod}
-              onUploadExpense={uploadReceipt}
               period={period}
-              reloadExpenses={loadExpenses}
               report={state.report}
             />
           ) : null}
           {activeTask === "structure" ? <StructureView expenseAnalytics={expenseAnalytics} report={state.report} /> : null}
           {activeTask === "trend" ? <TrendView report={state.report} trend={trend} /> : null}
           {activeTask === "structure" ? <CategoryDrilldown report={state.report} /> : null}
-        </BulkSelectionProvider>
+        </>
       )}
     </div>
   );

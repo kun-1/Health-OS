@@ -26,47 +26,16 @@ import {
 import { ExpenseBanners } from "./shared/expense-banners";
 import { ExpensesHeader } from "./shared/expenses-header";
 import { useExpenseData } from "./shared/use-expense-data";
+import { SubTabNav, type SubTab } from "@/components/shared/sub-tab-nav";
 
 import "./expenses.css";
 
 type ExpenseSubTask = "budget" | "structure";
 
-const SUBTABS: Array<{ id: ExpenseSubTask; label: string; icon: typeof LineChart }> = [
+const SUBTABS: ReadonlyArray<SubTab<ExpenseSubTask>> = [
   { id: "budget", label: "预算", icon: LineChart },
   { id: "structure", label: "分类", icon: CircleDollarSign }
 ];
-
-function SubTabNav({
-  activeTask,
-  onTaskChange
-}: {
-  activeTask: ExpenseSubTask;
-  onTaskChange: (task: ExpenseSubTask) => void;
-}) {
-  return (
-    <nav className="exp-tasknav" aria-label="支出了任务" role="tablist">
-      {SUBTABS.map((task) => {
-        const Icon = task.icon;
-        return (
-          <button
-            className="exp-tasknav__item"
-            data-active={task.id === activeTask ? "true" : undefined}
-            id={`exp-tab-${task.id}`}
-            key={task.id}
-            onClick={() => onTaskChange(task.id)}
-            type="button"
-            role="tab"
-            aria-selected={task.id === activeTask}
-            aria-controls={`exp-tabpanel-${task.id}`}
-          >
-            <Icon aria-hidden />
-            {task.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
 
 export function ExpensesModule() {
   const [activeTask, setActiveTask] = useState<ExpenseSubTask>("budget");
@@ -79,7 +48,14 @@ export function ExpensesModule() {
   return (
     <div className="exp-analytics">
       <ExpensesHeader kind="expenses" month={month} onReload={reload} showBudgetSettings={false} />
-      <SubTabNav activeTask={activeTask} onTaskChange={setActiveTask} />
+      <SubTabNav
+        activeTab={activeTask}
+        ariaLabel="支出了任务"
+        idPrefix="exp-tab"
+        onTabChange={setActiveTask}
+        panelIdPrefix="exp-tabpanel"
+        tabs={SUBTABS}
+      />
       <ExpenseBanners error="" loadError={loadError} message={message} />
       {analytics ? (
         <div role="tabpanel" id={`exp-tabpanel-${activeTask}`} aria-labelledby={`exp-tab-${activeTask}`}>
