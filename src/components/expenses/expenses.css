@@ -2409,6 +2409,72 @@
   opacity: 0.6;
 }
 
+.exp-recurring-row--deducted {
+  opacity: 0.6;
+}
+
+.exp-recurring-row--deducted .exp-job__status-tag--done {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--life-muted);
+}
+
+.exp-recurring-hint {
+  align-items: center;
+  background: rgba(155, 234, 61, 0.14);
+  border: 1px solid rgba(155, 234, 61, 0.3);
+  border-radius: var(--life-radius-lg);
+  color: #1a4d22;
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 14px 18px;
+}
+
+.exp-recurring-hint strong {
+  font-family: var(--life-font-num);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.exp-job__emoji {
+  align-items: center;
+  background: var(--life-card-soft);
+  border-radius: 50%;
+  display: inline-flex;
+  font-size: 0.95rem;
+  height: 26px;
+  justify-content: center;
+  margin-right: 8px;
+  width: 26px;
+}
+
+.exp-job__status {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.exp-job__status-tag {
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+.exp-job__status-tag--upcoming {
+  background: rgba(255, 226, 138, 0.22);
+  border: 1px solid rgba(245, 184, 51, 0.35);
+  color: #b45309;
+}
+
+.exp-job__status-tag--done {
+  background: rgba(155, 234, 61, 0.18);
+  border: 1px solid rgba(155, 234, 61, 0.35);
+  color: #1a4d22;
+}
+
 /* ---------- FAB (mobile-only 记一笔) ---------- */
 .exp-fab {
   display: none;
@@ -2534,6 +2600,44 @@
 }
 .exp-card-list > .exp-card:first-child { border-top: 0; }
 
+/* ---------- Quick category filters ---------- */
+.exp-quick-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.exp-quick-filter {
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: 999px;
+  color: var(--life-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.exp-quick-filter:hover {
+  background: var(--life-card-soft);
+  color: var(--life-text);
+}
+
+.exp-quick-filter--active {
+  background: rgba(155, 234, 61, 0.18);
+  border-color: rgba(155, 234, 61, 0.5);
+  color: #1a4d22;
+}
+
+.exp-quick-filter__hint {
+  color: var(--life-subtle);
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
 /* ---------- Compact rows (Apple Card style) ---------- */
 .exp-card__compact-row {
   display: flex;
@@ -2559,12 +2663,22 @@
 .exp-card__compact-emoji {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background: var(--life-shell);
+  border-radius: 50%;
+  background: var(--life-card-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  flex-shrink: 0;
+}
+
+.exp-card__compact-badge {
+  border: 1px solid var(--life-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 .exp-card__compact-main {
@@ -3215,13 +3329,16 @@
 .exp-side-stats span {
   color: var(--life-muted);
   font-size: 0.84rem;
+  font-weight: 600;
 }
 
 .exp-side-stats strong {
   color: var(--life-text);
   font-family: var(--life-font-num);
+  font-size: 1.05rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 800;
+  text-align: right;
 }
 
 .exp-bars {
@@ -3316,12 +3433,104 @@
 
 .exp-real-card-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .exp-real-card-grid--date {
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
+/* ---------- Receipt grid card ---------- */
+.exp-card--grid {
+  padding: 0;
+  overflow: hidden;
+}
+
+.exp-receipt-grid-card {
+  display: grid;
+  grid-template-rows: 160px auto auto;
+  cursor: pointer;
+}
+
+.exp-receipt-grid-card__thumb {
+  background: var(--life-card-soft);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.exp-receipt-grid-card__img {
+  height: 100%;
+  object-fit: cover;
+  transition: transform 220ms ease;
+  width: 100%;
+}
+
+.exp-receipt-grid-card:hover .exp-receipt-grid-card__img {
+  transform: scale(1.06);
+}
+
+.exp-receipt-grid-card__placeholder {
+  color: var(--life-muted);
+  font-size: 3rem;
+}
+
+.exp-receipt-grid-card__status {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
+.exp-receipt-grid-card__status--pending {
+  background: rgba(255, 226, 138, 0.9);
+  color: #b45309;
+}
+
+.exp-receipt-grid-card__status--linked {
+  background: rgba(155, 234, 61, 0.9);
+  color: #1a4d22;
+}
+
+.exp-receipt-grid-card__body {
+  display: grid;
+  gap: 6px;
+  padding: 16px 16px 0;
+}
+
+.exp-receipt-grid-card__name {
+  color: var(--life-text);
+  font-size: 1rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exp-receipt-grid-card__meta {
+  color: var(--life-muted);
+  font-size: 0.78rem;
+}
+
+.exp-receipt-grid-card__amount {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.exp-receipt-grid-card__actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 14px 16px 16px;
 }
 
 .exp-date-groups {

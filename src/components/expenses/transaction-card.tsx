@@ -217,13 +217,13 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
             const accentColor = firstItem?.category_zh ? categoryColor(firstItem.category_zh) : "var(--exp-text-subtle)";
             const primaryEmoji = firstItem?.category_zh ? categoryEmoji(firstItem.category_zh) : "📦";
             const primaryCategoryLabel = firstItem?.category_zh ? categoryLabel(firstItem.category_zh) : "未分类";
-            const compactSubText = `${shortChineseDate(transaction.purchased_at)} · ${primaryCategoryLabel}${
+            const compactSubText = `${shortChineseDate(transaction.purchased_at)}${
               transaction.duplicate_hint ? " · 疑似重复" : ""
             }`;
             return (
               <>
                 <div className="exp-card__accent-bar" style={{ background: accentColor }} />
-                <span aria-hidden className="exp-card__compact-emoji">
+                <span aria-hidden className="exp-card__compact-emoji" style={{ background: `${accentColor}20`, color: accentColor }}>
                   {primaryEmoji}
                 </span>
                 <div className="exp-card__compact-main">
@@ -232,6 +232,9 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
                     {compactSubText}
                   </div>
                 </div>
+                <span className="exp-card__compact-badge" style={{ borderColor: `${accentColor}40`, background: `${accentColor}12`, color: accentColor }}>
+                  {primaryCategoryLabel}
+                </span>
               </>
             );
           })()}

@@ -74,7 +74,7 @@ export function ReceiptsTask({
             <h1>待确认票据 <span>({analytics.pending_receipts.length})</span></h1>
           </div>
         </div>
-        <div className="exp-real-card-list">
+        <div className="exp-real-card-grid">
           {analytics.pending_receipts.length === 0 ? (
             <div className="exp-empty exp-card">没有待确认票据</div>
           ) : (
@@ -82,6 +82,7 @@ export function ReceiptsTask({
               <PendingReceiptCard
                 draft={pendingDrafts[receipt.id] ?? receipt.extracted}
                 key={receipt.id}
+                layout="grid"
                 onCancel={() => setPendingDrafts((current) => ({ ...current, [receipt.id]: receipt.extracted }))}
                 onDelete={() => void deletePending(receipt)}
                 onDraftChange={(next) => setPendingDrafts((current) => ({ ...current, [receipt.id]: next }))}

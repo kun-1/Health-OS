@@ -35,6 +35,8 @@ type Props = {
   // Wave 3 multi-image: true while the add-more endpoint is in flight.
   // Disables the picker so the user can't double-submit.
   addingImages?: boolean;
+  /** Render as a grid card instead of a list row. */
+  layout?: "row" | "grid";
 };
 
 // Wave 3 multi-image: carousel. The active image changes via the prev/next
@@ -281,7 +283,8 @@ export function PendingReceiptCard({
   onAddMore,
   confirming = false,
   deleting = false,
-  addingImages = false
+  addingImages = false,
+  layout = "row"
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   // Wave 3 polish (M5): keep the review-reason tag list collapse state across
@@ -351,11 +354,115 @@ export function PendingReceiptCard({
     reasons.length > 0 ? ` · ⚠️ ${reasons.length} 项待核对` : ""
   }${receipt.duplicate_hint ? ` · 疑似重复` : ""}${isMultiImage ? ` · ${imageCount} 张截图` : ""}`;
 
+  const thumbSrc = receiptImageUrl(receipt.thumbnail_path ?? receipt.image_path);
+
   return (
     <article
-      className={`exp-card ${receipt.duplicate_hint ? "exp-card--duplicate" : ""} ${expanded ? "exp-card--expanded" : ""} ${expanded ? "" : "exp-card--clickable"} ${selected ? "exp-card--selected" : ""}`}
+      className={`exp-card ${receipt.duplicate_hint ? "exp-card--duplicate" : ""} ${expanded ? "exp-card--expanded" : ""} ${expanded ? "" : "exp-card--clickable"} ${selected ? "exp-card--selected" : ""} ${layout === "grid" ? "exp-card--grid" : ""}`}
     >
-      {!expanded ? (
+      {!expanded && layout === "grid" ? (
+        <div
+          className="exp-receipt-grid-card"
+          onClick={(e) => {
+            if (selectable && e.shiftKey && bulk) {
+              e.preventDefault();
+              bulk.handleClick(receipt.id, true);
+              return;
+            }
+            setExpanded(true);
+          }}
+          role="button"
+        >
+          {selectable ? (
+            <input
+              aria-label="多选此张票据"
+              checked={selected}
+              className="exp-card__select-checkbox"
+              onChange={() => undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!bulk) return;
+                bulk.handleClick(receipt.id, e.shiftKey);
+              }}
+              type="checkbox"
+            />
+          ) : null}
+          <div className="exp-receipt-grid-card__thumb">
+            {thumbSrc ? (
+              <Image alt={`票据 #${receipt.id}`} className="exp-receipt-grid-card__img" height={220} loading="lazy" src={thumbSrc} unoptimized width={320} />
+            ) : (
+              <div className="exp-receipt-grid-card__placeholder">
+                <span aria-hidden>🧾</span>
+              </div>
+            )}
+            <span className={`exp-receipt-grid-card__status ${ready ? "exp-receipt-grid-card__status--pending" : "exp-receipt-grid-card__status--linked"}`}>
+              {ready ? "待确认" : "已关联"}
+            </span>
+          </div>
+          <div className="exp-receipt-grid-card__body">
+            <div className="exp-receipt-grid-card__name">{merchant}</div>
+            <div className="exp-receipt-grid-card__meta">{shortChineseDate(draft.purchased_at)} · {itemCount} 项</div>
+            <div className="exp-receipt-grid-card__amount">{total}</div>
+          </div>
+          <div className="exp-receipt-grid-card__actions">
+            {ready ? (
+              <button
+                className="exp-btn exp-btn--primary exp-btn--sm"
+                disabled={confirmBlockers.length > 0 || confirming}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSave();
+                }}
+                title={confirming ? "处理中..." : confirmTitle}
+                type="button"
+              >
+                {confirming ? (
+                  <>
+                    <span className="exp-spinner" aria-hidden /> 处理中...
+                  </>
+                ) : (
+                  "确认入账"
+                )}
+              </button>
+            ) : (
+              <button
+                className="exp-btn exp-btn--secondary exp-btn--sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(true);
+                }}
+                type="button"
+              >
+                查看
+              </button>
+            )}
+            <button
+              aria-label="展开编辑"
+              className="exp-btn exp-btn--ghost exp-btn--sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(true);
+              }}
+              type="button"
+            >
+              编辑
+            </button>
+            <button
+              aria-label="删除票据"
+              className="exp-btn exp-btn--ghost exp-btn--sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              type="button"
+            >
+              归档
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!expanded && layout === "row" ? (
         <div
           className="exp-card__compact-row"
           onClick={(e) => {
@@ -385,7 +492,6 @@ export function PendingReceiptCard({
           ) : null}
           <div className="exp-card__accent-bar" style={{ background: "var(--exp-warn)" }} />
           {(() => {
-            const thumbSrc = receiptImageUrl(receipt.thumbnail_path ?? receipt.image_path);
             const primaryEmoji =
               draft.items[0]?.category_zh != null ? categoryEmoji(draft.items[0].category_zh) : "📦";
             return thumbSrc ? (

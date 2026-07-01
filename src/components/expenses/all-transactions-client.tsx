@@ -18,6 +18,16 @@ import "./expenses.css";
 
 const PAGE_SIZE = 50;
 
+type QuickFilter = { id: string; label: string; match: (category: string) => boolean };
+
+const QUICK_FILTERS: QuickFilter[] = [
+  { id: "all", label: "全部", match: () => true },
+  { id: "food", label: "饮食", match: (c) => ["食物", "外食", "饮料/咖啡"].includes(c) },
+  { id: "transport", label: "出行", match: (c) => c === "交通" },
+  { id: "daily", label: "日用", match: (c) => ["日用品", "清洁用品", "个人护理"].includes(c) },
+  { id: "other", label: "其他", match: (c) => !["食物", "外食", "饮料/咖啡", "交通", "日用品", "清洁用品", "个人护理"].includes(c) }
+];
+
 type FullListTransaction = ExpenseTransaction & {
   receipt_image_path?: string | null;
   receipt_thumbnail_path?: string | null;
@@ -44,11 +54,19 @@ export function AllTransactionsClient() {
     message: string;
     run: () => Promise<void>;
   } | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const orderedItems = useMemo<BulkItem[]>(
     () => rows.map((t) => ({ id: t.id, kind: "transaction" as const })),
     [rows]
   );
+
+  const filteredRows = useMemo(() => {
+    const filter = QUICK_FILTERS.find((f) => f.id === activeFilter) ?? QUICK_FILTERS[0];
+    return rows.filter((t) => filter.match(t.items[0]?.category_zh ?? "其他"));
+  }, [rows, activeFilter]);
+
+  const activeFilterLabel = QUICK_FILTERS.find((f) => f.id === activeFilter)?.label ?? "全部";
 
   const load = useCallback(
     async (nextOffset: number) => {
@@ -181,6 +199,24 @@ export function AllTransactionsClient() {
 
       <ExpenseBanners error={error ?? ""} loadError={null} message={message} onRetry={() => void load(offset)} />
 
+      <div className="exp-quick-filters" role="tablist" aria-label="类目快捷过滤">
+        {QUICK_FILTERS.map((filter) => (
+          <button
+            aria-selected={activeFilter === filter.id}
+            className={`exp-quick-filter ${activeFilter === filter.id ? "exp-quick-filter--active" : ""}`}
+            key={filter.id}
+            onClick={() => setActiveFilter(filter.id)}
+            role="tab"
+            type="button"
+          >
+            {filter.label}
+          </button>
+        ))}
+        <span className="exp-quick-filter__hint">
+          当前：{activeFilterLabel} · {filteredRows.length} 笔
+        </span>
+      </div>
+
       <div
         className="exp-card__row"
         style={{
@@ -226,15 +262,15 @@ export function AllTransactionsClient() {
           reload={() => load(offset)}
         />
         <div className="exp-col">
-          {rows.length === 0 && !loading ? (
+          {filteredRows.length === 0 && !loading ? (
             <div className="exp-empty exp-card">
               <div className="exp-empty__icon" aria-hidden>
                 📒
               </div>
-              <div>该月份还没有入账消费</div>
+              <div>该过滤条件下没有交易</div>
             </div>
           ) : (
-            rows.map((transaction) => (
+            filteredRows.map((transaction) => (
               <TransactionCard
                 draft={drafts[transaction.id] ?? transactionToExtracted(transaction)}
                 key={transaction.id}
