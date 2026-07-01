@@ -81,12 +81,12 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
         </div>
       </section>
 
-      <TransactionBand transactions={analytics.recent_transactions.slice(0, 5)} title="最近影响预算的交易" />
+      <TransactionBand month={analytics.month} transactions={analytics.recent_transactions.slice(0, 5)} title="最近影响预算的交易" />
     </div>
   );
 }
 
-function TransactionBand({ title, transactions }: { title: string; transactions: ExpenseAnalytics["recent_transactions"] }) {
+function TransactionBand({ title, transactions, month }: { title: string; transactions: ExpenseAnalytics["recent_transactions"]; month: string }) {
   return (
     <section className="exp-panel exp-panel--wide">
       <div className="exp-section-head exp-section-head--compact">
@@ -94,7 +94,7 @@ function TransactionBand({ title, transactions }: { title: string; transactions:
           <p className="exp-eyebrow">流水</p>
           <h2>{title}</h2>
         </div>
-        <a className="exp-filter" href="/expenses/transactions">查看全部</a>
+        <a className="exp-filter" href={`/expenses/transactions?month=${encodeURIComponent(month)}`}>查看全部</a>
       </div>
       <div className="exp-transaction-list">
         {transactions.length === 0 ? (

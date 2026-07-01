@@ -91,7 +91,7 @@ export function LifeHome() {
               footnote="基于月度购买 / 票据数据反映饮食结构倾向，不等于每日摄入"
               icon={<Salad strokeWidth={2} />}
               variant="highlight"
-              href="/nutrition"
+              href={`/nutrition?month=${encodeURIComponent(month)}`}
             />
             <MetricCard
               title="今日支出"
@@ -109,7 +109,7 @@ export function LifeHome() {
                   : undefined
               }
               icon={<CircleDollarSign strokeWidth={2} />}
-              href="/expenses/analytics"
+              href={`/expenses/analytics?month=${encodeURIComponent(month)}`}
             />
             <MetricCard
               title="食物支出占比"
@@ -144,7 +144,7 @@ export function LifeHome() {
                   : "有重量条目 ÷ 总食物条目"
               }
               icon={<Database strokeWidth={2} />}
-              href="/nutrition"
+              href={`/nutrition?month=${encodeURIComponent(month)}`}
             />
           </section>
 

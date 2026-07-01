@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Activity, LayoutDashboard, Wallet } from "lucide-react";
+
+import { MONTH_PATTERN } from "@/components/shared/use-selected-month";
 
 import "./life-os.css";
 
@@ -46,12 +48,20 @@ const PRIMARY: NavItem[] = [
 // and a link going home with isActive=false would never highlight.
 // Re-add when /settings has a real page.
 
+function hrefWithMonth(href: string, month: string | null): string {
+  if (!month || !MONTH_PATTERN.test(month)) return href;
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}month=${encodeURIComponent(month)}`;
+}
+
 export function LifeSidebar() {
   const pathname = usePathname() ?? "/";
+  const searchParams = useSearchParams();
+  const month = searchParams?.get("month") ?? null;
 
   return (
     <aside className="life-sidebar" aria-label="主导航">
-      <Link href="/" className="life-sidebar__brand" style={{ textDecoration: "none" }}>
+      <Link href={hrefWithMonth("/", month)} className="life-sidebar__brand" style={{ textDecoration: "none" }}>
         <span className="life-sidebar__logo" aria-hidden>
           <Activity strokeWidth={2.5} style={{ width: 20, height: 20 }} />
         </span>
@@ -69,7 +79,7 @@ export function LifeSidebar() {
           return (
             <Link
               key={`${item.href}-${item.label}`}
-              href={item.href}
+              href={hrefWithMonth(item.href, month)}
               className="life-sidebar__link"
               data-active={active ? "true" : "false"}
             >

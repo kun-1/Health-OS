@@ -2,10 +2,12 @@
 
 /**
  * MonthSwitcher — prev / current / next buttons that update the URL's
- * `?month=YYYY-MM` query param. The page's data layer reads the same
- * param (via useSearchParams) so the entire dashboard re-fetches when
- * the month changes. No internal state — the URL is the source of
- * truth, which means back/forward and shared URLs work naturally.
+ * `?month=YYYY-MM` query param and persist the choice to localStorage.
+ *
+ * The page's data layer reads the same param (via useSearchParams), so
+ * the entire dashboard re-fetches when the month changes. When the user
+ * navigates to a page without a month param, useSelectedMonth falls back
+ * to the stored value, keeping the selected month global across pages.
  *
  * Range is unbounded but practical usage is the past 12 months +
  * current month. Pushing past month 12 lands on year -1 (e.g. 2025-07).
@@ -13,6 +15,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import { SELECTED_MONTH_STORAGE_KEY } from "./use-selected-month";
 
 import "./month-switcher.css";
 
@@ -51,6 +55,11 @@ export function MonthSwitcher({ month }: Props) {
   const searchParams = useSearchParams();
 
   function navigate(next: string) {
+    try {
+      window.localStorage.setItem(SELECTED_MONTH_STORAGE_KEY, next);
+    } catch {
+      // ignore storage errors
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("month", next);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
