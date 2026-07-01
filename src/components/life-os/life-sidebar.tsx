@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, LayoutDashboard, ReceiptText, Wallet } from "lucide-react";
+import { Activity, LayoutDashboard, Wallet } from "lucide-react";
 
 import "./life-os.css";
 
@@ -31,15 +31,10 @@ const PRIMARY: NavItem[] = [
     label: "支出",
     href: "/expenses",
     icon: Wallet,
-    // /expenses highlights only the bare path; sub-routes like
-    // /expenses/receipts (票据) or /expenses/all own their own nav state.
-    isActive: (pathname) => pathname === "/expenses"
-  },
-  {
-    label: "票据",
-    href: "/expenses/receipts",
-    icon: ReceiptText,
-    isActive: (pathname) => pathname === "/expenses/receipts"
+    // Highlight the whole expenses section, including sub-routes like
+    // /expenses/analytics, /expenses/transactions, /expenses/receipts and
+    // /expenses/recurring.
+    isActive: (pathname) => pathname === "/expenses" || pathname.startsWith("/expenses/")
   }
 ];
 

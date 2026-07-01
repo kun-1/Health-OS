@@ -1,18 +1,7 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { AllTransactionsClient } from "@/components/expenses/all-transactions-client";
-import { LifeShell } from "@/components/life-os/life-shell";
-
-// Force dynamic so useSearchParams (inside MonthSwitcher / useSelectedMonth)
-// doesn't trigger the static-prerender bailout.
 export const dynamic = "force-dynamic";
 
-export default function AllExpensesPage() {
-  return (
-    <LifeShell>
-      <Suspense fallback={null}>
-        <AllTransactionsClient />
-      </Suspense>
-    </LifeShell>
-  );
+export default function ExpensesAllPage() {
+  redirect("/expenses/transactions");
 }

@@ -12,8 +12,8 @@ type Props = {
 };
 
 /**
- * Shared three-state banner row used by both /expenses and
- * /expenses/receipts. Renders nothing when there's nothing to show.
+ * Shared three-state banner row used by the expense sub-pages.
+ * Renders nothing when there's nothing to show.
  */
 export function ExpenseBanners({ error, loadError, message, onRetry }: Props) {
   return (

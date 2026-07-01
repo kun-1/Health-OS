@@ -109,7 +109,7 @@ export function LifeHome() {
                   : undefined
               }
               icon={<CircleDollarSign strokeWidth={2} />}
-              href="/expenses"
+              href="/expenses/analytics"
             />
             <MetricCard
               title="食物支出占比"

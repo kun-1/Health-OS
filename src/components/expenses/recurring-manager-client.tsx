@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Repeat } from "lucide-react";
 
 import { formatMoney, fromCents } from "@/lib/expenses/money";
 import type { RecurringExpense, RecurringFrequency } from "@/lib/expenses/types";
 
 import { categoryEmoji, categoryLabel, categoryNames } from "./category-colors";
 import { ConfirmDialog } from "./confirm-dialog";
-import { ThemeToggle, getInitialTheme, type Theme } from "./theme-toggle";
 import "./expenses.css";
 
 type Rule = RecurringExpense;
@@ -148,16 +148,11 @@ export function RecurringManagerClient() {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [runningId, setRunningId] = useState<number | null>(null);
-  const [theme, setTheme] = useState<Theme>("light");
   // Replace window.confirm with the styled ConfirmDialog.
   const [pendingDelete, setPendingDelete] = useState<{
     message: string;
     run: () => Promise<void>;
   } | null>(null);
-
-  useEffect(() => {
-    setTheme(getInitialTheme());
-  }, []);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -311,25 +306,18 @@ export function RecurringManagerClient() {
   }
 
   return (
-    <div className="exp" data-expenses-theme={theme}>
-      <header className="exp-header">
-        <div className="exp-header__brand">
-          <span className="exp-header__mark" aria-hidden>
-            <svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-3 2-3-2-3 2-3-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-              <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-            </svg>
-          </span>
+    <div className="exp-analytics">
+      <header className="exp-shell__header">
+        <div className="exp-shell__brand">
+          <div className="exp-shell__logo">
+            <Repeat aria-hidden />
+          </div>
           <div>
-            <h1 className="exp-header__title">定期 / 订阅</h1>
-            <p className="exp-header__subtitle">每月 / 每周 / 每天自动入账的规则</p>
+            <div className="exp-shell__name">定期</div>
+            <div className="exp-shell__crumb">支出 / 周期与订阅规则</div>
           </div>
         </div>
-        <div className="exp-header__right">
-          <a className="exp-btn exp-btn--ghost exp-btn--sm" href="/expenses">
-            ← 返回概览
-          </a>
-          <ThemeToggle onChange={setTheme} theme={theme} />
+        <div className="exp-shell__actions">
           <button
             className="exp-btn exp-btn--primary exp-btn--sm"
             onClick={startCreate}

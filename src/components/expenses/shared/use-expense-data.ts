@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Shared data loader for the /expenses and /expenses/receipts modules.
+ * Shared data loader for the /expenses/analytics and /expenses/receipts
+ * modules.
  *
- * Both pages need the full ExpenseAnalytics payload plus two derived
- * pieces of client state (pendingDrafts, transactionDrafts). They used
- * to duplicate the fetcher and the state plumbing; this hook keeps a
- * single implementation that both pages call.
+ * Both pages need the full ExpenseAnalytics payload plus derived client
+ * state (pendingDrafts). They used to duplicate the fetcher and the state
+ * plumbing; this hook keeps a single implementation that both pages call.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";

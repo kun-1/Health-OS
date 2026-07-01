@@ -47,33 +47,51 @@
   min-height: 0;
 }
 
-
-.nut-expense-stats {
-  display: grid;
-  gap: 10px;
-}
-
-.nut-expense-stats div {
+/* ---------- Module header ---------- */
+.nut-header {
   align-items: center;
-  background: var(--life-card-soft);
+  background: var(--life-card);
   border: 1px solid var(--life-border);
-  border-radius: 8px;
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  padding: 16px 22px;
+}
+
+.nut-header__brand {
+  align-items: center;
   display: flex;
-  justify-content: space-between;
-  min-height: 52px;
-  padding: 0 14px;
+  gap: 14px;
 }
 
-.nut-expense-stats span {
-  color: var(--life-muted);
-  font-size: 0.82rem;
+.nut-header__logo {
+  align-items: center;
+  background: rgba(155, 234, 61, 0.18);
+  border-radius: 10px;
+  color: var(--life-green-ink);
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
 }
 
-.nut-expense-stats strong {
+.nut-header__logo svg {
+  height: 22px;
+  width: 22px;
+}
+
+.nut-header__name {
   color: var(--life-text);
-  font-family: var(--life-font-num);
-  font-size: 1rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 1.04rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.nut-header__crumb {
+  color: var(--life-muted);
+  font-size: 0.74rem;
+  margin-top: 2px;
 }
 
 /* ---------- Screen layout ---------- */

@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * Shared header for the /expenses and /expenses/receipts module pages.
+ * Shared header for the expense sub-pages.
  *
- * Every interactive affordance (BudgetSettings, uploader, manual entry,
- * CSV export) is opt-in via a prop. /expenses (pure analysis) passes
- * none of them so the page renders just the brand strip; /expenses/receipts
- * (records workbench) passes all of them.
+ * Every interactive affordance (BudgetSettings, uploader) is opt-in via a
+ * prop. /expenses/analytics passes BudgetSettings; /expenses/receipts passes
+ * the uploader. Manual entry and CSV export live on /expenses/transactions.
  */
 
 import type { ReactNode } from "react";

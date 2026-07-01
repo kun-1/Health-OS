@@ -1,12 +1,7 @@
-import { ExpensesModule } from "@/components/expenses/expenses-module";
-import { LifeShell } from "@/components/life-os/life-shell";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function ExpensesPage() {
-  return (
-    <LifeShell>
-      <ExpensesModule />
-    </LifeShell>
-  );
+export default function ExpensesIndexPage() {
+  redirect("/expenses/analytics");
 }

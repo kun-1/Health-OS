@@ -94,7 +94,7 @@ function TransactionBand({ title, transactions }: { title: string; transactions:
           <p className="exp-eyebrow">流水</p>
           <h2>{title}</h2>
         </div>
-        <a className="exp-filter" href="/expenses/all">查看全部</a>
+        <a className="exp-filter" href="/expenses/transactions">查看全部</a>
       </div>
       <div className="exp-transaction-list">
         {transactions.length === 0 ? (

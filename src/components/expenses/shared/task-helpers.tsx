@@ -1,7 +1,6 @@
 /**
  * Shared pure helpers and small components used by BudgetTask,
- * StructureTask, ReceiptsTask, LedgerTask, and the /expenses +
- * /expenses/receipts + /nutrition modules.
+ * StructureTask, ReceiptsTask, and the expense sub-pages.
  *
  * Kept in one file because every consumer pulls in 2+ of these and the
  * items here have no React state — tree-shaking still drops anything a

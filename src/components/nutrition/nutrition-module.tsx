@@ -16,10 +16,9 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState
 } from "react";
-import { AlertCircle, CircleGauge, Leaf, LineChartIcon } from "lucide-react";
+import { Activity, AlertCircle, CircleGauge, Leaf, LineChartIcon } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -36,8 +35,6 @@ import {
   YAxis
 } from "recharts";
 
-import { fromCents, formatMoney } from "@/lib/expenses/money";
-import type { ExpenseAnalytics } from "@/lib/expenses/types";
 import { clampScore, structureScore } from "@/lib/life-os/selectors";
 import { rainbowColors } from "@/lib/nutrition/color-signals";
 import { type SkipBreakdown } from "@/lib/nutrition/quality";
@@ -47,18 +44,10 @@ import type {
   NutritionReport
 } from "@/lib/nutrition/types";
 
-import {
-  currentMonth,
-  LoadingPanel as ExpenseLoadingPanel,
-  type ManualExpenseInput
-} from "@/components/expenses/shared/task-helpers";
-import { StructureTask as ExpenseStructureTask } from "@/components/expenses/structure-task";
-import { ExpensesHeader } from "@/components/expenses/shared/expenses-header";
-import { useExpenseData } from "@/components/expenses/shared/use-expense-data";
 import { SubTabNav, type SubTab } from "@/components/shared/sub-tab-nav";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
 import type { TrendMonth } from "./nutrition-extras";
 
-import "@/components/expenses/expenses.css";
 import "./nutrition.css";
 
 type NutritionTask = "today" | "structure" | "trend";
@@ -123,21 +112,6 @@ function runTaskTransition(update: () => void) {
     return;
   }
   transitionDocument.startViewTransition(update);
-}
-
-function formatYYYYMM(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
-}
-
-function listMonths(count: number): string[] {
-  const out: string[] = [];
-  const now = new Date();
-  for (let i = 0; i < count; i += 1) {
-    out.push(formatYYYYMM(new Date(now.getFullYear(), now.getMonth() - i, 1)));
-  }
-  return out;
 }
 
 function formatGrams(g: number | null): string {
@@ -205,32 +179,7 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
-function MonthControl({ months, period, onChange }: { months: string[]; period: string; onChange: (period: string) => void }) {
-  return (
-    <label className="nut-month">
-      <span>月份</span>
-      <select onChange={(e) => onChange(e.target.value)} value={period}>
-        {months.map((m) => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function TodayView({
-  expenseAnalytics,
-  months,
-  onPeriodChange,
-  period,
-  report
-}: {
-  report: NutritionReport;
-  months: string[];
-  period: string;
-  onPeriodChange: (period: string) => void;
-  expenseAnalytics: ExpenseAnalytics | null;
-}) {
+function TodayView({ report }: { report: NutritionReport }) {
   const score = structureScore(report);
   const skipCount = totalSkips(report.skipBreakdown);
   const topItems = topCategoryItems(report);
@@ -249,7 +198,9 @@ function TodayView({
             <p className="nut-eyebrow">今日判断</p>
             <h1>这个月的饮食质量是否稳定？</h1>
           </div>
-          <MonthControl months={months} period={period} onChange={onPeriodChange} />
+          {/* Month selector removed — the global MonthSwitcher in the
+              topbar already controls the period. Source of truth is the
+              URL ?month=YYYY-MM. */}
         </div>
         <div className="nut-judgement">
           <div>
@@ -268,31 +219,6 @@ function TodayView({
           </ResponsiveContainer>
         </div>
       </section>
-
-      {expenseAnalytics ? (
-        <section className="nut-panel nut-panel--expense-stats">
-          <div className="nut-expense-stats">
-            <div>
-              <span>本月已花</span>
-              <strong>{formatMoney(fromCents(expenseAnalytics.budget_progress.spent), expenseAnalytics.primary_currency)}</strong>
-            </div>
-            <div>
-              <span>剩余预算</span>
-              <strong>{formatMoney(fromCents(expenseAnalytics.budget_progress.remaining), expenseAnalytics.budget_currency)}</strong>
-            </div>
-            <div>
-              <span>待确认票据</span>
-              <strong>{expenseAnalytics.pending_receipts.length}</strong>
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section className="nut-panel nut-panel--expense-stats">
-          <div className="nut-expense-stats">
-            <div><span>支出数据</span><strong>加载中</strong></div>
-          </div>
-        </section>
-      )}
 
       <section className="nut-panel nut-panel--wide">
         <div className="nut-section-head nut-section-head--compact">
@@ -323,7 +249,7 @@ function TodayView({
   );
 }
 
-function StructureView({ expenseAnalytics, report }: { expenseAnalytics: ExpenseAnalytics | null; report: NutritionReport }) {
+function StructureView({ report }: { report: NutritionReport }) {
   const plate = [
     { name: "蔬果", value: report.plate.ratios.vegFruit, target: "30% - 50%", min: 30, max: 50 },
     { name: "优质蛋白", value: report.plate.ratios.protein, target: "20% - 30%", min: 20, max: 30 },
@@ -437,13 +363,6 @@ function StructureView({ expenseAnalytics, report }: { expenseAnalytics: Expense
           </div>
         </section>
       </div>
-      {expenseAnalytics ? (
-        <div className="life-os-nutrition__legacy" data-variant="expense-legacy">
-          <ExpenseStructureTask analytics={expenseAnalytics} />
-        </div>
-      ) : (
-        <ExpenseLoadingPanel />
-      )}
     </>
   );
 }
@@ -582,17 +501,11 @@ function CategoryDrilldown({ report }: { report: NutritionReport }) {
 }
 
 export function NutritionModule() {
-  const months = useMemo(() => listMonths(6), []);
-  const [period, setPeriod] = useState<string>(months[0]);
+  // The nutrition score follows the global MonthSwitcher (URL ?month=YYYY-MM).
+  const period = useSelectedMonth();
   const [activeTask, setActiveTask] = useState<NutritionTask>("today");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [trend, setTrend] = useState<TrendState>({ kind: "loading" });
-  const [expenseMonth] = useState(currentMonth());
-  const { analytics: expenseAnalytics, loadError: expenseLoadError, reload: loadExpenses } = useExpenseData(expenseMonth);
-  const [expenseError, setExpenseError] = useState("");
-  const [expenseMessage, setExpenseMessage] = useState("");
-  const [manualOpen, setManualOpen] = useState(false);
-  const [manualBusy, setManualBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -637,45 +550,9 @@ export function NutritionModule() {
     runTaskTransition(() => setActiveTask(task));
   }, [activeTask]);
 
-  async function createManualExpense(input: ManualExpenseInput) {
-    setExpenseError("");
-    setExpenseMessage("");
-    setManualBusy(true);
-    try {
-      const response = await fetch("/api/expenses/transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setExpenseError(data.error ?? "手动支出保存失败");
-        return;
-      }
-      setManualOpen(false);
-      setExpenseMessage(`已记入: ${input.item_name} ${input.amount === null ? "-" : formatMoney(input.amount, input.currency ?? "CNY")}`);
-      await loadExpenses();
-    } finally {
-      setManualBusy(false);
-    }
-  }
-
   return (
     <div className="life-os-nutrition">
-      <ExpensesHeader
-        kind="receipts"
-        month={expenseMonth}
-        manualExpense={{
-          open: manualOpen,
-          busy: manualBusy,
-          onOpen: () => setManualOpen(true),
-          onClose: () => setManualOpen(false),
-          onSave: createManualExpense
-        }}
-        showBudgetSettings
-        csvExport={{ month: expenseMonth, tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai" }}
-        onReload={loadExpenses}
-      />
+      <NutritionHeader />
       <SubTabNav
         activeTab={activeTask}
         ariaLabel="营养子任务"
@@ -683,40 +560,34 @@ export function NutritionModule() {
         onTabChange={handleTaskChange}
         tabs={TASKS}
       />
-      {expenseError ? <div className="exp-banner exp-banner--error">{expenseError}</div> : null}
-      {expenseLoadError ? (
-        <div className="exp-banner exp-banner--error" role="alert">
-          <span>
-            {expenseLoadError.kind === "network"
-              ? `支出网络问题: ${expenseLoadError.message}`
-              : expenseLoadError.kind === "server"
-                ? `支出服务器错误: ${expenseLoadError.message}`
-                : `支出客户端错误: ${expenseLoadError.message}`}
-          </span>
-          <button className="exp-btn exp-btn--secondary exp-btn--sm" onClick={() => void loadExpenses()} type="button">重试</button>
-        </div>
-      ) : null}
-      {expenseMessage ? <div className="exp-banner exp-banner--ok">{expenseMessage}</div> : null}
       {state.kind === "loading" ? (
         <LoadingState label="营养数据加载中..." />
       ) : state.kind === "error" ? (
         <ErrorState message={state.message} />
       ) : (
         <>
-          {activeTask === "today" ? (
-            <TodayView
-              expenseAnalytics={expenseAnalytics}
-              months={months}
-              onPeriodChange={setPeriod}
-              period={period}
-              report={state.report}
-            />
-          ) : null}
-          {activeTask === "structure" ? <StructureView expenseAnalytics={expenseAnalytics} report={state.report} /> : null}
+          {activeTask === "today" ? <TodayView report={state.report} /> : null}
+          {activeTask === "structure" ? <StructureView report={state.report} /> : null}
           {activeTask === "trend" ? <TrendView report={state.report} trend={trend} /> : null}
           {activeTask === "structure" ? <CategoryDrilldown report={state.report} /> : null}
         </>
       )}
     </div>
+  );
+}
+
+function NutritionHeader() {
+  return (
+    <header className="nut-header">
+      <div className="nut-header__brand">
+        <span className="nut-header__logo" aria-hidden>
+          <Activity strokeWidth={2.5} />
+        </span>
+        <div>
+          <div className="nut-header__name">营养</div>
+          <div className="nut-header__crumb">饮食质量与结构分析</div>
+        </div>
+      </div>
+    </header>
   );
 }

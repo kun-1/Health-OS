@@ -1,43 +1,34 @@
 "use client";
 
 /**
- * `/expenses/receipts` module — the records processing workbench.
+ * `/expenses/receipts` module — receipt input + OCR processing.
  *
- * Owns everything related to turning a receipt image (or a manual entry)
- * into a posted transaction:
- *
- *   - ReceiptUploader    (drop / pick images, OCR queue)
+ * Responsibilities:
+ *   - ReceiptUploader    (drop / pick images)
  *   - ReceiptsTask       (pending receipt review + retry / delete jobs)
- *   - LedgerTask         (posted transactions grouped by date, editable)
- *   - ManualExpensePanel (quick manual entry)
- *   - BulkToolbar        (bulk confirm / exclude / delete)
+ *   - BulkToolbar        (bulk confirm pending receipts)
  *
- * Header / data loader / banners are extracted into shared modules so
- * they stay in sync with /expenses (see expenses-header / use-expense-data
- * / expense-banners).
+ * Posted transactions are managed on `/expenses/transactions`; manual entry
+ * and CSV export also live there. This keeps the receipts page focused on
+ * turning receipt images into confirmed transactions.
  */
 
 import { useCallback, useMemo, useState } from "react";
 
-import { formatMoney } from "@/lib/expenses/money";
 import type {
   ExpenseReceiptJob,
-  ExpenseReceiptSummary,
-  ExpenseTransaction
+  ExpenseReceiptSummary
 } from "@/lib/expenses/types";
 
 import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
 import { ConfirmDialog } from "./confirm-dialog";
-import { LedgerTask } from "./ledger-task";
 import { ReceiptsTask } from "./receipts-task";
 import { ExpenseBanners } from "./shared/expense-banners";
 import { ExpensesHeader } from "./shared/expenses-header";
 import {
   LoadingPanel as ExpenseLoadingPanel,
-  transactionToExtracted,
   uploadTimingSummary,
-  type ManualExpenseInput,
   type UploadFailure
 } from "./shared/task-helpers";
 import { useExpenseData } from "./shared/use-expense-data";
@@ -52,15 +43,10 @@ export function ReceiptsModule() {
     loadError,
     pendingDrafts,
     setPendingDrafts,
-    transactionDrafts,
-    setTransactionDrafts,
     reload
   } = useExpenseData(month);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [manualOpen, setManualOpen] = useState(false);
-  const [manualBusy, setManualBusy] = useState(false);
-  // Replace window.confirm with the styled ConfirmDialog.
   const [pendingDelete, setPendingDelete] = useState<{
     title: string;
     message: string;
@@ -68,14 +54,9 @@ export function ReceiptsModule() {
   } | null>(null);
 
   const orderedItems = useMemo<BulkItem[]>(() => {
-    const receipts = (analytics?.pending_receipts ?? [])
+    return (analytics?.pending_receipts ?? [])
       .filter((r) => r.status === "pending_review")
       .map((r) => ({ id: r.id, kind: "receipt" as const }));
-    const transactions = (analytics?.recent_transactions ?? []).map((t) => ({
-      id: t.id,
-      kind: "transaction" as const
-    }));
-    return [...receipts, ...transactions];
   }, [analytics]);
 
   const uploadReceipt = useCallback(
@@ -98,7 +79,7 @@ export function ReceiptsModule() {
         const failures = Array.isArray(data.failures)
           ? `; ${(data.failures as UploadFailure[])
               .map((f) => `${f.filename ?? "图片"}: ${f.error}`)
-              .join("; ")}`
+              .join("; " )}`
           : "";
         setError(data.error ? `票据识别失败: ${data.error}${failures}` : "票据识别失败");
         return;
@@ -126,31 +107,6 @@ export function ReceiptsModule() {
     },
     [reload]
   );
-
-  async function createManualExpense(input: ManualExpenseInput) {
-    setError("");
-    setMessage("");
-    setManualBusy(true);
-    try {
-      const response = await fetch("/api/expenses/transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.error ?? "手动支出保存失败");
-        return;
-      }
-      setManualOpen(false);
-      setMessage(
-        `已记入: ${input.item_name} ${input.amount === null ? "-" : formatMoney(input.amount, input.currency ?? "CNY")}`
-      );
-      await reload();
-    } finally {
-      setManualBusy(false);
-    }
-  }
 
   async function retryDueJobs() {
     const response = await fetch("/api/expenses/receipt-jobs/retry", { method: "POST" });
@@ -229,56 +185,13 @@ export function ReceiptsModule() {
     });
   }
 
-  async function updatePosted(transaction: ExpenseTransaction) {
-    const extracted = transactionDrafts[transaction.id] ?? transactionToExtracted(transaction);
-    setError("");
-    setMessage("");
-    const response = await fetch(`/api/expenses/transactions/${transaction.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ extracted })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error ?? "更新失败");
-      return;
-    }
-    setMessage(`已入账 #${transaction.id} 已更新`);
-    await reload();
-  }
-
-  async function deletePosted(transaction: ExpenseTransaction) {
-    setPendingDelete({
-      title: "删除已入账",
-      message: `确认删除已入账 #${transaction.id}？本地图片也会一起删除。`,
-      run: async () => {
-        setError("");
-        setMessage("");
-        const response = await fetch(`/api/expenses/transactions/${transaction.id}`, { method: "DELETE" });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          setError(data.error ?? "删除失败");
-          return;
-        }
-        setMessage(`已入账 #${transaction.id} 已删除`);
-        await reload();
-      }
-    });
-  }
-
   return (
     <div className="exp-analytics">
       <ExpensesHeader
         kind="receipts"
         month={month}
+        showBudgetSettings={false}
         uploader={{ onUpload: uploadReceipt }}
-        manualExpense={{
-          open: manualOpen,
-          busy: manualBusy,
-          onOpen: () => setManualOpen(true),
-          onClose: () => setManualOpen(false),
-          onSave: createManualExpense
-        }}
         onReload={reload}
       />
       <ExpenseBanners
@@ -298,29 +211,20 @@ export function ReceiptsModule() {
           />
         ) : null}
         {analytics ? (
-          <>
-            <ReceiptsTask
-              analytics={analytics}
-              confirmPending={confirmPending}
-              deleteJob={deleteJob}
-              deletePending={deletePending}
-              pendingDrafts={pendingDrafts}
-              retryDueJobs={retryDueJobs}
-              retryJob={retryJob}
-              setPendingDrafts={(updater) =>
-                setPendingDrafts((prev) =>
-                  typeof updater === "function" ? updater(prev) : updater
-                )
-              }
-            />
-            <LedgerTask
-              analytics={analytics}
-              deletePosted={deletePosted}
-              setTransactionDrafts={setTransactionDrafts}
-              transactionDrafts={transactionDrafts}
-              updatePosted={updatePosted}
-            />
-          </>
+          <ReceiptsTask
+            analytics={analytics}
+            confirmPending={confirmPending}
+            deleteJob={deleteJob}
+            deletePending={deletePending}
+            pendingDrafts={pendingDrafts}
+            retryDueJobs={retryDueJobs}
+            retryJob={retryJob}
+            setPendingDrafts={(updater) =>
+              setPendingDrafts((prev) =>
+                typeof updater === "function" ? updater(prev) : updater
+              )
+            }
+          />
         ) : (
           <ExpenseLoadingPanel />
         )}
