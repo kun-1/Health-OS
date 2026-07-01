@@ -92,8 +92,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px 10px 14px;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
   color: var(--life-text);
   font-size: 0.9rem;
   font-weight: 600;
@@ -106,28 +106,15 @@
 }
 
 .life-sidebar__link[data-active="true"] {
-  /* Active state matches the highlight KPI card's visual language:
-     tinted pill + deep green text + tiny glow. The 3px left bar is kept
-     as a redundant cue so the active item is still obvious if the soft
-     pill is below contrast in some lighting. */
+  /* Active state: contained pill that aligns with the link's own padding
+     and border-radius, no external indicator bar. */
   background: linear-gradient(
     180deg,
     rgba(155, 253, 68, 0.22) 0%,
     rgba(155, 253, 68, 0.14) 100%
   );
   color: #1a4d22;
-  box-shadow: 0 4px 14px rgba(155, 234, 61, 0.22);
-}
-
-.life-sidebar__link[data-active="true"]::before {
-  content: "";
-  position: absolute;
-  left: -14px;
-  top: 12px;
-  bottom: 12px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--life-green-strong);
+  box-shadow: inset 0 0 0 1px rgba(155, 234, 61, 0.35), 0 4px 14px rgba(155, 234, 61, 0.18);
 }
 
 .life-sidebar__link svg {
@@ -312,8 +299,8 @@
 }
 
 .life-card__footnote {
-  font-size: 0.72rem;
-  color: #50585E;
+  font-size: 0.7rem;
+  color: var(--life-subtle);
   line-height: 1.45;
   /* Anchor the footnote to the bottom of the card so all four KPI cards
      share the same visual rhythm regardless of how many sub-lines the
@@ -372,6 +359,12 @@
   flex-direction: column;
   gap: 24px;
   min-width: 0;
+  width: 320px;
+}
+
+.life-home__aside > * {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .life-home__kpis {
@@ -379,6 +372,18 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
   align-items: stretch;
+}
+
+.life-home__kpis > * {
+  min-height: 156px;
+  display: flex;
+}
+
+.life-home__kpis > a,
+.life-home__kpis > a > .life-card,
+.life-home__kpis > .life-card {
+  width: 100%;
+  height: 100%;
 }
 
 .life-home__main-chart {
@@ -629,6 +634,16 @@
   color: var(--life-text);
 }
 
+/* Smooth calendar expand/collapse so it doesn't jolt the sidebar rhythm. */
+.life-calendar {
+  transition: opacity 200ms ease, max-height 220ms ease;
+  overflow: hidden;
+}
+
+.life-calendar-card {
+  transition: min-height 220ms ease;
+}
+
 /* ---------- Metric card decorator ---------- */
 .life-card__decorator {
   position: absolute;
@@ -653,23 +668,26 @@
 .life-activity__list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
 .life-activity__item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--life-card-soft);
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  background: transparent;
+}
+
+.life-activity__item:last-child {
+  border-bottom: none;
 }
 
 .life-activity__icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--life-card);
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(155, 234, 61, 0.12);
   display: grid;
   place-items: center;
   color: var(--life-green-ink);
@@ -677,26 +695,27 @@
 }
 
 .life-activity__icon svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 .life-activity__body {
   display: flex;
   flex-direction: column;
-  line-height: 1.4;
+  line-height: 1.45;
   min-width: 0;
+  gap: 2px;
 }
 
 .life-activity__title {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--life-text);
 }
 
 .life-activity__meta {
-  font-size: 0.74rem;
-  color: var(--life-muted);
+  font-size: 0.72rem;
+  color: var(--life-subtle);
 }
 
 /* ---------- Breakdown (PDI / AHEI / Plate / UPF bars) ---------- */
