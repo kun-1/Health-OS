@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ExpenseAnalytics } from "@/lib/expenses/types";
 import type { NutritionReport } from "@/lib/nutrition/types";
 
 import { structureScore } from "@/lib/life-os/selectors";
+
+import { useRefreshing } from "@/components/shared/refreshing-context";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
 
 export type TrendMonth = {
   period: string;
@@ -31,17 +34,16 @@ export type HomeData = {
   month: string;
   tz: string;
   today: string;
+  /** True while at least one source is mid-refetch. Drives the
+   *  "更新中…" pill in the topbar so the panel never blanks during
+   *  a month switch. */
+  refreshing: boolean;
   score: Source<ScorePayload>;
   trend: Source<TrendMonth[]>;
   analytics: Source<ExpenseAnalytics>;
 };
 
-/** Build a YYYY-MM string for "today" in the local timezone. */
-function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
+/** Build a YYYY-MM-DD string for "today" in the local timezone. */
 function todayIso(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -58,18 +60,35 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
 /**
  * Loads the three home-page data sources in parallel and exposes a
  * per-source loading / error / ok state so each card can degrade
- * independently. The hook is intentionally state-only — presentation
- * lives in <LifeHome>.
+ * independently. Re-fetches whenever the selected month (URL
+ * `?month=YYYY-MM`) changes — see useSelectedMonth.
  */
 export function useHomeData(): HomeData {
+  const month = useSelectedMonth();
+  const { setRefreshing } = useRefreshing();
   const [score, setScore] = useState<Source<ScorePayload>>({ kind: "loading" });
   const [trend, setTrend] = useState<Source<TrendMonth[]>>({ kind: "loading" });
   const [analytics, setAnalytics] = useState<Source<ExpenseAnalytics>>({ kind: "loading" });
+  const [refreshing, setRefreshingState] = useState(false);
+  // setRefreshing toggles both the local state (for consumers that read
+  // useHomeData().refreshing directly) AND the global context (for the
+  // topbar pill).
+  const toggleRefreshing = (next: boolean) => {
+    setRefreshingState(next);
+    setRefreshing(next);
+  };
+  const fetchEpoch = useRef(0);
 
   useEffect(() => {
-    const month = currentMonth();
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai";
     const controller = new AbortController();
+    const isFirstRun = fetchEpoch.current === 0;
+    fetchEpoch.current += 1;
+    if (!isFirstRun) toggleRefreshing(true);
+
+    // Don't reset existing data to loading — leave the previous month's
+    // values on screen while the new month fetches. Cards degrade
+    // gracefully when a single source errors.
 
     fetchJson<NutritionReport>(`/api/nutrition/score?period=${month}`, controller.signal)
       .then((report) => setScore({ kind: "ok", data: { report, score: structureScore(report) } }))
@@ -90,15 +109,22 @@ export function useHomeData(): HomeData {
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
         setAnalytics({ kind: "error", message: err instanceof Error ? err.message : String(err) });
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) toggleRefreshing(false);
       });
 
-    return () => controller.abort();
-  }, []);
+    return () => {
+      controller.abort();
+      toggleRefreshing(false);
+    };
+  }, [month, setRefreshing]);
 
   return {
-    month: currentMonth(),
+    month,
     tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
     today: todayIso(),
+    refreshing,
     score,
     trend,
     analytics

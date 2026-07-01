@@ -1,14 +1,18 @@
-import { CalendarDays } from "lucide-react";
+"use client";
+
+import { Loader2 } from "lucide-react";
 
 import "./life-os.css";
+
+import { MonthSwitcher } from "@/components/shared/month-switcher";
+import { useRefreshing } from "@/components/shared/refreshing-context";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
 
 type Props = {
   /** Override the welcome line. Default uses a fixed copy for Phase A. */
   greeting?: string;
   /** Override the date subtitle. Defaults to today in zh-CN. */
   dateLabel?: string;
-  /** Override the month chip label. Defaults to current YYYY 年 M 月. */
-  monthLabel?: string;
 };
 
 function todayLabel(): string {
@@ -22,14 +26,10 @@ function todayLabel(): string {
   return `${y} 年 ${m} 月 ${d} 日 · ${weekdays[now.getDay()]}`;
 }
 
-function defaultMonthLabel(): string {
-  const now = new Date();
-  return `${now.getFullYear()} 年 ${now.getMonth() + 1} 月`;
-}
-
-export function LifeTopbar({ greeting, dateLabel, monthLabel }: Props) {
+export function LifeTopbar({ greeting, dateLabel }: Props) {
   const subtitle = dateLabel ?? todayLabel();
-  const month = monthLabel ?? defaultMonthLabel();
+  const selectedMonth = useSelectedMonth();
+  const { refreshing } = useRefreshing();
   return (
     <header className="life-topbar" role="banner">
       <div className="life-topbar__greeting">
@@ -40,14 +40,13 @@ export function LifeTopbar({ greeting, dateLabel, monthLabel }: Props) {
       <div className="life-topbar__spacer" />
 
       <div className="life-topbar__actions">
-        <span className="life-topbar__chip" aria-label={`当前月份：${month}`}>
-          <CalendarDays strokeWidth={2} style={{ width: 14, height: 14 }} />
-          {month}
-        </span>
-        {/* Phase A placeholder icon buttons (导出 / 通知 / 帮助) removed —
-            they had no handlers and the explicit "Phase A 占位" titles
-            signalled they'd never be functional. Re-add here when each
-            has a real handler. */}
+        {refreshing ? (
+          <span className="life-topbar__refresh" role="status" aria-live="polite">
+            <Loader2 strokeWidth={2} className="life-topbar__refresh-icon" aria-hidden />
+            更新中…
+          </span>
+        ) : null}
+        <MonthSwitcher month={selectedMonth} />
       </div>
     </header>
   );

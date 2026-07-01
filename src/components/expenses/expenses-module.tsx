@@ -3,43 +3,27 @@
 /**
  * `/expenses` module — pure analysis surface.
  *
- * Sub-tabs:
- *   - 预算 (budget)  → BudgetTask
- *   - 分类 (structure) → StructureTask
- *
- * No interactive affordances live here (per user choice B on 2026-06-30):
- * receipt upload, manual entry, CSV export, BudgetSettings, the editable
- * LedgerTask — all moved to /expenses/receipts. This page renders the
- * brand strip + sub-tab nav + the selected task's charts only.
+ * Per user feedback on 2026-07-01: this page renders just the budget +
+ * structure analyses stacked into a single panel. There is no header
+ * brand strip (LifeShell sidebar + topbar are enough), no sub-tab nav
+ * (both panels always visible), and no input affordances (uploader /
+ * manual / CSV / BudgetSettings / editable LedgerTask — all on
+ * /expenses/receipts).
  */
 
 import { useState } from "react";
-import { CircleDollarSign, LineChart } from "lucide-react";
 
 import { BudgetTask } from "./budget-task";
 import { StructureTask } from "./structure-task";
-import {
-  currentMonth,
-  daysRemainingInMonth,
-  LoadingPanel as ExpenseLoadingPanel
-} from "./shared/task-helpers";
 import { ExpenseBanners } from "./shared/expense-banners";
-import { ExpensesHeader } from "./shared/expenses-header";
 import { useExpenseData } from "./shared/use-expense-data";
-import { SubTabNav, type SubTab } from "@/components/shared/sub-tab-nav";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
+import { daysRemainingInMonth, LoadingPanel as ExpenseLoadingPanel } from "./shared/task-helpers";
 
 import "./expenses.css";
 
-type ExpenseSubTask = "budget" | "structure";
-
-const SUBTABS: ReadonlyArray<SubTab<ExpenseSubTask>> = [
-  { id: "budget", label: "预算", icon: LineChart },
-  { id: "structure", label: "分类", icon: CircleDollarSign }
-];
-
 export function ExpensesModule() {
-  const [activeTask, setActiveTask] = useState<ExpenseSubTask>("budget");
-  const [month] = useState(currentMonth());
+  const month = useSelectedMonth();
   const { analytics, loadError, reload } = useExpenseData(month);
   const [message] = useState("");
 
@@ -47,24 +31,19 @@ export function ExpensesModule() {
 
   return (
     <div className="exp-analytics">
-      <ExpensesHeader kind="expenses" month={month} onReload={reload} showBudgetSettings={false} />
-      <SubTabNav
-        activeTab={activeTask}
-        ariaLabel="支出了任务"
-        idPrefix="exp-tab"
-        onTabChange={setActiveTask}
-        panelIdPrefix="exp-tabpanel"
-        tabs={SUBTABS}
-      />
       <ExpenseBanners error="" loadError={loadError} message={message} />
       {analytics ? (
-        <div role="tabpanel" id={`exp-tabpanel-${activeTask}`} aria-labelledby={`exp-tab-${activeTask}`}>
-          {activeTask === "budget" ? <BudgetTask analytics={analytics} days={days} /> : null}
-          {activeTask === "structure" ? <StructureTask analytics={analytics} /> : null}
-        </div>
+        <>
+          <BudgetTask analytics={analytics} days={days} />
+          <StructureTask analytics={analytics} />
+        </>
       ) : (
         <ExpenseLoadingPanel />
       )}
+      {/* Hidden reload trigger for the banner retry button. The component
+          above already shows loadError; clicking Retry (rendered inside
+          ExpenseBanners in older versions) would call this. */}
+      <button type="button" onClick={() => void reload()} style={{ display: "none" }} aria-hidden />
     </div>
   );
 }

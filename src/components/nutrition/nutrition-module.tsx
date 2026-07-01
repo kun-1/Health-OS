@@ -37,10 +37,7 @@ import {
 } from "recharts";
 
 import { fromCents, formatMoney } from "@/lib/expenses/money";
-import type {
-  ExpenseAnalytics,
-  ExpenseReceiptSummary
-} from "@/lib/expenses/types";
+import type { ExpenseAnalytics } from "@/lib/expenses/types";
 import { clampScore, structureScore } from "@/lib/life-os/selectors";
 import { rainbowColors } from "@/lib/nutrition/color-signals";
 import { type SkipBreakdown } from "@/lib/nutrition/quality";
@@ -53,9 +50,7 @@ import type {
 import {
   currentMonth,
   LoadingPanel as ExpenseLoadingPanel,
-  uploadTimingSummary,
-  type ManualExpenseInput,
-  type UploadFailure
+  type ManualExpenseInput
 } from "@/components/expenses/shared/task-helpers";
 import { StructureTask as ExpenseStructureTask } from "@/components/expenses/structure-task";
 import { ExpensesHeader } from "@/components/expenses/shared/expenses-header";
@@ -642,34 +637,6 @@ export function NutritionModule() {
     runTaskTransition(() => setActiveTask(task));
   }, [activeTask]);
 
-  async function uploadReceipt(formData: FormData) {
-    setExpenseError("");
-    setExpenseMessage("");
-    const response = await fetch("/api/expenses/receipts", { method: "POST", body: formData });
-    const data = await response.json().catch(() => ({}));
-    if (response.status === 409) {
-      const existingId = (data as { existingReceiptId?: number }).existingReceiptId;
-      setExpenseError(`已上传过这张图片${typeof existingId === "number" ? ` (receipt #${existingId})` : ""}，请到 /expenses/receipts 查看`);
-      return;
-    }
-    if (!response.ok) {
-      const failures = Array.isArray(data.failures)
-        ? `; ${(data.failures as UploadFailure[]).map((f) => `${f.filename ?? "图片"}: ${f.error}`).join("; ")}`
-        : "";
-      setExpenseError(data.error ? `票据识别失败: ${data.error}${failures}` : "票据识别失败");
-      return;
-    }
-    const receipts = (data.receipts ?? (data.receipt ? [data.receipt] : [])) as ExpenseReceiptSummary[];
-    const failures = (data.failures ?? []) as UploadFailure[];
-    const timings = (data.timings ?? []) as Array<{ filename?: string; provider?: string; model?: string; total_ms?: number; ocr_ms?: number }>;
-    const jobsCount = Array.isArray(data.jobs) ? (data.jobs as unknown[]).length : 0;
-    const summary = receipts.map((r) => `#${r.id} 已处理`).join(", ");
-    const failureText = failures.length ? `; 失败 ${failures.length} 张: ${failures.map((f) => f.filename ?? "图片").join(", ")}` : "";
-    const queuedText = jobsCount > 0 && receipts.length === 0 ? "; 图片已保存到识别队列，稍后自动重试" : "";
-    setExpenseMessage(`${summary || "识别完成"}${failureText}${queuedText}${uploadTimingSummary(timings, data.total_ms)}`);
-    await loadExpenses();
-  }
-
   async function createManualExpense(input: ManualExpenseInput) {
     setExpenseError("");
     setExpenseMessage("");
@@ -698,7 +665,6 @@ export function NutritionModule() {
       <ExpensesHeader
         kind="receipts"
         month={expenseMonth}
-        uploader={{ onUpload: uploadReceipt }}
         manualExpense={{
           open: manualOpen,
           busy: manualBusy,

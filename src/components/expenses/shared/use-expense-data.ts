@@ -9,13 +9,15 @@
  * single implementation that both pages call.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getStoredBudgetCents, getStoredPrimaryCurrency } from "@/lib/expenses/settings";
 import type {
   ExpenseAnalytics,
   ExtractedExpenseReceipt
 } from "@/lib/expenses/types";
+
+import { useRefreshing } from "@/components/shared/refreshing-context";
 
 import {
   formatUtcOffsetForClient,
@@ -37,12 +39,17 @@ export type ExpenseDataState = {
 };
 
 export function useExpenseData(month: string): ExpenseDataState {
+  const { setRefreshing } = useRefreshing();
   const [analytics, setAnalytics] = useState<ExpenseAnalytics | null>(null);
   const [loadError, setLoadError] = useState<LoadError | null>(null);
   const [pendingDrafts, setPendingDrafts] = useState<DraftMap>({});
   const [transactionDrafts, setTransactionDrafts] = useState<DraftMap>({});
+  const fetchEpoch = useRef(0);
 
   const load = useCallback(async () => {
+    const isFirstRun = fetchEpoch.current === 0;
+    fetchEpoch.current += 1;
+    if (!isFirstRun) setRefreshing(true);
     setLoadError(null);
     const tz =
       Intl.DateTimeFormat().resolvedOptions().timeZone || `UTC${formatUtcOffsetForClient()}`;
@@ -60,6 +67,7 @@ export function useExpenseData(month: string): ExpenseDataState {
         kind: "network",
         message: err instanceof Error ? err.message : "网络请求失败"
       });
+      setRefreshing(false);
       return;
     }
     if (!response.ok) {
@@ -67,6 +75,7 @@ export function useExpenseData(month: string): ExpenseDataState {
         kind: response.status >= 500 ? "server" : "client",
         message: `服务器返回 ${response.status}`
       });
+      setRefreshing(false);
       return;
     }
     try {
@@ -85,6 +94,8 @@ export function useExpenseData(month: string): ExpenseDataState {
         kind: "client",
         message: err instanceof Error ? err.message : "解析响应失败"
       });
+    } finally {
+      setRefreshing(false);
     }
   }, [month]);
 

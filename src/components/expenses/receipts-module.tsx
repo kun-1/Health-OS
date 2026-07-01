@@ -34,7 +34,6 @@ import { ReceiptsTask } from "./receipts-task";
 import { ExpenseBanners } from "./shared/expense-banners";
 import { ExpensesHeader } from "./shared/expenses-header";
 import {
-  currentMonth,
   LoadingPanel as ExpenseLoadingPanel,
   transactionToExtracted,
   uploadTimingSummary,
@@ -42,11 +41,12 @@ import {
   type UploadFailure
 } from "./shared/task-helpers";
 import { useExpenseData } from "./shared/use-expense-data";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
 
 import "./expenses.css";
 
 export function ReceiptsModule() {
-  const [month] = useState(currentMonth());
+  const month = useSelectedMonth();
   const {
     analytics,
     loadError,
