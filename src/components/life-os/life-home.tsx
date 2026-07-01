@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleDollarSign, Clock3, Database, Salad, TrendingUp } from "lucide-react";
+import { CheckCircle2, CircleDollarSign, Clock3, Database, Salad } from "lucide-react";
 
 import { ActivityCard } from "./activity-card";
 import { CalendarCard } from "./calendar-card";
@@ -107,28 +107,19 @@ export function LifeHome() {
               }
               footnote={
                 analyticsState
-                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}`
+                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}${foodRatio && foodRatio.ratio !== null ? ` · 食物占比 ${(foodRatio.ratio * 100).toFixed(0)}%` : ""}`
                   : undefined
               }
               icon={<CircleDollarSign strokeWidth={2} />}
               href={`/expenses/analytics?month=${encodeURIComponent(month)}`}
             />
             <MetricCard
-              title="食物支出占比"
-              state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
-              errorMessage={analytics.kind === "error" ? analytics.message : undefined}
-              value={
-                foodRatio && foodRatio.ratio !== null
-                  ? `${(foodRatio.ratio * 100).toFixed(0)}%`
-                  : "—"
-              }
-              delta={
-                foodRatio && foodRatio.ratio !== null
-                  ? <>食物 {yuan(foodRatio.foodCents)} · 全部 {yuan(foodRatio.totalCents)}</>
-                  : undefined
-              }
-              footnote="食物 + 外食 + 饮料咖啡 ÷ 总支出"
-              icon={<TrendingUp strokeWidth={2} />}
+              title="习惯 / 任务完成度"
+              state="ok"
+              value="0%"
+              delta={<>今日 0 / 0 项已完成</>}
+              footnote="健康习惯追踪即将上线"
+              icon={<CheckCircle2 strokeWidth={2} />}
             />
             <MetricCard
               title="记录完整度"

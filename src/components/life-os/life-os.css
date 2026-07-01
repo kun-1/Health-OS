@@ -588,6 +588,47 @@
   background: #F94310;
 }
 
+/* ---------- Compact week-view calendar ---------- */
+.life-calendar-card .life-card__title {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.life-calendar-card__month {
+  font-size: 0.78rem;
+  color: var(--life-muted);
+  font-weight: 700;
+}
+
+.life-calendar[data-week-view="true"] {
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.life-calendar[data-week-view="true"] .life-calendar__cell {
+  aspect-ratio: 1;
+}
+
+.life-calendar-card__toggle {
+  align-items: center;
+  align-self: center;
+  background: transparent;
+  border: 0;
+  color: var(--life-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 700;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px 10px;
+}
+
+.life-calendar-card__toggle:hover {
+  color: var(--life-text);
+}
+
 /* ---------- Activity ---------- */
 .life-activity__list {
   display: flex;

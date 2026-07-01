@@ -63,7 +63,7 @@ const AXIS_TICK = { fontSize: 12, fill: "#50585E", fontFamily: "var(--life-font-
 const GRID_STROKE = "rgba(15, 23, 42, 0.06)";
 const LINE_COLOR = "#1a4d22";
 const LINE_FILL = "rgba(155, 234, 61, 0.18)";
-const BAR_COLOR = "#F94310";
+const BAR_COLOR = "rgba(131, 183, 255, 0.45)";
 
 export function TrendChart({ trend, spendByPeriod }: Props) {
   const data: ChartPoint[] = trend.map((row) => ({
