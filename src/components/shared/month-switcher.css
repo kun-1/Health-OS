@@ -35,10 +35,38 @@
 }
 
 .month-switcher__label {
+  cursor: pointer;
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--life-text);
   font-variant-numeric: tabular-nums;
   min-width: 86px;
+  position: relative;
   text-align: center;
+}
+
+.month-switcher__input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0;
+  height: 100%;
+  left: 0;
+  margin: 0;
+  opacity: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.month-switcher__input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }

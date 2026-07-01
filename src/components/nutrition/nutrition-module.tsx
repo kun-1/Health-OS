@@ -529,7 +529,7 @@ export function NutritionModule() {
   useEffect(() => {
     let cancelled = false;
     setTrend({ kind: "loading" });
-    fetch("/api/nutrition/trend?months=6")
+    fetch(`/api/nutrition/trend?months=6&end=${period}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return (await res.json()) as { months: TrendMonth[]; tracked: ReadonlyArray<NutritionCategory> };
@@ -543,7 +543,7 @@ export function NutritionModule() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [period]);
 
   const handleTaskChange = useCallback((task: NutritionTask) => {
     if (task === activeTask) return;

@@ -97,7 +97,7 @@ export function useHomeData(): HomeData {
         setScore({ kind: "error", message: err instanceof Error ? err.message : String(err) });
       });
 
-    fetchJson<TrendResponse>(`/api/nutrition/trend?months=6`, controller.signal)
+    fetchJson<TrendResponse>(`/api/nutrition/trend?months=6&end=${month}`, controller.signal)
       .then((res) => setTrend({ kind: "ok", data: res.months }))
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;

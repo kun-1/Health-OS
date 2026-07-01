@@ -1,4 +1,4 @@
-// GET /api/nutrition/trend?months=6
+// GET /api/nutrition/trend?months=6&end=YYYY-MM
 //
 // Returns the last N months of total grams for 5 fixed nutrition categories
 // (动物性/加工肉/含糖饮料/反式零食/蔬菜). One row per month, one number per
@@ -7,6 +7,10 @@
 // Months are returned oldest → newest so the client can render a left-to-
 // right timeline without re-sorting. Months with no purchases in a category
 // carry 0 grams (NOT null) so the sparkline stays continuous.
+//
+// The optional `end` parameter anchors the window to a specific month
+// (defaults to the current month). This lets the global MonthSwitcher drive
+// the trend view on both the home and nutrition pages.
 //
 // Classification is done in JS (not SQL) so user-set overrides apply — the
 // same classifier the score pipeline uses. 100–200 items per month is
@@ -21,6 +25,11 @@ import type { NutritionCategory } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
+function currentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 const TRACKED: ReadonlyArray<NutritionCategory> = [
   "动物性",
   "加工肉",
@@ -29,14 +38,26 @@ const TRACKED: ReadonlyArray<NutritionCategory> = [
   "蔬菜"
 ];
 
-function listMonthRange(count: number): string[] {
+function listMonthRange(count: number, endPeriod: string): string[] {
   const out: string[] = [];
-  const now = new Date();
+  const [yearStr, monthStr] = endPeriod.split("-");
+  const endYear = Number(yearStr);
+  const endMonth = Number(monthStr);
+  if (!endYear || !monthStr || endMonth < 1 || endMonth > 12) {
+    // Fall back to today if the anchor is malformed.
+    const now = new Date();
+    for (let i = count - 1; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    return out;
+  }
+
   for (let i = count - 1; i >= 0; i -= 1) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    out.push(`${y}-${m}`);
+    const absolute = (endYear * 12 + (endMonth - 1)) - i;
+    const y = Math.floor(absolute / 12);
+    const m = (absolute % 12) + 1;
+    out.push(`${y}-${String(m).padStart(2, "0")}`);
   }
   return out;
 }
@@ -70,6 +91,8 @@ function emptyAcc(): Record<NutritionCategory, number> {
   };
 }
 
+const PERIOD_PATTERN = /^\d{4}-\d{2}$/;
+
 export async function GET(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const monthsParam = Number(searchParams.get("months") ?? 6);
@@ -78,7 +101,10 @@ export async function GET(request: Request): Promise<NextResponse> {
       ? Math.min(12, Math.max(1, Math.floor(monthsParam)))
       : 6;
 
-  const periods = listMonthRange(months);
+  const rawEnd = searchParams.get("end");
+  const endPeriod = rawEnd && PERIOD_PATTERN.test(rawEnd) ? rawEnd : currentMonth();
+
+  const periods = listMonthRange(months, endPeriod);
   const aliases = rawDb
     .prepare(
       "SELECT raw_pattern AS rawPattern, category, is_user_set AS isUserSet FROM nutrition_food_aliases"

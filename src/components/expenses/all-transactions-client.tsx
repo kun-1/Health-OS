@@ -12,7 +12,8 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { ManualExpensePanel } from "./manual-expense-panel";
 import { TransactionCard } from "./transaction-card";
 import { ExpenseBanners } from "./shared/expense-banners";
-import { currentMonth, transactionToExtracted, type ManualExpenseInput } from "./shared/task-helpers";
+import { transactionToExtracted, type ManualExpenseInput } from "./shared/task-helpers";
+import { useSelectedMonth } from "@/components/shared/use-selected-month";
 import "./expenses.css";
 
 const PAGE_SIZE = 50;
@@ -25,11 +26,11 @@ type FullListTransaction = ExpenseTransaction & {
 type LoadResult = { rows?: FullListTransaction[]; transactions?: FullListTransaction[]; total: number };
 
 export function AllTransactionsClient() {
+  const month = useSelectedMonth();
   const tz = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
     []
   );
-  const [month, setMonth] = useState<string>(currentMonth());
   const [rows, setRows] = useState<FullListTransaction[]>([]);
   const [drafts, setDrafts] = useState<Record<number, ExtractedExpenseReceipt>>({});
   const [total, setTotal] = useState(0);
@@ -164,14 +165,6 @@ export function AllTransactionsClient() {
           </div>
         </div>
         <div className="exp-shell__actions">
-          <label className="exp-month">
-            <span aria-hidden>
-              <svg fill="none" height="15" viewBox="0 0 24 24" width="15" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-            </span>
-            <input onChange={(event) => setMonth(event.target.value)} type="month" value={month} />
-          </label>
           <a className="exp-btn exp-btn--secondary exp-btn--sm" href={csvHref}>
             导出 CSV
           </a>

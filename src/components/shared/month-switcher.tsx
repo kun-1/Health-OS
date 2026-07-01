@@ -53,7 +53,7 @@ export function MonthSwitcher({ month }: Props) {
   function navigate(next: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("month", next);
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
   const prev = shiftMonth(month, -1);
@@ -70,9 +70,16 @@ export function MonthSwitcher({ month }: Props) {
       >
         <ChevronLeft strokeWidth={2} />
       </button>
-      <span className="month-switcher__label" aria-live="polite">
+      <label className="month-switcher__label" title="点击选择月份">
+        <input
+          aria-label="选择月份"
+          className="month-switcher__input"
+          onChange={(event) => navigate(event.target.value)}
+          type="month"
+          value={month}
+        />
         {formatLabel(month)}
-      </span>
+      </label>
       <button
         type="button"
         className="month-switcher__btn"
