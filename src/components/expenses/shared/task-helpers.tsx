@@ -130,6 +130,24 @@ export function LoadingPanel() {
   );
 }
 
+/**
+ * Compact "6月10日" style date for transaction / receipt rows. Sourced
+ * from the zh-CN locale with the same Asia/Shanghai TZ pinning as
+ * formatDate so the server and client first render produce the same
+ * string (avoids hydration warnings). Returns the provided fallback when
+ * the input is null or unparseable.
+ */
+export function shortChineseDate(value: string | null | undefined, fallback = "日期待补"): string {
+  if (!value) return fallback;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return fallback;
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    timeZone: "Asia/Shanghai"
+  }).format(d);
+}
+
 export function formatMoneyCompact(value: number, currency: string) {
   return new Intl.NumberFormat("zh-CN", {
     currency,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CircleDollarSign, Clock3, Database, Salad, TrendingUp } from "lucide-react";
+import { CircleDollarSign, Clock3, Database, Salad, TrendingUp } from "lucide-react";
 
 import { ActivityCard } from "./activity-card";
 import { CalendarCard } from "./calendar-card";
@@ -240,8 +240,3 @@ function prevMonthOf(current: string): string | null {
   if (m === 1) return `${y - 1}-12`;
   return `${y}-${String(m - 1).padStart(2, "0")}`;
 }
-
-// ArrowUpRight is referenced via the lucide import above so tree-shaking
-// keeps it available to A2 follow-ups (e.g. an external-link affordance).
-const _unused = ArrowUpRight;
-void _unused;

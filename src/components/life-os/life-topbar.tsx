@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, Download, HelpCircle } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 import "./life-os.css";
 
@@ -44,15 +44,10 @@ export function LifeTopbar({ greeting, dateLabel, monthLabel }: Props) {
           <CalendarDays strokeWidth={2} style={{ width: 14, height: 14 }} />
           {month}
         </span>
-        <button type="button" className="life-topbar__icon-btn" aria-label="导出" title="导出（Phase A 占位）">
-          <Download />
-        </button>
-        <button type="button" className="life-topbar__icon-btn" aria-label="通知" title="通知（Phase A 占位）">
-          <Bell />
-        </button>
-        <button type="button" className="life-topbar__icon-btn" aria-label="帮助" title="帮助（Phase A 占位）">
-          <HelpCircle />
-        </button>
+        {/* Phase A placeholder icon buttons (导出 / 通知 / 帮助) removed —
+            they had no handlers and the explicit "Phase A 占位" titles
+            signalled they'd never be functional. Re-add here when each
+            has a real handler. */}
       </div>
     </header>
   );

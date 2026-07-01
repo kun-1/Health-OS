@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, LayoutDashboard, ReceiptText, Settings as SettingsIcon, Wallet } from "lucide-react";
+import { Activity, LayoutDashboard, ReceiptText, Wallet } from "lucide-react";
 
 import "./life-os.css";
 
@@ -47,16 +47,9 @@ const PRIMARY: NavItem[] = [
 // no sidebar entry yet — promoting it later would clash with the Overview
 // active state since both target "/".
 
-const FOOTER: NavItem[] = [
-  // /settings route doesn't exist yet — link still appears so the IA matches
-  // the reference, but it leads home for now. Will be wired in Phase B/C.
-  {
-    label: "设置",
-    href: "/",
-    icon: SettingsIcon,
-    isActive: () => false
-  }
-];
+// Footer settings link removed: /settings route is empty (no page.tsx)
+// and a link going home with isActive=false would never highlight.
+// Re-add when /settings has a real page.
 
 export function LifeSidebar() {
   const pathname = usePathname() ?? "/";
@@ -93,24 +86,6 @@ export function LifeSidebar() {
       </nav>
 
       <div className="life-sidebar__spacer" />
-
-      <nav className="life-sidebar__footer" aria-label="系统">
-        {FOOTER.map((item) => {
-          const Icon = item.icon;
-          const active = item.isActive(pathname);
-          return (
-            <Link
-              key={`${item.href}-${item.label}`}
-              href={item.href}
-              className="life-sidebar__link"
-              data-active={active ? "true" : "false"}
-            >
-              <Icon />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
     </aside>
   );
 }

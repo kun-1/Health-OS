@@ -8,14 +8,11 @@ import { BulkSelectionProvider, type BulkItem } from "./bulk-selection";
 import { BulkToolbar } from "./bulk-toolbar";
 import { ConfirmDialog } from "./confirm-dialog";
 import { TransactionCard } from "./transaction-card";
+import { ExpenseBanners } from "./shared/expense-banners";
+import { currentMonth, transactionToExtracted } from "./shared/task-helpers";
 import "./expenses.css";
 
 const PAGE_SIZE = 50;
-
-function currentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
 
 type FullListTransaction = ExpenseTransaction & {
   receipt_image_path?: string | null;
@@ -23,41 +20,6 @@ type FullListTransaction = ExpenseTransaction & {
 };
 
 type LoadResult = { rows?: FullListTransaction[]; transactions?: FullListTransaction[]; total: number };
-
-function transactionToExtracted(transaction: ExpenseTransaction): ExtractedExpenseReceipt {
-  return {
-    merchant_name: transaction.merchant_name,
-    purchased_at: transaction.purchased_at,
-    currency: transaction.currency,
-    subtotal_amount: transaction.subtotal_amount,
-    total_amount: transaction.total_amount,
-    tax_amount: transaction.tax_amount,
-    processing_fee: transaction.processing_fee,
-    delivery_fee: transaction.delivery_fee,
-    delivery_discount: transaction.delivery_discount,
-    discount_amount: transaction.discount_amount,
-    confidence: 1,
-    model_suggested_auto_post: true,
-    needs_review_reasons: [],
-    recognition_note: null,
-    user_note: transaction.notes,
-    items: transaction.items.map((item) => ({
-      name_raw: item.name_raw,
-      name_zh: item.name_zh,
-      category_zh: item.category_zh,
-      category_raw: item.category_raw,
-      quantity: item.quantity,
-      spec_text: item.spec_text,
-      food_amount_value: item.food_amount_value,
-      food_amount_unit: item.food_amount_unit,
-      unit_price: item.unit_price,
-      discounted_unit_price: item.discounted_unit_price,
-      amount: item.amount,
-      confidence: item.confidence,
-      notes: item.notes
-    }))
-  };
-}
 
 export function AllTransactionsClient() {
   const [month, setMonth] = useState<string>(currentMonth());
@@ -124,7 +86,7 @@ export function AllTransactionsClient() {
           if (!response.ok) throw new Error(`服务器返回 ${response.status}`);
           await load(offset);
         } catch (err) {
-          alert(`删除失败：${err instanceof Error ? err.message : String(err)}`);
+          setError(`删除失败：${err instanceof Error ? err.message : String(err)}`);
         }
       }
     });
@@ -185,8 +147,7 @@ export function AllTransactionsClient() {
         </div>
       </header>
 
-      {error ? <div className="exp-banner exp-banner--error">{error}</div> : null}
-      {message ? <div className="exp-banner exp-banner--ok">{message}</div> : null}
+      <ExpenseBanners error={error ?? ""} loadError={null} message={message} onRetry={() => void load(offset)} />
 
       <div className="exp-card__row" style={{ background: "var(--exp-surface)", border: "1px solid var(--exp-border)", borderRadius: "var(--exp-radius)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span className="exp-card__meta">
