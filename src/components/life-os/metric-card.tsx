@@ -28,6 +28,8 @@ type Props = {
   state?: State;
   /** Error message shown when state="error". */
   errorMessage?: string;
+  /** Extra content rendered between the delta and the footnote. */
+  children?: ReactNode;
 };
 
 function ValueSkeleton() {
@@ -53,7 +55,8 @@ export function MetricCard({
   href,
   compactValue,
   state = "ok",
-  errorMessage
+  errorMessage,
+  children
 }: Props) {
   const body = (
     <article className={`life-card${href ? " life-card--clickable" : ""}`} data-variant={variant}>
@@ -71,6 +74,7 @@ export function MetricCard({
         </div>
       )}
       {delta && state !== "loading" ? <div className="life-card__delta">{delta}</div> : null}
+      {children}
       {footnote ? <div className="life-card__footnote">{footnote}</div> : null}
     </article>
   );

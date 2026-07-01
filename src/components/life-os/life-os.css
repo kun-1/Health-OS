@@ -391,6 +391,132 @@
   gap: 20px;
 }
 
+/* ---------- Mini nutrition bars (embedded in KPI card) ---------- */
+.life-mini-bars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin-top: 10px;
+}
+
+.life-mini-bars__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.life-mini-bars__track {
+  grid-column: 1 / -1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--life-card-soft);
+  overflow: hidden;
+}
+
+.life-mini-bars__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.life-mini-bars__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--life-muted);
+}
+
+.life-mini-bars__value {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Compact recent transactions (sidebar) ---------- */
+.life-recent {
+  gap: 12px;
+}
+
+.life-recent__meta {
+  font-size: 0.72rem;
+  color: var(--life-muted);
+  font-weight: 600;
+}
+
+.life-recent__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.life-recent__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.life-recent__item:last-child {
+  border-bottom: none;
+}
+
+.life-recent__left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.life-recent__merchant {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--life-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.life-recent__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--life-muted);
+}
+
+.life-recent__category i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.life-recent__amount {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.life-recent__empty {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--life-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* ---------- Calendar ---------- */
 .life-calendar {
   display: grid;

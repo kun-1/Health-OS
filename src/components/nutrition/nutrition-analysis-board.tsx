@@ -1,0 +1,579 @@
+"use client";
+
+import { useState } from "react";
+import { AlertCircle, Leaf } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
+
+import { clampScore, structureScore } from "@/lib/life-os/selectors";
+import { rainbowColors } from "@/lib/nutrition/color-signals";
+import type { NutritionCategory, NutritionReport } from "@/lib/nutrition/types";
+
+import type { TrendMonth } from "./nutrition-extras";
+import "./nutrition.css";
+
+type TrendState =
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "ok"; months: TrendMonth[]; tracked: ReadonlyArray<NutritionCategory> };
+
+type ChartRow = {
+  period: string;
+  label: string;
+  score: number;
+  veg: number;
+  protein: number;
+  whole: number;
+  bad: number;
+};
+
+const STRUCTURE_COLORS = [
+  "var(--life-green-strong)",
+  "var(--life-blue)",
+  "var(--life-yellow)",
+  "var(--life-danger)",
+  "var(--life-subtle)"
+];
+
+const CATEGORY_LABELS: Record<NutritionCategory, string> = {
+  蔬菜: "蔬菜",
+  水果: "水果",
+  全谷物: "全谷物",
+  豆类: "豆类",
+  坚果: "坚果",
+  香料: "香料",
+  动物性: "动物性",
+  油脂: "油脂",
+  含糖饮料: "含糖饮料",
+  加工肉: "加工肉",
+  反式零食: "反式零食",
+  未分类: "未分类"
+};
+
+function makeTrendRows(months: TrendMonth[]): ChartRow[] {
+  return months.map((month) => {
+    const veg = (month.grams["蔬菜"] ?? 0) + (month.grams["水果"] ?? 0);
+    const protein = (month.grams["豆类"] ?? 0) + (month.grams["坚果"] ?? 0) + (month.grams["动物性"] ?? 0);
+    const whole = month.grams["全谷物"] ?? 0;
+    const bad = (month.grams["加工肉"] ?? 0) + (month.grams["含糖饮料"] ?? 0) + (month.grams["反式零食"] ?? 0);
+    const total = Object.values(month.grams).reduce((s, n) => s + n, 0) || 1;
+    const score = clampScore(
+      58 + (veg / total) * 30 + (protein / total) * 12 + (whole / total) * 14 - (bad / total) * 24
+    );
+    return {
+      period: month.period,
+      label: month.period.slice(5),
+      score,
+      veg: Math.round(veg),
+      protein: Math.round(protein),
+      whole: Math.round(whole),
+      bad: Math.round(bad)
+    };
+  });
+}
+
+function pct(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
+
+function statusTone(value: number, min: number, max: number): "good" | "warn" | "bad" {
+  if (value >= min && value <= max) return "good";
+  if (Math.abs(value - min) < 8 || Math.abs(value - max) < 8) return "warn";
+  return "bad";
+}
+
+function topCategoryItems(report: NutritionReport): Array<{ name: string; grams: number }> {
+  return (Object.values(report.topByCategory).flat() as Array<{ name: string; grams: number }>)
+    .sort((a, b) => b.grams - a.grams)
+    .slice(0, 6);
+}
+
+function totalSkips(breakdown: NutritionReport["skipBreakdown"]): number {
+  const keys: Array<keyof NutritionReport["skipBreakdown"]> = [
+    "no_weight",
+    "ambiguous_unit",
+    "no_alias_match",
+    "low_confidence",
+    "noise"
+  ];
+  return keys.reduce((s, k) => s + breakdown[k], 0);
+}
+
+function LoadingState({ label }: { label: string }) {
+  return (
+    <div className="nut-state">
+      <div className="nut-state__pulse" />
+      <div>{label}</div>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="nut-error">
+      <AlertCircle aria-hidden />
+      加载失败: {message}
+    </div>
+  );
+}
+
+function monthLabel(period: string): string {
+  const [y, m] = period.split("-");
+  if (!y || !m) return period;
+  return `${y}年${parseInt(m, 10)}月`;
+}
+
+function describeScore(score: number): string {
+  if (score >= 80) return "整体良好";
+  if (score >= 65) return "中等偏稳";
+  return "需要优先调整结构";
+}
+
+type NarrativeProps =
+  | { period: string; score: number; grams: Record<string, number>; prevScore?: number; isCurrent?: false }
+  | { report: NutritionReport; isCurrent: true };
+
+function NarrativeForMonth(props: NarrativeProps) {
+  if ("report" in props) {
+    const { report } = props;
+    const score = structureScore(report);
+    const skipCount = totalSkips(report.skipBreakdown);
+    const topItems = topCategoryItems(report);
+    const recommendations = [
+      {
+        title: "增加全谷物摄入",
+        body: `当前全谷占比 ${pct(report.plate.ratios.wholeGrain)}，目标靠近 20% - 30%。`,
+        tone: report.plate.ratios.wholeGrain >= 0.2 ? "good" : report.plate.ratios.wholeGrain >= 0.1 ? "warn" : "bad"
+      },
+      {
+        title: "控制超加工食品",
+        body: `超加工占比 ${pct(report.upf.upfShare)}，继续压低加工肉、含糖饮料和反式零食。`,
+        tone: report.upf.grade === "好" ? "good" : report.upf.grade === "可" ? "warn" : "bad"
+      },
+      {
+        title: "保持蔬果多样性",
+        body: `彩虹饮食覆盖 ${rainbowColors.filter((c) => report.colorCounts[c] > 0).length} / ${rainbowColors.length} 个颜色。`,
+        tone: "good"
+      }
+    ];
+
+    return (
+      <div className="nut-narrative">
+        <div className="nut-narrative__head">
+          <span className="nut-narrative__eyebrow">本月诊断</span>
+          <strong className="nut-narrative__score">{score}</strong>
+          <span className="nut-narrative__status">{describeScore(score)}</span>
+        </div>
+        <div className="nut-narrative__signals">
+          <div className="nut-narrative__signal">
+            <span className="nut-dot nut-dot--good" />
+            <strong>质量覆盖</strong>
+            <span>
+              {report.itemsWithWeight} / {report.itemsAnalyzed} 条带重量，覆盖 {Math.round(report.coveragePct * 100)}%
+            </span>
+          </div>
+          {skipCount > 0 ? (
+            <div className="nut-narrative__signal">
+              <span className="nut-dot nut-dot--warn" />
+              <strong>待补记录</strong>
+              <span>{skipCount} 条需要补重量、别名或 OCR 信息</span>
+            </div>
+          ) : null}
+          <div className="nut-narrative__signal">
+            <span className="nut-dot nut-dot--good" />
+            <strong>主要食材</strong>
+            <span>{topItems.slice(0, 3).map((item) => item.name).join(" / ") || "暂无匹配食材"}</span>
+          </div>
+        </div>
+        <div className="nut-narrative__actions">
+          {recommendations.map((item) => (
+            <div className="nut-narrative__action" data-tone={item.tone} key={item.title}>
+              <Leaf aria-hidden />
+              <div>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const { period, score, grams, prevScore } = props;
+  const veg = (grams["蔬菜"] ?? 0) + (grams["水果"] ?? 0);
+  const protein = (grams["豆类"] ?? 0) + (grams["坚果"] ?? 0) + (grams["动物性"] ?? 0);
+  const whole = grams["全谷物"] ?? 0;
+  const bad = (grams["加工肉"] ?? 0) + (grams["含糖饮料"] ?? 0) + (grams["反式零食"] ?? 0);
+  const total = veg + protein + whole + bad;
+  const delta = prevScore !== undefined ? score - prevScore : undefined;
+
+  let highlight = "整体结构平稳";
+  if (bad > total * 0.15) highlight = "超加工类食品占比偏高";
+  else if (veg > total * 0.4) highlight = "蔬果摄入充足";
+  else if (whole < total * 0.1) highlight = "全谷物摄入偏低";
+
+  return (
+    <div className="nut-narrative">
+      <div className="nut-narrative__head">
+        <span className="nut-narrative__eyebrow">{monthLabel(period)}</span>
+        <strong className="nut-narrative__score">{score}</strong>
+        <span className="nut-narrative__status">
+          {describeScore(score)}
+          {delta !== undefined ? ` · ${delta >= 0 ? "+" : ""}${delta} 分` : null}
+        </span>
+      </div>
+      <div className="nut-narrative__signals">
+        <div className="nut-narrative__signal">
+          <span className="nut-dot nut-dot--good" />
+          <strong>结构亮点</strong>
+          <span>{highlight}</span>
+        </div>
+        <div className="nut-narrative__signal">
+          <span className="nut-dot nut-dot--good" />
+          <strong>蔬果</strong>
+          <span>{Math.round(veg)} g</span>
+        </div>
+        <div className="nut-narrative__signal">
+          <span className="nut-dot nut-dot--good" />
+          <strong>蛋白</strong>
+          <span>{Math.round(protein)} g</span>
+        </div>
+        <div className="nut-narrative__signal">
+          <span className="nut-dot nut-dot--good" />
+          <strong>全谷</strong>
+          <span>{Math.round(whole)} g</span>
+        </div>
+        <div className="nut-narrative__signal">
+          <span className="nut-dot nut-dot--warn" />
+          <strong>超加工</strong>
+          <span>{Math.round(bad)} g</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveTrendChart({
+  rows,
+  onHover,
+  onLeave
+}: {
+  rows: ChartRow[];
+  onHover: (period: string) => void;
+  onLeave: () => void;
+}) {
+  return (
+    <div className="nut-combined__chart">
+      <ResponsiveContainer width="100%" height={320}>
+        <AreaChart
+          data={rows}
+          margin={{ bottom: 10, left: 0, right: 20, top: 20 }}
+          onMouseMove={(state) => {
+            if (state && typeof state === "object" && "activeLabel" in state) {
+              const active = rows.find((r) => r.label === state.activeLabel);
+              if (active) onHover(active.period);
+            }
+          }}
+          onMouseLeave={onLeave}
+        >
+          <defs>
+            <linearGradient id="nutrition-score-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="5%" stopColor="var(--life-green-strong)" stopOpacity={0.32} />
+              <stop offset="95%" stopColor="var(--life-green)" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="rgba(15, 23, 42, 0.06)" strokeDasharray="3 6" vertical={false} />
+          <XAxis
+            axisLine={false}
+            dataKey="label"
+            tick={{ fill: "#50585E", fontSize: 12 }}
+            tickLine={false}
+          />
+          <YAxis axisLine={false} domain={[0, 100]} tick={{ fill: "#50585E", fontSize: 12 }} tickLine={false} />
+          <Tooltip
+            contentStyle={{
+              background: "#ffffff",
+              border: "1px solid rgba(15, 23, 42, 0.08)",
+              borderRadius: 8,
+              color: "var(--life-text)"
+            }}
+          />
+          <Area
+            dataKey="score"
+            fill="url(#nutrition-score-fill)"
+            stroke="var(--life-green-strong)"
+            strokeWidth={2.5}
+            type="monotone"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function StructureSection({ report }: { report: NutritionReport }) {
+  const score = structureScore(report);
+  const plate = [
+    { name: "蔬果", value: report.plate.ratios.vegFruit, target: "30% - 50%", min: 30, max: 50 },
+    { name: "优质蛋白", value: report.plate.ratios.protein, target: "20% - 30%", min: 20, max: 30 },
+    { name: "全谷物", value: report.plate.ratios.wholeGrain, target: "20% - 30%", min: 20, max: 30 },
+    { name: "超加工", value: report.upf.upfShare, target: "0% - 10%", min: 0, max: 10 },
+    { name: "添加糖", value: report.ahei.breakdown["含糖饮料"].gramsThisPeriod / Math.max(report.upf.totalWeight, 1), target: "0% - 5%", min: 0, max: 5 }
+  ].map((item, index) => ({
+    ...item,
+    color: STRUCTURE_COLORS[index],
+    percent: Math.round(item.value * 100),
+    tone: statusTone(Math.round(item.value * 100), item.min, item.max)
+  }));
+
+  const recommendations = [
+    {
+      title: "增加全谷物摄入",
+      body: `当前全谷占比 ${pct(report.plate.ratios.wholeGrain)}，目标靠近 20% - 30%。`,
+      tone: report.plate.ratios.wholeGrain >= 0.2 ? "good" : report.plate.ratios.wholeGrain >= 0.1 ? "warn" : "bad"
+    },
+    {
+      title: "控制超加工食品",
+      body: `超加工占比 ${pct(report.upf.upfShare)}，继续压低加工肉、含糖饮料和反式零食。`,
+      tone: report.upf.grade === "好" ? "good" : report.upf.grade === "可" ? "warn" : "bad"
+    },
+    {
+      title: "保持蔬果多样性",
+      body: `彩虹饮食覆盖 ${rainbowColors.filter((c) => report.colorCounts[c] > 0).length} / ${rainbowColors.length} 个颜色。`,
+      tone: "good"
+    }
+  ];
+
+  const cats = (Object.keys(CATEGORY_LABELS) as NutritionCategory[])
+    .map((cat) => ({ cat, items: report.topByCategory[cat] || [] }))
+    .filter((group) => group.items.length > 0)
+    .slice(0, 5);
+
+  return (
+    <div className="nut-screen nut-screen--structure">
+      <section className="nut-panel nut-panel--allocation">
+        <div className="nut-section-head">
+          <div>
+            <p className="nut-eyebrow">结构诊断</p>
+            <h2>本月饮食结构</h2>
+          </div>
+          <div className="nut-summary-number">
+            <span>{score}</span>
+            <small>结构平衡度</small>
+          </div>
+        </div>
+        <div className="nut-allocation">
+          <ResponsiveContainer height={360} width="100%">
+            <PieChart>
+              <Pie
+                cx="50%"
+                cy="50%"
+                data={plate}
+                dataKey="percent"
+                innerRadius={96}
+                outerRadius={156}
+                paddingAngle={1.5}
+                stroke="#081012"
+                strokeWidth={2}
+              >
+                {plate.map((entry) => (
+                  <Cell fill={entry.color} key={entry.name} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="nut-allocation__center">
+            <strong>{score}</strong>
+            <span>结构平衡度</span>
+          </div>
+        </div>
+        <div className="nut-legend">
+          {plate.map((item) => (
+            <span key={item.name}>
+              <i style={{ background: item.color }} />
+              {item.name} {item.percent}%
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="nut-panel nut-panel--side">
+        <div className="nut-section-head nut-section-head--compact">
+          <div>
+            <p className="nut-eyebrow">目标偏移</p>
+            <h2>结构是否落在目标区间</h2>
+          </div>
+        </div>
+        <div className="nut-bars">
+          {plate.map((item) => (
+            <div className="nut-bar-row" data-tone={item.tone} key={item.name}>
+              <div className="nut-bar-row__meta">
+                <span>
+                  <i style={{ background: item.color }} />
+                  {item.name}
+                </span>
+                <strong>{item.percent}%</strong>
+              </div>
+              <div className="nut-range">
+                <span
+                  style={{
+                    width: `${Math.min(100, Math.max(5, item.percent))}%`,
+                    background: item.color
+                  }}
+                />
+              </div>
+              <div className="nut-bar-row__foot">
+                <small>{item.target}</small>
+                <small>{item.tone === "good" ? "达标" : item.tone === "warn" ? "轻度偏离" : "显著偏离"}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="nut-panel nut-panel--wide">
+        <div className="nut-section-head nut-section-head--compact">
+          <div>
+            <p className="nut-eyebrow">下一步建议</p>
+            <h2>只保留三件值得做的事</h2>
+          </div>
+        </div>
+        <div className="nut-action-list">
+          {recommendations.map((item) => (
+            <div className="nut-action" data-tone={item.tone} key={item.title}>
+              <Leaf aria-hidden />
+              <div>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </div>
+              <span className="nut-priority">
+                {item.tone === "bad" ? "优先级: 高" : item.tone === "warn" ? "优先级: 中" : "优先级: 低"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="nut-panel nut-panel--wide nut-drill">
+        <div className="nut-section-head nut-section-head--compact">
+          <div>
+            <p className="nut-eyebrow">来源明细</p>
+            <h2>按类别查看主要食材</h2>
+          </div>
+        </div>
+        <div className="nut-drill__grid">
+          {cats.map((group) => (
+            <div className="nut-drill__group" key={group.cat}>
+              <strong>{CATEGORY_LABELS[group.cat]}</strong>
+              {group.items.slice(0, 3).map((item) => (
+                <span key={item.name}>
+                  {item.name}
+                  <small>{Math.round(item.grams)} g</small>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function NutritionAnalysisBoard({
+  report,
+  trend
+}: {
+  report: NutritionReport;
+  trend: TrendState;
+}) {
+  const [hoveredPeriod, setHoveredPeriod] = useState<string | null>(null);
+
+  if (trend.kind === "loading") return <LoadingState label="趋势加载中..." />;
+  if (trend.kind === "error") return <ErrorState message={trend.message} />;
+
+  const rows = makeTrendRows(trend.months);
+  const hoveredRow = hoveredPeriod ? rows.find((r) => r.period === hoveredPeriod) : null;
+
+  const score = structureScore(report);
+  const rings = [
+    { name: "PDI", value: Math.round((report.pdi.total / report.pdi.max) * 100), fill: "var(--life-green-strong)" },
+    { name: "AHEI", value: Math.round((report.ahei.total / report.ahei.max) * 100), fill: "var(--life-blue)" },
+    { name: "餐盘", value: clampScore((1 - report.plate.deviation) * 100), fill: "var(--life-yellow)" },
+    { name: "UPF", value: clampScore((1 - report.upf.upfShare) * 100), fill: "var(--life-danger)" }
+  ];
+
+  return (
+    <div className="nut-analysis-board">
+      <section className="nut-panel nut-panel--hero">
+        <div className="nut-section-head">
+          <div>
+            <p className="nut-eyebrow">营养与饮食结构综合分析</p>
+            <h1>这个月的饮食质量是否稳定？</h1>
+          </div>
+        </div>
+        <div className="nut-judgement">
+          <div>
+            <div className="nut-judgement__score">{score}</div>
+            <div className="nut-judgement__label">综合营养质量</div>
+            <div className="nut-judgement__status">
+              {score >= 80 ? "整体良好，重点补全薄弱项" : score >= 65 ? "中等偏稳，结构仍需调整" : "需要优先修正结构"}
+            </div>
+          </div>
+          <ResponsiveContainer height={260} width="100%">
+            <RadialBarChart data={rings} endAngle={-270} innerRadius="24%" outerRadius="94%" startAngle={90}>
+              <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
+              <RadialBar background cornerRadius={8} dataKey="value" />
+              <Tooltip formatter={(value) => [`${value}%`, "达成"]} />
+            </RadialBarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="nut-panel nut-panel--combined">
+        <div className="nut-section-head">
+          <div>
+            <p className="nut-eyebrow">趋势分析</p>
+            <h2>近 6 个月营养质量走势</h2>
+          </div>
+          <span className="nut-combined__hint">悬停图表查看当月诊断</span>
+        </div>
+        <div className="nut-combined__body">
+          <InteractiveTrendChart
+            rows={rows}
+            onHover={setHoveredPeriod}
+            onLeave={() => setHoveredPeriod(null)}
+          />
+          <div className="nut-combined__narrative">
+            {hoveredRow ? (
+              <NarrativeForMonth
+                grams={trend.months.find((m) => m.period === hoveredRow.period)?.grams ?? {}}
+                period={hoveredRow.period}
+                prevScore={rows[rows.indexOf(hoveredRow) - 1]?.score}
+                score={hoveredRow.score}
+              />
+            ) : (
+              <NarrativeForMonth report={report} isCurrent />
+            )}
+          </div>
+        </div>
+      </section>
+
+      <StructureSection report={report} />
+    </div>
+  );
+}

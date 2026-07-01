@@ -7,7 +7,7 @@ import { CalendarCard } from "./calendar-card";
 import { ChartCard } from "./chart-card";
 import { LifeShell } from "./life-shell";
 import { MetricCard } from "./metric-card";
-import { NutritionBreakdown } from "./nutrition-breakdown";
+import { NutritionMiniBars } from "./nutrition-mini-bars";
 import { RecentTransactions } from "./recent-transactions";
 import { TrendChart } from "./trend-chart";
 import { useHomeData } from "./use-home-data";
@@ -92,7 +92,9 @@ export function LifeHome() {
               icon={<Salad strokeWidth={2} />}
               variant="highlight"
               href={`/nutrition?month=${encodeURIComponent(month)}`}
-            />
+            >
+              {scoreState ? <NutritionMiniBars report={scoreState.report} /> : null}
+            </MetricCard>
             <MetricCard
               title="今日支出"
               state={analytics.kind === "loading" ? "loading" : analytics.kind === "error" ? "error" : "ok"}
@@ -181,52 +183,28 @@ export function LifeHome() {
             )}
           </ChartCard>
 
-          {/* Row 3 — two cards: recent transactions + nutrition breakdown */}
-          <section className="life-home__bottom" aria-label="详情卡片">
-            {analyticsState ? (
-              <RecentTransactions
-                transactions={analyticsState.recent_transactions}
-                currency={analyticsState.primary_currency}
-              />
-            ) : analytics.kind === "loading" ? (
-              <RecentTransactions transactions={[]} currency="—" />
-            ) : (
-              <section className="life-card">
-                <header className="life-card__header">
-                  <span className="life-card__title">最近交易</span>
-                </header>
-                <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
-                  交易数据加载失败：{analytics.kind === "error" ? analytics.message : ""}
-                </div>
-              </section>
-            )}
-            {scoreState ? (
-              <NutritionBreakdown report={scoreState.report} />
-            ) : score.kind === "loading" ? (
-              <section className="life-card">
-                <header className="life-card__header">
-                  <span className="life-card__title">营养结构 · 四维</span>
-                </header>
-                <div className="life-chart-placeholder" style={{ minHeight: 160 }}>
-                  四维评分加载中…
-                </div>
-              </section>
-            ) : (
-              <section className="life-card">
-                <header className="life-card__header">
-                  <span className="life-card__title">营养结构 · 四维</span>
-                </header>
-                <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
-                  营养数据加载失败：{score.kind === "error" ? score.message : ""}
-                </div>
-              </section>
-            )}
-          </section>
         </div>
 
         <aside className="life-home__aside" aria-label="侧栏">
           <CalendarCard activeDays={analyticsState ? activeDays(analyticsState) : []} />
           <ActivityCard entries={insights} />
+          {analyticsState ? (
+            <RecentTransactions
+              currency={analyticsState.primary_currency}
+              transactions={analyticsState.recent_transactions}
+            />
+          ) : analytics.kind === "loading" ? (
+            <RecentTransactions currency="—" transactions={[]} />
+          ) : (
+            <section className="life-card">
+              <header className="life-card__header">
+                <span className="life-card__title">最近交易</span>
+              </header>
+              <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
+                交易数据加载失败：{analytics.kind === "error" ? analytics.message : ""}
+              </div>
+            </section>
+          )}
         </aside>
       </div>
     </LifeShell>
