@@ -213,7 +213,7 @@
 .nut-panel--allocation,
 .nut-panel--chart,
 .nut-panel--list {
-  min-height: 558px;
+  min-height: 0;
 }
 
 .nut-panel--wide {
@@ -1422,11 +1422,249 @@
   line-height: 1.4;
 }
 
+/* ---------- Compact hero data board ---------- */
+.nut-hero-board {
+  display: grid;
+  gap: 20px;
+}
+
+.nut-hero-board__main {
+  align-items: flex-start;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr auto;
+}
+
+.nut-hero-board__metrics {
+  align-items: center;
+  display: flex;
+  gap: 28px;
+}
+
+.nut-hero-board__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 64px;
+}
+
+.nut-hero-board__metric strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.nut-hero-board__metric span {
+  color: var(--life-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.nut-hero-board__metric--primary {
+  align-items: center;
+  flex-direction: row;
+  gap: 14px;
+}
+
+.nut-hero-board__metric--primary strong {
+  font-size: 2.2rem;
+}
+
+.nut-hero-board__metric--primary span {
+  max-width: 60px;
+}
+
+.nut-ring circle {
+  transition: stroke-dashoffset 500ms ease;
+}
+
+.nut-hero-board__status {
+  align-items: center;
+  background: rgba(155, 234, 61, 0.16);
+  border-radius: 999px;
+  color: #1a4d22;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  width: fit-content;
+}
+
+/* ---------- Bullet chart (structure vs target) ---------- */
+.nut-bullets {
+  display: grid;
+  gap: 22px;
+}
+
+.nut-bullet {
+  display: grid;
+  gap: 10px;
+}
+
+.nut-bullet__head {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nut-bullet__head span {
+  color: var(--life-text);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.nut-bullet__head strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.nut-bullet__track {
+  background: var(--life-card-soft);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.nut-bullet__range {
+  border-radius: 999px;
+  height: 100%;
+  opacity: 0.55;
+  position: absolute;
+  top: 0;
+}
+
+.nut-bullet__marker {
+  background: #ffffff;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 3px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+  height: 14px;
+  margin-top: -2px;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 14px;
+  z-index: 2;
+}
+
+.nut-bullet__foot {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nut-bullet__foot small {
+  color: var(--life-muted);
+  font-size: 0.72rem;
+}
+
+.nut-bullet__ok {
+  color: var(--life-green-ink);
+  font-weight: 700;
+}
+
+.nut-bullet__gap {
+  color: var(--life-danger);
+  font-weight: 700;
+}
+
+/* ---------- Minimal checklist ---------- */
+.nut-checklist {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nut-checklist__item {
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 24px 1fr auto;
+  padding: 16px 0;
+}
+
+.nut-checklist__item:last-child {
+  border-bottom: none;
+}
+
+.nut-checklist__check {
+  align-items: center;
+  color: var(--life-green-ink);
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.nut-checklist__check svg {
+  height: 20px;
+  width: 20px;
+}
+
+.nut-checklist__item[data-tone="warn"] .nut-checklist__check {
+  color: var(--life-yellow);
+}
+
+.nut-checklist__item[data-tone="bad"] .nut-checklist__check {
+  color: var(--life-danger);
+}
+
+.nut-checklist__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nut-checklist__body strong {
+  color: var(--life-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.nut-checklist__body span {
+  color: var(--life-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.nut-checklist__tag {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  color: var(--life-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.nut-checklist__item[data-tone="bad"] .nut-checklist__tag {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: rgba(255, 107, 107, 0.25);
+  color: var(--life-danger);
+}
+
+.nut-checklist__item[data-tone="warn"] .nut-checklist__tag {
+  background: rgba(245, 184, 51, 0.1);
+  border-color: rgba(245, 184, 51, 0.25);
+  color: #b45309;
+}
+
 @media (max-width: 1060px) {
   .nut-combined__body {
     grid-template-columns: 1fr;
   }
-  .nut-analysis-board .nut-panel--hero .nut-judgement {
+  .nut-hero-board__main {
     grid-template-columns: 1fr;
   }
 }
@@ -1434,5 +1672,17 @@
 @media (max-width: 720px) {
   .nut-narrative__signal {
     grid-template-columns: 12px 76px 1fr;
+  }
+  .nut-hero-board__metrics {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .nut-checklist__item {
+    grid-template-columns: 24px 1fr;
+  }
+  .nut-checklist__tag {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 38px;
   }
 }
