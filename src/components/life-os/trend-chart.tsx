@@ -1,10 +1,10 @@
 "use client";
 
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -62,8 +62,7 @@ function yuan(v: number): string {
 const AXIS_TICK = { fontSize: 12, fill: "#50585E", fontFamily: "var(--life-font-num)" };
 const GRID_STROKE = "rgba(15, 23, 42, 0.06)";
 const LINE_COLOR = "#1a4d22";
-const LINE_FILL = "rgba(155, 234, 61, 0.18)";
-const BAR_COLOR = "rgba(131, 183, 255, 0.45)";
+const BAR_COLOR = "rgba(131, 183, 255, 0.35)";
 
 export function TrendChart({ trend, spendByPeriod }: Props) {
   const data: ChartPoint[] = trend.map((row) => ({
@@ -75,7 +74,13 @@ export function TrendChart({ trend, spendByPeriod }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }} barCategoryGap="22%">
+      <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }} barCategoryGap="40%">
+        <defs>
+          <linearGradient id="nutrition-score-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="5%" stopColor={LINE_COLOR} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={LINE_COLOR} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid stroke={GRID_STROKE} strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} />
         <YAxis
@@ -113,17 +118,18 @@ export function TrendChart({ trend, spendByPeriod }: Props) {
           yAxisId="spend"
           dataKey="spend"
           fill={BAR_COLOR}
-          radius={[6, 6, 0, 0]}
-          maxBarSize={28}
+          radius={[4, 4, 0, 0]}
+          maxBarSize={12}
           isAnimationActive={false}
         />
-        <Line
+        <Area
           yAxisId="score"
           type="monotone"
           dataKey="score"
           stroke={LINE_COLOR}
           strokeWidth={2.5}
-          dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
+          fill="url(#nutrition-score-area)"
+          dot={{ r: 4, strokeWidth: 2, fill: "#ffffff", stroke: LINE_COLOR }}
           activeDot={{ r: 6 }}
           isAnimationActive={false}
         />
@@ -131,7 +137,3 @@ export function TrendChart({ trend, spendByPeriod }: Props) {
     </ResponsiveContainer>
   );
 }
-
-/** Filled area variant — currently unused, exported in case Phase D wants
- *  to swap the line for a soft area without rewriting the data shape. */
-void LINE_FILL;

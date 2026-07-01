@@ -25,6 +25,43 @@ function yuan(cents: number): string {
   return `¥${formatYuan(cents)}`;
 }
 
+function CircularProgress({ pct, size, stroke }: { pct: number; size: number; stroke: number }) {
+  const radius = (size - stroke) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (pct / 100) * circumference;
+  return (
+    <svg
+      className="life-circular-progress"
+      height={size}
+      role="img"
+      viewBox={`0 0 ${size} ${size}`}
+      width={size}
+    >
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        fill="none"
+        r={radius}
+        stroke="var(--life-card-soft)"
+        strokeWidth={stroke}
+      />
+      <circle
+        className="life-circular-progress__bar"
+        cx={size / 2}
+        cy={size / 2}
+        fill="none"
+        r={radius}
+        stroke="var(--life-green-strong)"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        strokeWidth={stroke}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </svg>
+  );
+}
+
 /**
  * Phase A2 home: shell + 4 live KPIs + main trend chart + recent
  * transactions + nutrition breakdown + calendar + activity signals.
@@ -107,7 +144,7 @@ export function LifeHome() {
               }
               footnote={
                 analyticsState
-                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}${foodRatio && foodRatio.ratio !== null ? ` · 食物占比 ${(foodRatio.ratio * 100).toFixed(0)}%` : ""}`
+                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}${foodRatio && foodRatio.ratio !== null ? ` · 本月食物已花 ${yuan(foodRatio.foodCents)}` : ""}`
                   : undefined
               }
               icon={<CircleDollarSign strokeWidth={2} />}
@@ -138,6 +175,15 @@ export function LifeHome() {
               }
               icon={<Database strokeWidth={2} />}
               href={`/nutrition?month=${encodeURIComponent(month)}`}
+              decorator={
+                scoreState ? (
+                  <CircularProgress
+                    pct={Math.round(scoreState.report.coveragePct)}
+                    size={52}
+                    stroke={5}
+                  />
+                ) : null
+              }
             />
           </section>
 

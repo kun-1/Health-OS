@@ -629,6 +629,26 @@
   color: var(--life-text);
 }
 
+/* ---------- Metric card decorator ---------- */
+.life-card__decorator {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+}
+
+.life-card {
+  position: relative;
+}
+
+/* ---------- Circular progress ---------- */
+.life-circular-progress {
+  display: block;
+}
+
+.life-circular-progress__bar {
+  transition: stroke-dashoffset 500ms ease;
+}
+
 /* ---------- Activity ---------- */
 .life-activity__list {
   display: flex;

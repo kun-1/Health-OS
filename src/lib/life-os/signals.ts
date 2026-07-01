@@ -34,9 +34,12 @@ export function computeFoodSpendRatio(analytics: ExpenseAnalytics): FoodSpendRat
       foodCents += row.amount;
     }
   }
-  const totalCents = analytics.effective_spent_this_month > 0
-    ? analytics.effective_spent_this_month
-    : analytics.spent_this_month;
+  // category_breakdown amounts are in cents (consistent with budget_progress.spent);
+  // effective_spent_this_month is in yuan, so use the cents denominator to keep
+  // the ratio in [0, 1].
+  const totalCents = analytics.budget_progress.spent > 0
+    ? analytics.budget_progress.spent
+    : Math.round(analytics.spent_this_month * 100);
   return {
     foodCents,
     totalCents,

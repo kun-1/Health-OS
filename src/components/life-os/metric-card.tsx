@@ -30,6 +30,8 @@ type Props = {
   errorMessage?: string;
   /** Extra content rendered between the delta and the footnote. */
   children?: ReactNode;
+  /** Optional decorator rendered in the top-right corner of the card. */
+  decorator?: ReactNode;
 };
 
 function ValueSkeleton() {
@@ -56,10 +58,12 @@ export function MetricCard({
   compactValue,
   state = "ok",
   errorMessage,
-  children
+  children,
+  decorator
 }: Props) {
   const body = (
     <article className={`life-card${href ? " life-card--clickable" : ""}`} data-variant={variant}>
+      {decorator ? <div className="life-card__decorator">{decorator}</div> : null}
       <header className="life-card__header">
         <span className="life-card__title">{title}</span>
         {icon ? <span className="life-card__icon">{icon}</span> : null}
