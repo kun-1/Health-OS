@@ -86,7 +86,7 @@ export function computeSignals(
     signals.push({
       icon: "alert",
       title: headroom,
-      meta: `已花 ¥${formatYuan(analytics.spent_this_month)} / 预算 ¥${formatYuan(analytics.monthly_budget)}`
+      meta: `已花 ¥${formatYuanValue(analytics.spent_this_month)} / 预算 ¥${formatYuanValue(analytics.monthly_budget)}`
     });
   }
 
@@ -147,6 +147,14 @@ function longestZeroDayRun(daily: { day: string; amount: number }[]): number {
 /** Cents → yuan, rounded to 2 decimals (no currency symbol). */
 export function formatYuan(cents: number): string {
   return (cents / 100).toLocaleString("zh-CN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+/** Yuan value → formatted string with 2 decimals (no currency symbol). */
+export function formatYuanValue(yuan: number): string {
+  return yuan.toLocaleString("zh-CN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });

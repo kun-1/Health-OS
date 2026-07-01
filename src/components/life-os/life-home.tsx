@@ -25,6 +25,10 @@ function yuan(cents: number): string {
   return `¥${formatYuan(cents)}`;
 }
 
+function yuanValue(value: number): string {
+  return `¥${value.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function CircularProgress({ pct, size, stroke }: { pct: number; size: number; stroke: number }) {
   const radius = (size - stroke) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -88,7 +92,8 @@ export function LifeHome() {
   // so we can fold them in without an extra request.
   const spendByPeriod: Record<string, number> = {};
   if (analyticsState) {
-    spendByPeriod[month] = analyticsState.effective_spent_this_month;
+    // budget_progress.spent is cents; effective_spent_this_month is yuan.
+    spendByPeriod[month] = analyticsState.budget_progress.spent;
     const prevMonth = prevMonthOf(month);
     if (prevMonth) {
       const sum = analyticsState.prev_month_daily_totals.reduce(
@@ -139,12 +144,12 @@ export function LifeHome() {
               value={yuan(todaySpend)}
               delta={
                 analyticsState
-                  ? <>本月 {yuan(analyticsState.spent_this_month)}</>
+                  ? <>本月 {yuanValue(analyticsState.spent_this_month)}</>
                   : undefined
               }
               footnote={
                 analyticsState
-                  ? `预算 ${yuan(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}${foodRatio && foodRatio.ratio !== null ? ` · 本月食物已花 ${yuan(foodRatio.foodCents)}` : ""}`
+                  ? `预算 ${yuanValue(analyticsState.monthly_budget)} · ${analyticsState.budget_progress_label ?? "进度待算"}${foodRatio && foodRatio.ratio !== null ? ` · 本月食物已花 ${yuan(foodRatio.foodCents)}` : ""}`
                   : undefined
               }
               icon={<CircleDollarSign strokeWidth={2} />}
