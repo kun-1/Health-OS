@@ -1913,6 +1913,28 @@
   opacity: 0.6;
 }
 
+.exp-empty--cta {
+  gap: 12px;
+  padding: 32px 16px;
+}
+
+.exp-empty__body {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  max-width: 360px;
+}
+
+.exp-empty__body strong {
+  color: var(--life-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.exp-empty__body span {
+  line-height: 1.5;
+}
+
 /* ---------- Layout (2-col / asymmetric) ---------- */
 .exp-grid {
   display: grid;
@@ -3525,7 +3547,7 @@
 }
 
 .exp-chart-wrap--bar {
-  min-height: 180px;
+  min-height: 260px;
 }
 
 .exp-panel--allocation {

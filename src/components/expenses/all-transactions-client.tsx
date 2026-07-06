@@ -35,8 +35,8 @@ type QuickFilter = { id: string; label: string; match: (category: string) => boo
 
 const QUICK_FILTERS: QuickFilter[] = [
   { id: "all", label: "全部", match: () => true },
-  { id: "food", label: "饮食", match: (c) => ["食物", "外食", "饮料/咖啡"].includes(c) },
-  { id: "transport", label: "出行", match: (c) => c === "交通" },
+  { id: "food", label: "餐饮", match: (c) => ["食物", "外食", "饮料/咖啡"].includes(c) },
+  { id: "transport", label: "交通", match: (c) => c === "交通" },
   { id: "daily", label: "日用", match: (c) => ["日用品", "清洁用品", "个人护理"].includes(c) },
   { id: "other", label: "其他", match: (c) => !["食物", "外食", "饮料/咖啡", "交通", "日用品", "清洁用品", "个人护理"].includes(c) }
 ];

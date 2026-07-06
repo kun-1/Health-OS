@@ -241,7 +241,7 @@ export function TransactionCard({ transaction, draft, onDraftChange, onSave, onD
           <div className="exp-card__compact-right">
             {transaction.subtotal_amount !== null && transaction.subtotal_amount !== transaction.total_amount ? (
               <span className="exp-card__amount-sub">
-                小计 {formatMoney(transaction.subtotal_amount, transaction.currency)}
+                优惠前 {formatMoney(transaction.subtotal_amount, transaction.currency)}
               </span>
             ) : null}
             <span className="exp-card__compact-amount">

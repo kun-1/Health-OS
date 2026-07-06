@@ -60,8 +60,8 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
       <section className="exp-panel exp-panel--side">
         <div className="exp-section-head exp-section-head--compact">
           <div>
-            <p className="exp-eyebrow">类别偏移</p>
-            <h2>相比预算目标的压力</h2>
+            <p className="exp-eyebrow">类别占比</p>
+            <h2>支出类别分布</h2>
           </div>
         </div>
         <div className="exp-bars">
@@ -74,7 +74,6 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
               <div className="exp-range"><span style={{ width: `${Math.min(100, item.percent * 1.8)}%`, background: item.color }} /></div>
               <div className="exp-bar-row__foot">
                 <small>{item.percent}% of monthly spend</small>
-                <small>{item.percent > 35 ? "偏高" : "正常"}</small>
               </div>
             </div>
           ))}

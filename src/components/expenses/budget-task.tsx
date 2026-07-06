@@ -125,7 +125,7 @@ function TransactionBand({ title, transactions, month }: { title: string; transa
     <section className="exp-panel exp-panel--wide">
       <div className="exp-section-head exp-section-head--compact">
         <div>
-          <p className="exp-eyebrow">流水</p>
+          <p className="exp-eyebrow">账单</p>
           <h2>{title}</h2>
         </div>
         <a className="exp-filter" href={`/expenses/transactions?month=${encodeURIComponent(month)}`}>查看全部</a>

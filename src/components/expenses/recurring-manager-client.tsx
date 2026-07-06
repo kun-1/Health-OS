@@ -576,9 +576,19 @@ export function RecurringManagerClient() {
           </h2>
         </div>
         {rules.length === 0 ? (
-          <div className="exp-empty exp-card">
+          <div className="exp-empty exp-empty--cta exp-card">
             <div className="exp-empty__icon" aria-hidden>📅</div>
-            <div>暂无规则，点右上角「新增规则」开始</div>
+            <div className="exp-empty__body">
+              <strong>暂无定期规则</strong>
+              <span>添加房租、订阅、保险等固定支出，系统会在到期时自动入账。</span>
+            </div>
+            <button
+              className="exp-btn exp-btn--primary exp-btn--sm"
+              onClick={startCreate}
+              type="button"
+            >
+              新增规则
+            </button>
           </div>
         ) : (
           <div className="exp-recurring-list">
