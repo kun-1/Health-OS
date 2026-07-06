@@ -8,7 +8,7 @@
  */
 
 import type {
-  ExpenseAnalytics,
+  ExpenseCategory,
   ExpenseTransaction,
   ExtractedExpenseReceipt
 } from "@/lib/expenses/types";
@@ -26,9 +26,13 @@ export type UploadFailure = { filename?: string; error: string; timing?: UploadT
 export type ManualExpenseInput = {
   merchant_name: string;
   purchased_at: string;
-  item_name: string;
-  category_zh: ExpenseAnalytics["category_breakdown"][number]["category_zh"];
-  amount: number | null;
+  items: Array<{
+    item_name: string;
+    category_zh: ExpenseCategory;
+    quantity?: string;
+    amount: number | null;
+    notes?: string | null;
+  }>;
   notes: string | null;
   currency: string;
   excludedFromBudget?: boolean;

@@ -113,6 +113,25 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_expense_items_category
     ON expense_items (category_zh);
 
+  CREATE TABLE IF NOT EXISTS expense_budget_settings (
+    id INTEGER PRIMARY KEY,
+    base_budget_cents INTEGER NOT NULL,
+    primary_currency TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS expense_budget_top_ups (
+    id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    note TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_expense_budget_top_ups_month
+    ON expense_budget_top_ups (month, created_at DESC);
+
   CREATE TABLE IF NOT EXISTS receipt_hashes (
     hash TEXT PRIMARY KEY,
     receipt_id INTEGER NOT NULL,

@@ -1,6 +1,7 @@
-// Wave 2 feature: budget settings — user-tweakable monthly budget and primary
-// currency. Stored in localStorage because the app is single-user and we don't
-// want to bloat the schema with a one-row settings table.
+// Legacy browser-local budget settings. New reads/writes go through
+// /api/expenses/budget so desktop and mobile share the same SQLite-backed
+// settings; these helpers remain for one-time migration of old localStorage
+// values.
 
 export const STORAGE_KEY_BUDGET = "expenses.budget";
 export const STORAGE_KEY_PRIMARY_CURRENCY = "expenses.primaryCurrency";
@@ -112,4 +113,30 @@ export function addStoredBudgetTopUp(input: {
 
 export function deleteStoredBudgetTopUp(id: string): void {
   writeStoredBudgetTopUps(readStoredBudgetTopUps().filter((entry) => entry.id !== id));
+}
+
+let migrationPromise: Promise<void> | null = null;
+
+export function migrateStoredBudgetSettingsToServer(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (migrationPromise) return migrationPromise;
+  const hasLegacyBudget = window.localStorage.getItem(STORAGE_KEY_BUDGET) !== null;
+  const hasLegacyCurrency = window.localStorage.getItem(STORAGE_KEY_PRIMARY_CURRENCY) !== null;
+  const hasLegacyTopUps = window.localStorage.getItem(STORAGE_KEY_BUDGET_TOP_UPS) !== null;
+  if (!hasLegacyBudget && !hasLegacyCurrency && !hasLegacyTopUps) {
+    migrationPromise = Promise.resolve();
+    return migrationPromise;
+  }
+  migrationPromise = fetch("/api/expenses/budget/migrate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      budgetCents: hasLegacyBudget ? getStoredBudgetCents() : null,
+      primaryCurrency: hasLegacyCurrency ? getStoredPrimaryCurrency() : null,
+      topUps: hasLegacyTopUps ? readStoredBudgetTopUps() : []
+    })
+  })
+    .then(() => undefined)
+    .catch(() => undefined);
+  return migrationPromise;
 }

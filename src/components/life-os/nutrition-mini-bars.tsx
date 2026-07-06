@@ -16,25 +16,25 @@ export function NutritionMiniBars({ report }: { report: NutritionReport }) {
       key: "pdi",
       label: "PDI 植物性",
       value: dimensionPct(report.pdi.total, report.pdi.max),
-      color: "#9bea3d"
+      color: "var(--life-green-strong)"
     },
     {
       key: "ahei",
       label: "AHEI 质量",
       value: dimensionPct(report.ahei.total, report.ahei.max),
-      color: "#83b7ff"
+      color: "var(--life-blue)"
     },
     {
       key: "plate",
       label: "餐盘结构",
       value: clampScore((1 - report.plate.deviation) * 100),
-      color: "#ff9f45"
+      color: "var(--life-orange)"
     },
     {
       key: "upf",
       label: "UPF 控制",
       value: clampScore((1 - report.upf.upfShare) * 100),
-      color: "#ff6b6b"
+      color: "var(--life-danger)"
     }
   ];
 

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ExpenseAnalytics } from "@/lib/expenses/types";
 import type { NutritionReport } from "@/lib/nutrition/types";
 
+import { migrateStoredBudgetSettingsToServer } from "@/lib/expenses/settings";
 import { structureScore } from "@/lib/life-os/selectors";
 
 import { useRefreshing } from "@/components/shared/refreshing-context";
@@ -104,7 +105,8 @@ export function useHomeData(): HomeData {
         setTrend({ kind: "error", message: err instanceof Error ? err.message : String(err) });
       });
 
-    fetchJson<ExpenseAnalytics>(`/api/expenses?month=${month}&tz=${tz}`, controller.signal)
+    migrateStoredBudgetSettingsToServer()
+      .then(() => fetchJson<ExpenseAnalytics>(`/api/expenses?month=${month}&tz=${tz}`, controller.signal))
       .then((data) => setAnalytics({ kind: "ok", data }))
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;

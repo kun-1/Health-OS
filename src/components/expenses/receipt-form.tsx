@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { formatMoney } from "@/lib/expenses/money";
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from "@/lib/expenses/settings";
@@ -171,6 +171,24 @@ export function ReceiptForm({ value, onChange }: Props) {
     return roundMoney(lineAmountTarget - itemsTotal);
   }, [itemsTotal, lineAmountTarget, value.items]);
 
+  // After the user clicks "添加商品", scroll the item list to its bottom so
+  // the new empty row is visible, then scroll the add button into view so the
+  // user can keep adding items without hunting for the button.
+  const itemsScrollRef = useRef<HTMLDivElement | null>(null);
+  const addButtonRef = useRef<HTMLButtonElement | null>(null);
+  const prevLengthRef = useRef(value.items.length);
+  useEffect(() => {
+    if (value.items.length > prevLengthRef.current) {
+      if (itemsScrollRef.current) {
+        itemsScrollRef.current.scrollTo({ top: itemsScrollRef.current.scrollHeight, behavior: "smooth" });
+      }
+      if (addButtonRef.current) {
+        addButtonRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+    prevLengthRef.current = value.items.length;
+  }, [value.items.length]);
+
   function update<K extends keyof ExtractedExpenseReceipt>(key: K, next: ExtractedExpenseReceipt[K]) {
     onChange({ ...value, [key]: next });
   }
@@ -315,117 +333,117 @@ export function ReceiptForm({ value, onChange }: Props) {
           <span>优惠价</span>
           <span>小计</span>
         </div>
-        <div className="exp-form__items-scroll">
+        <div className="exp-form__items-scroll" ref={itemsScrollRef}>
           {value.items.length === 0 ? (
             <div className="exp-cats__empty" style={{ padding: "12px 0" }}>
               还没有商品，点下方按钮添加
             </div>
           ) : null}
           {value.items.map((item, index) => (
-          <div className="exp-form__item" key={index}>
-            <div className="exp-form__item-top">
-              <input
-                className="exp-form__input"
-                onChange={(event) => updateItemName(index, event.target.value)}
-                placeholder="商品名"
-                type="text"
-                value={item.name_zh}
-              />
-              <select
-                className="exp-form__select"
-                onChange={(event) =>
-                  updateItem(index, {
-                    category_zh: event.target.value,
-                    category_raw: null
-                  })
-                }
-                value={item.category_zh}
-              >
-                {/*
-                 * When the model's value is non-canonical, the selected option
-                 * isn't in the 12 canonical entries, so the <select> would
-                 * render blank. Render the raw value as a disabled placeholder
-                 * option so the user sees "模型识别：'咖啡'" until they pick a
-                 * canonical one. Once they pick, the raw-vs-resolved gap is
-                 * closed and the placeholder disappears.
-                 */}
-                {item.category_raw && !categoryNames.includes(item.category_zh as never) ? (
-                  <option disabled value={item.category_zh}>
-                    模型识别: &lsquo;{item.category_zh}&rsquo;
-                  </option>
-                ) : null}
-                {categoryNames.map((name) => (
-                  <option key={name} value={name}>
-                    {categoryEmoji(name)} {categoryLabel(name)}
-                  </option>
-                ))}
-              </select>
-              <button
-                aria-label="删除商品"
-                className="exp-form__remove"
-                onClick={() => removeItem(index)}
-                type="button"
-              >
-                <svg fill="none" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-              </button>
-            </div>
-            <NamePreview name={item.name_zh} />
-            <div className="exp-form__item-bottom">
-              <input
-                className="exp-form__input"
-                onChange={(event) => updateItemQuantity(index, event.target.value || null)}
-                placeholder="1"
-                type="text"
-                value={item.quantity ?? ""}
-              />
-              <div className="exp-form__amount-pair">
+            <div className="exp-form__item" key={index}>
+              <div className="exp-form__item-top">
                 <input
                   className="exp-form__input"
-                  onChange={(event) => updateItem(index, { food_amount_value: num(event.target.value) })}
-                  placeholder="250"
+                  onChange={(event) => updateItemName(index, event.target.value)}
+                  placeholder="商品名"
+                  type="text"
+                  value={item.name_zh}
+                />
+                <select
+                  className="exp-form__select"
+                  onChange={(event) =>
+                    updateItem(index, {
+                      category_zh: event.target.value,
+                      category_raw: null
+                    })
+                  }
+                  value={item.category_zh}
+                >
+                  {/*
+                   * When the model's value is non-canonical, the selected option
+                   * isn't in the 12 canonical entries, so the <select> would
+                   * render blank. Render the raw value as a disabled placeholder
+                   * option so the user sees "模型识别：'咖啡'" until they pick a
+                   * canonical one. Once they pick, the raw-vs-resolved gap is
+                   * closed and the placeholder disappears.
+                   */}
+                  {item.category_raw && !categoryNames.includes(item.category_zh as never) ? (
+                    <option disabled value={item.category_zh}>
+                      模型识别: &lsquo;{item.category_zh}&rsquo;
+                    </option>
+                  ) : null}
+                  {categoryNames.map((name) => (
+                    <option key={name} value={name}>
+                      {categoryEmoji(name)} {categoryLabel(name)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  aria-label="删除商品"
+                  className="exp-form__remove"
+                  onClick={() => removeItem(index)}
+                  type="button"
+                >
+                  <svg fill="none" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                </button>
+              </div>
+              <NamePreview name={item.name_zh} />
+              <div className="exp-form__item-bottom">
+                <input
+                  className="exp-form__input"
+                  onChange={(event) => updateItemQuantity(index, event.target.value || null)}
+                  placeholder="1"
+                  type="text"
+                  value={item.quantity ?? ""}
+                />
+                <div className="exp-form__amount-pair">
+                  <input
+                    className="exp-form__input"
+                    onChange={(event) => updateItem(index, { food_amount_value: num(event.target.value) })}
+                    placeholder="250"
+                    step="0.01"
+                    type="number"
+                    value={item.food_amount_value ?? ""}
+                  />
+                  <input
+                    className="exp-form__input"
+                    onChange={(event) => updateItem(index, { food_amount_unit: event.target.value || null })}
+                    placeholder="g"
+                    type="text"
+                    value={item.food_amount_unit ?? ""}
+                  />
+                </div>
+                <input
+                  className="exp-form__input"
+                  onChange={(event) => updateItemUnitPrice(index, num(event.target.value))}
+                  placeholder="原价"
                   step="0.01"
                   type="number"
-                  value={item.food_amount_value ?? ""}
+                  value={item.unit_price ?? ""}
                 />
                 <input
                   className="exp-form__input"
-                  onChange={(event) => updateItem(index, { food_amount_unit: event.target.value || null })}
-                  placeholder="g"
-                  type="text"
-                  value={item.food_amount_unit ?? ""}
+                  onChange={(event) => updateItemDiscountedUnitPrice(index, num(event.target.value))}
+                  placeholder="优惠后"
+                  step="0.01"
+                  type="number"
+                  value={item.discounted_unit_price ?? ""}
+                />
+                <input
+                  className="exp-form__input"
+                  onChange={(event) => updateItemAmount(index, num(event.target.value))}
+                  placeholder="0.00"
+                  step="0.01"
+                  type="number"
+                  value={item.amount ?? ""}
                 />
               </div>
-              <input
-                className="exp-form__input"
-                onChange={(event) => updateItemUnitPrice(index, num(event.target.value))}
-                placeholder="原价"
-                step="0.01"
-                type="number"
-                value={item.unit_price ?? ""}
-              />
-              <input
-                className="exp-form__input"
-                onChange={(event) => updateItemDiscountedUnitPrice(index, num(event.target.value))}
-                placeholder="优惠后"
-                step="0.01"
-                type="number"
-                value={item.discounted_unit_price ?? ""}
-              />
-              <input
-                className="exp-form__input"
-                onChange={(event) => updateItemAmount(index, num(event.target.value))}
-                placeholder="0.00"
-                step="0.01"
-                type="number"
-                value={item.amount ?? ""}
-              />
             </div>
-          </div>
           ))}
         </div>
-        <button className="exp-form__add" onClick={addItem} type="button">
+        <button className="exp-form__add" onClick={addItem} ref={addButtonRef} type="button">
           <svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" />
           </svg>

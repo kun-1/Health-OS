@@ -37,23 +37,21 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
             <p className="exp-eyebrow">分类结构</p>
             <h1>钱主要流向哪里</h1>
           </div>
-          <div className="exp-summary-number">
-            <span>{categoryData[0]?.percent ?? 0}%</span>
-            <small>最大类别占比</small>
-          </div>
         </div>
-        <ResponsiveContainer height={420} width="100%">
-          <PieChart>
-            <Pie cx="50%" cy="50%" data={categoryData} dataKey="percent" innerRadius={112} outerRadius={184} paddingAngle={1.5} stroke="#ffffff" strokeWidth={2}>
-              {categoryData.map((entry) => (
-                <Cell fill={entry.color} key={entry.category} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value, name, item) => [`${value}% · ${formatMoney(fromCents(item.payload.amount), analytics.primary_currency)}`, name]} />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="exp-chart-wrap exp-chart-wrap--donut">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie cx="50%" cy="50%" data={categoryData} dataKey="percent" innerRadius={64} outerRadius={100} paddingAngle={1.5} stroke="#ffffff" strokeWidth={2}>
+                {categoryData.map((entry) => (
+                  <Cell fill={entry.color} key={entry.category} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name, item) => [`${value}% · ${formatMoney(fromCents(item.payload.amount), analytics.primary_currency)}`, name]} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
         <div className="exp-legend">
-          {categoryData.slice(0, 6).map((item) => (
+          {categoryData.slice(0, 4).map((item) => (
             <span key={item.category}><i style={{ background: item.color }} />{categoryLabel(item.category)} {item.percent}%</span>
           ))}
         </div>
@@ -67,7 +65,7 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
           </div>
         </div>
         <div className="exp-bars">
-          {categoryData.slice(0, 6).map((item) => (
+          {categoryData.slice(0, 4).map((item) => (
             <div className="exp-bar-row" key={item.category}>
               <div className="exp-bar-row__meta">
                 <span><i style={{ background: item.color }} />{categoryEmoji(item.category)} {categoryLabel(item.category)}</span>
@@ -90,8 +88,9 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
             <h2>按金额排序</h2>
           </div>
         </div>
-        <ResponsiveContainer height={240} width="100%">
-          <BarChart data={categoryData} margin={{ bottom: 0, left: 0, right: 12, top: 12 }}>
+        <div className="exp-chart-wrap exp-chart-wrap--bar">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={categoryData} margin={{ bottom: 0, left: 0, right: 12, top: 12 }}>
             <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
             <XAxis axisLine={false} dataKey="category" tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickLine={false} tickFormatter={(value) => categoryLabel(String(value))} />
             <YAxis axisLine={false} tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickFormatter={(value) => `¥${fromCents(Number(value)).toFixed(0)}`} tickLine={false} />
@@ -103,6 +102,7 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </section>
     </div>
   );

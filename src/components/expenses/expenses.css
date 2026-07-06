@@ -535,6 +535,14 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 
+.exp-kpis--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.exp-kpis--wide {
+  grid-column: 1 / -1;
+}
+
 .exp-kpi {
   min-width: 0;
   min-height: 96px;
@@ -931,12 +939,59 @@
   color: var(--life-green-ink);
   background: rgba(155, 234, 61, 0.16);
 }
-.exp-manual__amount .exp-form__input {
-  font-size: 32px;
-  font-weight: 760;
+.exp-manual__total {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
+}
+.exp-manual__total strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 30px;
   font-variant-numeric: tabular-nums;
-  min-height: 60px;
-  letter-spacing: -0.01em;
+  font-weight: 760;
+}
+.exp-manual__items {
+  display: grid;
+  gap: 10px;
+}
+.exp-manual__items-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.exp-manual__items-head > span {
+  color: var(--life-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.exp-manual__item {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
+}
+.exp-manual__item-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--life-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.exp-manual__item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(70px, 0.5fr) minmax(92px, 0.7fr);
+  gap: 10px;
 }
 
 /* ---------- Buttons (legacy class — kept for sub-components) ---------- */
@@ -1427,7 +1482,7 @@
 }
 .exp-card__details-body {
   overflow-y: auto;
-  padding: 24px 26px 0;
+  padding: 24px 26px 92px;
   flex: 1;
   min-height: 0;
   scrollbar-width: thin;
@@ -1608,8 +1663,20 @@
 .exp-form__items-scroll {
   display: grid;
   gap: 8px;
-  padding: 2px 4px 2px 0;
-  margin-right: -4px;
+  padding: 2px 8px 2px 0;
+  margin-right: -8px;
+  /* Keep the "添加商品" button reachable above the drawer's bottom action bar. */
+  max-height: min(300px, 36vh);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--life-border-strong) transparent;
+}
+.exp-form__items-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.exp-form__items-scroll::-webkit-scrollbar-thumb {
+  background: var(--life-border-strong);
+  border-radius: 999px;
 }
 .exp-form__items-head {
   display: grid;
@@ -1729,6 +1796,7 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  scroll-margin-bottom: 110px;
   transition: color 160ms ease, border-color 160ms ease;
 }
 .exp-form__add:hover {
@@ -1926,7 +1994,7 @@
     width: 100vw;
   }
   .exp-card__details-body {
-    padding: 18px 16px 0;
+    padding: 18px 16px 78px;
   }
   .exp-form__actions {
     padding: 12px 16px;
@@ -2001,16 +2069,19 @@
 
 /* Receipt thumbnail styling. */
 .exp-receipt-thumb {
-  display: block;
-  max-width: 220px;
-  max-height: 220px;
-  width: auto;
-  height: auto;
-  border-radius: var(--life-radius);
+  background: #ffffff;
   border: 1px solid var(--life-border);
+  border-radius: var(--life-radius);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  display: block;
+  height: auto;
   margin: 0 auto 12px;
+  max-height: 160px;
+  max-width: 160px;
   object-fit: contain;
-  background: var(--life-card-soft);
+  padding: 4px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  width: auto;
 }
 
 /* Multi-image: carousel. */
@@ -2020,7 +2091,7 @@
   align-items: center;
   gap: 10px;
   margin: 0 auto 12px;
-  max-width: 320px;
+  max-width: 220px;
 }
 .exp-receipt-carousel .exp-receipt-thumb {
   margin: 0 auto;
@@ -2056,8 +2127,8 @@
 }
 .exp-receipt-carousel__item .exp-receipt-thumb {
   margin: 0;
-  max-width: 260px;
-  max-height: 260px;
+  max-height: 160px;
+  max-width: 160px;
 }
 .exp-receipt-carousel__nav {
   flex: 0 0 auto;
@@ -2158,8 +2229,8 @@
     max-width: 100%;
   }
   .exp-receipt-carousel__item .exp-receipt-thumb {
-    max-width: min(80vw, 320px);
-    max-height: 320px;
+    max-height: 160px;
+    max-width: min(80vw, 160px);
   }
 }
 
@@ -2636,6 +2707,250 @@
   font-size: 0.76rem;
   font-weight: 600;
   margin-left: auto;
+}
+
+/* ---------- Unified ledger workbench ---------- */
+.exp-ledger-workbench {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.exp-ledger-workbench h2 {
+  color: var(--life-text);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.exp-ledger-workbench__meta {
+  align-items: center;
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: 999px;
+  color: var(--life-muted);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-height: 30px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.exp-ledger-workbench--clear {
+  margin-bottom: -4px;
+}
+
+.exp-ledger-empty {
+  align-items: center;
+  background: var(--life-card);
+  border: 1px dashed var(--life-border);
+  border-radius: var(--life-radius-lg);
+  color: var(--life-muted);
+  display: flex;
+  gap: 14px;
+  min-height: 92px;
+  padding: 18px 20px;
+}
+
+.exp-ledger-empty svg {
+  color: var(--life-green-strong);
+  flex: 0 0 auto;
+  height: 22px;
+  width: 22px;
+}
+
+.exp-ledger-empty div {
+  display: grid;
+  gap: 4px;
+}
+
+.exp-ledger-empty strong {
+  color: var(--life-text);
+  font-size: 0.95rem;
+}
+
+.exp-ledger-empty span {
+  font-size: 0.84rem;
+}
+
+.exp-work-queue {
+  align-items: stretch;
+  display: grid;
+  gap: 12px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 360px);
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.exp-work-queue > .exp-card {
+  scroll-snap-align: start;
+}
+
+.exp-work-queue .exp-receipt-grid-card {
+  min-height: 0;
+}
+
+.exp-work-queue .exp-receipt-grid-card__thumb {
+  aspect-ratio: 16 / 9;
+}
+
+.exp-work-queue .exp-receipt-grid-card__actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.exp-work-queue .exp-receipt-grid-card__actions .exp-btn:last-child {
+  grid-column: 1 / -1;
+}
+
+.exp-work-queue__job,
+.exp-work-queue__retry-all {
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: var(--life-radius-lg);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
+  scroll-snap-align: start;
+}
+
+.exp-work-queue__job {
+  display: grid;
+  gap: 12px;
+  grid-template-rows: auto 1fr auto;
+  min-height: 220px;
+  padding: 16px;
+}
+
+.exp-work-queue__job-icon {
+  align-items: center;
+  background: rgba(155, 234, 61, 0.16);
+  border-radius: 10px;
+  color: var(--life-green-strong);
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.exp-work-queue__job-icon svg {
+  height: 20px;
+  width: 20px;
+}
+
+.exp-work-queue__job-body {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.exp-work-queue__job-top {
+  display: grid;
+  gap: 8px;
+}
+
+.exp-work-queue__job-top strong {
+  color: var(--life-text);
+  font-size: 0.94rem;
+  line-height: 1.25;
+}
+
+.exp-work-queue__job-body span {
+  color: var(--life-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.exp-work-queue__job-actions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.exp-work-queue__retry-all {
+  align-items: center;
+  color: var(--life-text);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.9rem;
+  font-weight: 750;
+  justify-content: center;
+  min-height: 220px;
+  padding: 16px;
+}
+
+.exp-ledger-groups {
+  display: grid;
+  gap: 18px;
+}
+
+.exp-ledger-day {
+  display: grid;
+  gap: 10px;
+}
+
+.exp-ledger-day__head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.exp-ledger-day__head div {
+  display: grid;
+  gap: 2px;
+}
+
+.exp-ledger-day__head div:last-child {
+  justify-items: end;
+}
+
+.exp-ledger-day__head strong {
+  color: var(--life-text);
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.exp-ledger-day__head span {
+  color: var(--life-muted);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.exp-ledger-day__grid {
+  display: grid;
+  gap: 10px 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.exp-ledger-day__grid .exp-card {
+  background: var(--life-card);
+  border: 1px solid var(--life-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+  overflow: hidden;
+}
+
+.exp-ledger-day__grid .exp-card__compact-row {
+  padding: 12px 14px;
+}
+
+.exp-ledger-pager {
+  align-items: center;
+  background: var(--exp-surface);
+  border: 1px solid var(--exp-border);
+  border-radius: var(--exp-radius);
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.exp-ledger-pager__actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* ---------- Compact rows (Apple Card style) ---------- */
@@ -3167,6 +3482,7 @@
 
 /* ---------- Chart panel / screen layout (used by Budget/Structure/Receipts/Ledger) ---------- */
 .exp-screen {
+  align-items: stretch;
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.58fr);
@@ -3193,11 +3509,32 @@
 .exp-panel--chart,
 .exp-panel--allocation,
 .exp-panel--list {
-  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 260px;
+}
+
+.exp-chart-wrap {
+  flex: 1;
+  min-height: 240px;
+}
+
+.exp-chart-wrap--donut {
+  min-height: 200px;
+}
+
+.exp-chart-wrap--bar {
+  min-height: 180px;
+}
+
+.exp-panel--allocation {
+  justify-content: center;
 }
 
 .exp-panel--side {
   align-content: start;
+  height: 100%;
 }
 
 .exp-panel--detail {
@@ -3275,17 +3612,8 @@
 
 .exp-budget-meter {
   display: grid;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.exp-budget-meter strong {
-  color: var(--life-text);
-  font-family: var(--life-font-num);
-  font-size: 2.3rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 760;
-  letter-spacing: -0.025em;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .exp-budget-meter span {
@@ -3449,32 +3777,50 @@
 
 .exp-receipt-grid-card {
   display: grid;
-  grid-template-rows: 160px auto auto;
+  grid-template-rows: 132px auto auto;
   cursor: pointer;
 }
 
 .exp-receipt-grid-card__thumb {
   background: var(--life-card-soft);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  padding: 16px;
   position: relative;
 }
 
 .exp-receipt-grid-card__img {
-  height: 100%;
-  object-fit: cover;
-  transition: transform 220ms ease;
-  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--life-border);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  height: auto;
+  max-height: 100px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  width: auto;
 }
 
 .exp-receipt-grid-card:hover .exp-receipt-grid-card__img {
-  transform: scale(1.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .exp-receipt-grid-card__placeholder {
+  align-items: center;
+  background: #ffffff;
+  border: 1px dashed var(--life-border);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
   color: var(--life-muted);
-  font-size: 3rem;
+  display: inline-flex;
+  font-size: 2.2rem;
+  height: 90px;
+  justify-content: center;
+  width: 90px;
 }
 
 .exp-receipt-grid-card__status {
@@ -3899,6 +4245,9 @@
   .exp-workbar {
     grid-template-columns: 1fr;
   }
+  .exp-ledger-day__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -3920,6 +4269,26 @@
   .exp-transaction-row,
   .exp-receipt-row {
     grid-template-columns: 1fr;
+  }
+  .exp-work-queue {
+    grid-auto-columns: minmax(280px, 88vw);
+  }
+  .exp-ledger-day__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .exp-ledger-day__head div:last-child {
+    justify-items: start;
+  }
+  .exp-ledger-pager {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .exp-ledger-pager__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 

@@ -1,5 +1,4 @@
 import { RecurringManagerClient } from "@/components/expenses/recurring-manager-client";
-import { ExpensesSubNav } from "@/components/expenses/expenses-sub-nav";
 import { LifeShell } from "@/components/life-os/life-shell";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +6,6 @@ export const dynamic = "force-dynamic";
 export default function ExpensesRecurringPage() {
   return (
     <LifeShell>
-      <ExpensesSubNav />
       <RecurringManagerClient />
     </LifeShell>
   );

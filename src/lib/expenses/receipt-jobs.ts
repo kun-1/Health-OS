@@ -68,13 +68,16 @@ async function loadJobImagesForOcr(
   const prepResults = await Promise.all(
     imageBuffers.map(async ({ bytes, mime }) => {
       const prep = await prepareReceiptForOcr(bytes, mime);
-      return { ...prep, sourcePath: undefined as string | undefined };
+      return prep.buffers.map((buffer) => ({ buffer, mimeType: prep.mimeType }));
     })
   );
   const prepMs = elapsedSince(prepStartedAt);
-  const prepBytesByImage = prepResults.map((prep) => prep.buffer.byteLength);
-  const prepMimesByImage = prepResults.map((prep) => prep.mimeType);
-  const prepped = prepResults.map((prep) => ({
+  const flatPrepped = prepResults.flat();
+  const prepBytesByImage = prepResults.map((buffers) =>
+    buffers.reduce((sum, b) => sum + b.buffer.byteLength, 0)
+  );
+  const prepMimesByImage = prepResults.map((buffers) => buffers[0]?.mimeType ?? "image/jpeg");
+  const prepped = flatPrepped.map((prep) => ({
     base64: prep.buffer.toString("base64"),
     mimeType: prep.mimeType
   }));

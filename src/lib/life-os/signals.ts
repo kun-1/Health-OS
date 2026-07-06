@@ -50,7 +50,9 @@ export function computeFoodSpendRatio(analytics: ExpenseAnalytics): FoodSpendRat
 /** Today (YYYY-MM-DD) → spend in cents, or 0 if not present. */
 export function todaySpendCents(analytics: ExpenseAnalytics, today: string): number {
   const row = analytics.daily_totals.find((d) => d.day === today);
-  return row?.amount ?? 0;
+  // ExpenseAnalytics.daily_totals is exposed in yuan for the expense chart,
+  // while the Life home KPI formatter expects cents.
+  return row ? Math.round(row.amount * 100) : 0;
 }
 
 export function pendingReceiptCount(analytics: ExpenseAnalytics): number {

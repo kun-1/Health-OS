@@ -129,6 +129,32 @@ export const expenseItems = sqliteTable("expense_items", {
 
 export type ExpenseItemRow = typeof expenseItems.$inferSelect;
 
+export const expenseBudgetSettings = sqliteTable("expense_budget_settings", {
+  id: integer("id").primaryKey(),
+  baseBudgetCents: integer("base_budget_cents").notNull(),
+  primaryCurrency: text("primary_currency").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export type ExpenseBudgetSettingsRow = typeof expenseBudgetSettings.$inferSelect;
+
+export const expenseBudgetTopUps = sqliteTable(
+  "expense_budget_top_ups",
+  {
+    id: text("id").primaryKey(),
+    month: text("month").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    note: text("note"),
+    createdAt: text("created_at").notNull()
+  },
+  (table) => ({
+    idxExpenseBudgetTopUpsMonth: index("idx_expense_budget_top_ups_month").on(table.month, table.createdAt)
+  })
+);
+
+export type ExpenseBudgetTopUpRow = typeof expenseBudgetTopUps.$inferSelect;
+
 // Wave 3: a receipt can have N images (1:N). Used for the multi-screenshot
 // flow where a single shopping order is split across 2-3 mobile screenshots.
 // `position` is 0-based display order so the uploader's intent survives a

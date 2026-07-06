@@ -5,16 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import type { ExpenseCategory } from "@/lib/expenses/types";
 
 import { categoryEmoji, categoryLabel, categoryNames } from "./category-colors";
+import type { ManualExpenseInput } from "./shared/task-helpers";
 
-type ManualExpenseInput = {
-  merchant_name: string;
-  purchased_at: string;
-  item_name: string;
-  category_zh: ExpenseCategory;
-  amount: number | null;
-  notes: string | null;
-  currency: string;
-  excludedFromBudget?: boolean;
+type ManualExpenseItemInput = ManualExpenseInput["items"][number] & { id: string };
+
+type ManualExpenseDraft = Omit<ManualExpenseInput, "items"> & {
+  items: ManualExpenseItemInput[];
 };
 
 type Preset = {
@@ -40,6 +36,13 @@ const presets: Preset[] = [
   { id: "custom", label: "自定义", merchant: "手动支出", item: "支出", category: "其他" }
 ];
 
+let manualItemId = 0;
+
+function nextManualItemId() {
+  manualItemId += 1;
+  return `manual-item-${manualItemId}`;
+}
+
 function localDatetimeValue(date = new Date()) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -63,13 +66,22 @@ function num(value: string): number | null {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
-function initialDraft(): ManualExpenseInput {
+function createManualItem(input?: Partial<ManualExpenseItemInput>): ManualExpenseItemInput {
+  return {
+    id: nextManualItemId(),
+    item_name: input?.item_name ?? "支出",
+    category_zh: input?.category_zh ?? "其他",
+    quantity: input?.quantity ?? "1",
+    amount: input?.amount ?? null,
+    notes: input?.notes ?? null
+  };
+}
+
+function initialDraft(): ManualExpenseDraft {
   return {
     merchant_name: "手动支出",
     purchased_at: localDatetimeValue(),
-    item_name: "支出",
-    category_zh: "其他",
-    amount: null,
+    items: [createManualItem()],
     notes: null,
     currency: "CNY",
     excludedFromBudget: false
@@ -77,7 +89,7 @@ function initialDraft(): ManualExpenseInput {
 }
 
 export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
-  const [draft, setDraft] = useState<ManualExpenseInput>(() => initialDraft());
+  const [draft, setDraft] = useState<ManualExpenseDraft>(() => initialDraft());
   const [presetId, setPresetId] = useState("custom");
 
   useEffect(() => {
@@ -98,25 +110,68 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
   }, [open]);
 
   const canSave = useMemo(() => {
-    return Boolean(draft.merchant_name.trim() && draft.item_name.trim() && draft.purchased_at && draft.amount !== null);
+    return Boolean(
+      draft.merchant_name.trim() &&
+        draft.purchased_at &&
+        draft.items.length > 0 &&
+        draft.items.every((item) => item.item_name.trim() && item.amount !== null)
+    );
   }, [draft]);
+
+  const totalAmount = useMemo(() => {
+    return draft.items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  }, [draft.items]);
 
   function applyPreset(preset: Preset) {
     setPresetId(preset.id);
     setDraft((current) => ({
       ...current,
       merchant_name: preset.merchant,
-      item_name: preset.item,
-      category_zh: preset.category
+      items: [
+        {
+          ...(current.items[0] ?? createManualItem()),
+          item_name: preset.item,
+          category_zh: preset.category
+        }
+      ]
     }));
   }
 
+  function updateItem(id: string, patch: Partial<ManualExpenseItemInput>) {
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    }));
+  }
+
+  function addItem() {
+    setPresetId("custom");
+    setDraft((current) => ({
+      ...current,
+      items: [...current.items, createManualItem({ item_name: "", category_zh: current.items.at(-1)?.category_zh ?? "其他" })]
+    }));
+  }
+
+  function removeItem(id: string) {
+    setPresetId("custom");
+    setDraft((current) => {
+      if (current.items.length <= 1) return current;
+      return { ...current, items: current.items.filter((item) => item.id !== id) };
+    });
+  }
+
   async function save() {
-    if (!canSave || draft.amount === null) return;
+    if (!canSave) return;
     await onSave({
       ...draft,
       merchant_name: draft.merchant_name.trim(),
-      item_name: draft.item_name.trim(),
+      items: draft.items.map((item) => ({
+        item_name: item.item_name.trim(),
+        category_zh: item.category_zh,
+        quantity: item.quantity?.trim() ? item.quantity.trim() : "1",
+        amount: item.amount,
+        notes: item.notes?.trim() ? item.notes.trim() : null
+      })),
       purchased_at: withLocalTimezoneOffset(draft.purchased_at),
       currency: draft.currency ?? "CNY"
     });
@@ -165,19 +220,15 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
             ))}
           </div>
 
-          <label className="exp-form__field exp-manual__amount">
-            <span className="exp-form__label">金额</span>
-            <input
-              autoFocus
-              className="exp-form__input"
-              inputMode="decimal"
-              onChange={(event) => setDraft((current) => ({ ...current, amount: num(event.target.value) }))}
-              placeholder="0.00"
-              step="0.01"
-              type="number"
-              value={draft.amount ?? ""}
-            />
-          </label>
+          <div className="exp-manual__total">
+            <span className="exp-form__label">总金额</span>
+            <strong>
+              {new Intl.NumberFormat("zh-CN", {
+                currency: draft.currency,
+                style: "currency"
+              }).format(totalAmount)}
+            </strong>
+          </div>
 
           <label className="exp-form__field exp-manual__exclude">
             <input
@@ -190,33 +241,83 @@ export function ManualExpensePanel({ open, busy, onClose, onSave }: Props) {
             <span className="exp-form__label">不计入预算</span>
           </label>
 
-          <div className="exp-form__row">
-            <label className="exp-form__field">
-              <span className="exp-form__label">名称</span>
-              <input
-                className="exp-form__input"
-                onChange={(event) => setDraft((current) => ({ ...current, item_name: event.target.value }))}
-                placeholder="例如：手机壳、地铁、午餐"
-                type="text"
-                value={draft.item_name}
-              />
-            </label>
-            <label className="exp-form__field">
-              <span className="exp-form__label">分类</span>
-              <select
-                className="exp-form__select"
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, category_zh: event.target.value as ExpenseCategory }))
-                }
-                value={draft.category_zh}
-              >
-                {categoryNames.map((name) => (
-                  <option key={name} value={name}>
-                    {categoryEmoji(name)} {categoryLabel(name)}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="exp-manual__items">
+            <div className="exp-manual__items-head">
+              <span>商品明细</span>
+              <button className="exp-form__add" onClick={addItem} type="button">
+                <svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" />
+                </svg>
+                添加商品
+              </button>
+            </div>
+            {draft.items.map((item, index) => (
+              <div className="exp-manual__item" key={item.id}>
+                <div className="exp-manual__item-title">
+                  <span>#{index + 1}</span>
+                  <button
+                    aria-label="删除商品"
+                    className="exp-form__remove"
+                    disabled={draft.items.length <= 1}
+                    onClick={() => removeItem(item.id)}
+                    type="button"
+                  >
+                    <svg fill="none" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                    </svg>
+                  </button>
+                </div>
+                <label className="exp-form__field">
+                  <span className="exp-form__label">名称</span>
+                  <input
+                    autoFocus={index === 0}
+                    className="exp-form__input"
+                    onChange={(event) => updateItem(item.id, { item_name: event.target.value })}
+                    placeholder="例如：手机壳、地铁、午餐"
+                    type="text"
+                    value={item.item_name}
+                  />
+                </label>
+                <div className="exp-manual__item-row">
+                  <label className="exp-form__field">
+                    <span className="exp-form__label">分类</span>
+                    <select
+                      className="exp-form__select"
+                      onChange={(event) => updateItem(item.id, { category_zh: event.target.value as ExpenseCategory })}
+                      value={item.category_zh}
+                    >
+                      {categoryNames.map((name) => (
+                        <option key={name} value={name}>
+                          {categoryEmoji(name)} {categoryLabel(name)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="exp-form__field">
+                    <span className="exp-form__label">数量</span>
+                    <input
+                      className="exp-form__input"
+                      onChange={(event) => updateItem(item.id, { quantity: event.target.value })}
+                      placeholder="1"
+                      type="text"
+                      value={item.quantity ?? ""}
+                    />
+                  </label>
+                  <label className="exp-form__field">
+                    <span className="exp-form__label">小计</span>
+                    <input
+                      className="exp-form__input"
+                      inputMode="decimal"
+                      onChange={(event) => updateItem(item.id, { amount: num(event.target.value) })}
+                      placeholder="0.00"
+                      step="0.01"
+                      type="number"
+                      value={item.amount ?? ""}
+                    />
+                  </label>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="exp-form__row">

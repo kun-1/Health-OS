@@ -126,10 +126,10 @@ const SYSTEM_PROMPT = `你是个人生活支出票据识别助手。提取消费
 4. 默认币种为 CNY，除非票据明确显示其他币种。
 5. spec_text 用于记录规格、重量、容量或包装，例如”250g””596ml*12瓶”；quantity 只记录购买份数，例如右侧 X1/X2。spec_text 不要包含”约””大约””左右”等模糊词。票据写”约250g”时，spec_text 写”250g”即可，不要因为”约重”本身降低置信度或加入备注。
 6. food_amount_value 和 food_amount_unit 用于记录可计算的食物/饮品总量。优先使用标准单位：重量统一成 g，容量统一成 ml；例如”250g”填 250/g，”0.5kg”填 500/g，”596ml”填 596/ml，”2L”填 2000/ml，”220ml*12盒”填 2640/ml，”330ml × 2听”填 660/ml。只有件数没有重量/容量时才用原单位，例如 12/瓶、3/个、4/块。如果只有购买份数没有规格，food_amount_value 可等于 quantity 数字且 unit 写”份”。无法可靠判断时两个字段都填 null。
-7. unit_price 表示商品原单价/标价；discounted_unit_price 表示优惠后单价/折扣价/会员价/券后单价。票据没有单独显示优惠后单价时，discounted_unit_price 必须填 null，不要用 amount 反推。
-8. amount 表示该商品行最终小计，计算优先级固定为：quantity × discounted_unit_price；如果 discounted_unit_price 为 null，则 quantity × unit_price。若票据直接显示折后行金额，以票据显示值为准。票据没有显示商品行金额、也无法通过数量和单价/优惠价计算时必须填 null，不要把重量、规格或数量写入 amount。
-9. subtotal_amount 表示商品原价总额或商品折前总额，total_amount 表示实际支付。
-10. 中国生鲜订单如有配送费、配送费减免、活动优惠、加工费，要分别写入 delivery_fee、delivery_discount、discount_amount、processing_fee。整单优惠写 discount_amount；单品折扣价写 discounted_unit_price，不要重复计入。
+7. unit_price 表示商品原单价/标价（如图中"原价"）；discounted_unit_price 表示优惠后单价/折扣价/会员价/券后单价。如果票据只显示"实付"行金额而没有显示优惠后单价，discounted_unit_price 必须填 null，不要用 amount 反推。
+8. amount 表示该商品行最终小计。当票据同时显示"原价"和"实付"两列时，amount 填"实付"行金额。计算优先级固定为：quantity × discounted_unit_price；如果 discounted_unit_price 为 null，则 quantity × unit_price。票据没有显示商品行金额、也无法通过数量和单价/优惠价计算时必须填 null，不要把重量、规格或数量写入 amount。
+9. subtotal_amount 表示图中"商品金额"或"商品总额"（已扣除单品折扣后的商品合计）；total_amount 表示实际支付金额。
+10. 中国生鲜订单如有配送费、配送费减免、活动优惠/优惠券、加工费，要分别写入 delivery_fee、delivery_discount、discount_amount、processing_fee。整单优惠/优惠券写 discount_amount；单品折扣价写 discounted_unit_price，不要重复计入 discount_amount。
 11. 商品明细尽量逐行提取；如果商品行无法可靠拆分，把无法确认原因写入 needs_review_reasons。票据缺少商品行金额时，只说明”商品行金额缺失”，不要编造金额。
 12. confidence 使用 0 到 1 的数字，只表示图片文字识别和字段拆分的可靠性；不要因为票据本身缺少商家、时间或商品行金额而降低 confidence，这些缺失只写入 needs_review_reasons。
 13. recognition_note 只写识别不确定性，不要写消费建议。
@@ -148,7 +148,7 @@ F. 商品行 confidence：单行清晰可读且金额能计算时 ≥ 0.90；轻
 多图合并与折叠商品规则：
 G. 当附图为同一笔订单的多张截图时（图片顺序就是浏览顺序），按上传顺序合并处理：第一张先看，第二张接着看。先逐图提取可见商品行，然后跨图合并——商品名相同或相近（如”鸡蛋 500g”在两张图都出现）且单价/金额一致的行应合并为一行（quantity 累加），不要重复计入。
 H. 折叠/收起提示：如果某图显示”...还有 N 件”、”查看更多”、”等 N 件”、”已省略 N 件”、”更多 N 件”等文字，说明该订单存在未完整提取的商品行。请优先从其他图片的对应位置或该提示中推断这部分商品（如提示中包含 N 这个数字，必须精确读取）；如果确实无法判断，把这段合并为一行 placeholder：name_zh 写”折叠商品（未展开 N 件）”，amount 写该折叠段金额（仅当金额在图中明确可见时填写，否则填 null），并在 needs_review_reasons 中说明。
-I. 总金额是判断提取完整性的最终依据：商品行金额合计 + 税 + 加工费 + 配送费 - 配送费减免 - 折扣 应等于 total_amount。如果不一致，先逐行核对金额读数；如仍有差额，最可能的原因是漏读折叠商品或漏读某行；不要因为差额修改总金额或调高 confidence。
+I. 金额校验关系（用于自查，不要当成识别错误写入 needs_review_reasons）：如果 subtotal_amount 已填写，应满足 "各商品 amount 合计 ≈ subtotal_amount" 且 "subtotal_amount - discount_amount - delivery_discount ≈ total_amount"。这是中国生鲜电商常见的"单品折扣 + 整单优惠券"模式，差异如是由此造成不要写入 needs_review_reasons。如果 subtotal_amount 未填写，则使用：商品行金额合计 + 税 + 加工费 + 配送费 - 配送费减免 - 折扣 应等于 total_amount。无论哪种情况，如不一致先逐行核对金额读数；如仍有差额，最可能的原因是漏读折叠商品或漏读某行；不要因为差额修改总金额或调高 confidence。
 J. 不要从总金额和已知商品行反推未识别行的金额，宁可写一行”折叠商品（未展开 N 件）”也不要编造金额。
 K. 当商品行数明显少于常见该商家的同类订单（生鲜超市订单通常 5–20 行），优先怀疑存在折叠/收起未展开，再次检查图片顶部和底部的”还有 N 件”类提示。`;
 
@@ -216,7 +216,11 @@ function elapsedSince(startedAt: number): number {
 }
 
 function miniMaxThinkingEnabled(): boolean {
-  return !["0", "false", "disabled", "off"].includes((process.env.MINIMAX_OCR_THINKING ?? "enabled").toLowerCase());
+  // Wave 3.5: default to disabled. Thinking helps on complex folded-item
+  // reasoning, but for long merged screenshots it frequently returns empty
+  // content (textChars=0, thinkingChars=0) while burning tokens/time.
+  // Users can still opt back in by setting MINIMAX_OCR_THINKING=enabled.
+  return !["0", "false", "disabled", "off"].includes((process.env.MINIMAX_OCR_THINKING ?? "disabled").toLowerCase());
 }
 
 function miniMaxThinkingConfig(maxTokens: number) {
@@ -947,15 +951,42 @@ const RECONCILIATION_THRESHOLD_FLOOR = 2;
 
 function computeReceiptTotals(extracted: {
   total_amount: number | null;
+  subtotal_amount: number | null;
   tax_amount: number | null;
   processing_fee: number | null;
   delivery_fee: number | null;
   delivery_discount: number | null;
   discount_amount: number | null;
   items: Array<{ amount: number | null }>;
-}): { itemSum: number; fees: number; computedTotal: number; diff: number; threshold: number } | null {
+}): {
+  itemSum: number;
+  fees: number;
+  computedTotal: number;
+  diff: number;
+  threshold: number;
+  usesSubtotal: boolean;
+} | null {
   if (extracted.total_amount === null) return null;
   const itemSum = extracted.items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+
+  // Wave 3.5 fix: Chinese grocery screenshots show "单品折扣" at the line
+  // level and a top-level coupon. In that shape subtotal_amount is the sum of
+  // discounted line amounts, and total = subtotal - top-level discount. Use
+  // that relationship when subtotal is present; fall back to the line-sum
+  // formula for receipts that only expose a total.
+  if (extracted.subtotal_amount !== null) {
+    const discount = extracted.discount_amount ?? 0;
+    const deliveryDiscount = extracted.delivery_discount ?? 0;
+    const computedTotal = Number((extracted.subtotal_amount - discount - deliveryDiscount).toFixed(2));
+    const total = extracted.total_amount;
+    const diff = Number(Math.abs(computedTotal - total).toFixed(2));
+    const threshold = Math.max(
+      RECONCILIATION_THRESHOLD_FLOOR,
+      Number((total * RECONCILIATION_THRESHOLD_RATIO).toFixed(2))
+    );
+    return { itemSum, fees: -(discount + deliveryDiscount), computedTotal, diff, threshold, usesSubtotal: true };
+  }
+
   const fees =
     (extracted.tax_amount ?? 0) +
     (extracted.processing_fee ?? 0) +
@@ -969,7 +1000,7 @@ function computeReceiptTotals(extracted: {
     RECONCILIATION_THRESHOLD_FLOOR,
     Number((total * RECONCILIATION_THRESHOLD_RATIO).toFixed(2))
   );
-  return { itemSum, fees, computedTotal, diff, threshold };
+  return { itemSum, fees, computedTotal, diff, threshold, usesSubtotal: false };
 }
 
 export async function extractReceiptWithReconciliation({
@@ -990,20 +1021,37 @@ export async function extractReceiptWithReconciliation({
   // narrow through the helper, so we re-bind it.
   const totalAmount = first.extracted.total_amount as number;
   const currency = first.extracted.currency || "CNY";
-  const reconciliationContext = [
-    `[OCR 二次校对]`,
-    `上一轮提取的商品行金额合计为 ${firstTotals.itemSum.toFixed(2)} ${currency}，`,
-    `加上税费/加工费/配送费 (${firstTotals.fees.toFixed(2)}) 后应为 ${firstTotals.computedTotal.toFixed(2)} ${currency}，`,
-    `但票据底部显示的实际支付为 ${totalAmount.toFixed(2)} ${currency}，`,
-    `差额 ${firstTotals.diff.toFixed(2)} ${currency} 超过容差 (${firstTotals.threshold.toFixed(2)} ${currency})。`,
-    ``,
-    `请重新仔细查看附图，重点检查:`,
-    `1. 是否漏读了某些商品行（特别是两张图重叠、滚动出屏、或被折叠/收起未展开的部分）`,
-    `2. 是否漏读了"还有 N 件""查看更多"等折叠提示中的商品`,
-    `3. 是否有商品行金额读错（核对到分）`,
-    ``,
-    `请输出完整的 JSON，包括所有商品行。`
-  ].join("\n");
+  const subtotalAmount = first.extracted.subtotal_amount;
+  const reconciliationContext = firstTotals.usesSubtotal
+    ? [
+        `[OCR 二次校对]`,
+        subtotalAmount !== null
+          ? `上一轮提取的"商品金额"为 ${subtotalAmount.toFixed(2)} ${currency}，减去整单折扣/优惠 (${(-firstTotals.fees).toFixed(2)} ${currency}) 后应为 ${firstTotals.computedTotal.toFixed(2)} ${currency}，`
+          : `上一轮提取的商品行金额合计为 ${firstTotals.itemSum.toFixed(2)} ${currency}，减去整单折扣/优惠后应为 ${firstTotals.computedTotal.toFixed(2)} ${currency}，`,
+        `但票据底部显示的实际支付为 ${totalAmount.toFixed(2)} ${currency}，`,
+        `差额 ${firstTotals.diff.toFixed(2)} ${currency} 超过容差 (${firstTotals.threshold.toFixed(2)} ${currency})。`,
+        ``,
+        `请重新仔细查看附图，重点检查:`,
+        `1. "商品金额"、"优惠券"、"实付金额"三行是否读错`,
+        `2. 是否漏读了某些商品行（特别是两张图重叠、滚动出屏、或被折叠/收起未展开的部分）`,
+        `3. 是否有商品行"实付"金额读错（核对到分）`,
+        ``,
+        `请输出完整的 JSON，包括所有商品行。`
+      ].join("\n")
+    : [
+        `[OCR 二次校对]`,
+        `上一轮提取的商品行金额合计为 ${firstTotals.itemSum.toFixed(2)} ${currency}，`,
+        `加上税费/加工费/配送费 (${firstTotals.fees.toFixed(2)}) 后应为 ${firstTotals.computedTotal.toFixed(2)} ${currency}，`,
+        `但票据底部显示的实际支付为 ${totalAmount.toFixed(2)} ${currency}，`,
+        `差额 ${firstTotals.diff.toFixed(2)} ${currency} 超过容差 (${firstTotals.threshold.toFixed(2)} ${currency})。`,
+        ``,
+        `请重新仔细查看附图，重点检查:`,
+        `1. 是否漏读了某些商品行（特别是两张图重叠、滚动出屏、或被折叠/收起未展开的部分）`,
+        `2. 是否漏读了"还有 N 件""查看更多"等折叠提示中的商品`,
+        `3. 是否有商品行金额读错（核对到分）`,
+        ``,
+        `请输出完整的 JSON，包括所有商品行。`
+      ].join("\n");
 
   console.info("[expenses:reconciliation] triggering 2-pass", {
     traceId,

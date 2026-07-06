@@ -75,13 +75,48 @@ export async function generateReceiptThumbnail(originalPath: string): Promise<st
 // Returns the original buffer on any failure so the OCR call still has
 // something to work with.
 const OCR_LONGEST_EDGE = 1400;
+// Wave 3.5 fix: tall merged screenshots (user stitches 3+ screenshots into
+// one long image) become unreadable when fit-inside to 1400px — a 1280-wide
+// screenshot collapses to ~328px wide. For those images we vertically tile
+// the screenshot into overlapping chunks that keep the original width, so
+// horizontal text stays legible. The OCR layer already treats multiple images
+// as pages of the same order and merges duplicate lines (rule G).
+const TALL_ASPECT_RATIO_THRESHOLD = 0.5;
 const OCR_JPEG_QUALITY = 90;
+
+async function splitTallReceiptImage(bytes: Buffer, width: number, height: number): Promise<Buffer[]> {
+  const chunkHeight = OCR_LONGEST_EDGE;
+  const overlap = 100;
+  const chunks: Buffer[] = [];
+  let y = 0;
+  while (y < height) {
+    const h = Math.min(chunkHeight, height - y);
+    const chunk = await sharp(bytes)
+      .extract({ left: 0, top: y, width, height: h })
+      .jpeg({ quality: OCR_JPEG_QUALITY, mozjpeg: false })
+      .toBuffer();
+    chunks.push(chunk);
+    if (h < chunkHeight) break;
+    y += chunkHeight - overlap;
+  }
+  return chunks;
+}
 
 export async function prepareReceiptForOcr(
   bytes: Buffer,
   originalMimeType: string
-): Promise<{ buffer: Buffer; mimeType: string }> {
+): Promise<{ buffers: Buffer[]; mimeType: string }> {
   try {
+    const metadata = await sharp(bytes).metadata();
+    const width = metadata.width ?? 1;
+    const height = metadata.height ?? 1;
+    const aspectRatio = width / height;
+
+    if (aspectRatio < TALL_ASPECT_RATIO_THRESHOLD) {
+      const chunks = await splitTallReceiptImage(bytes, width, height);
+      return { buffers: chunks, mimeType: "image/jpeg" };
+    }
+
     const processed = await sharp(bytes)
       .rotate()
       .median(3)
@@ -91,11 +126,11 @@ export async function prepareReceiptForOcr(
       .sharpen({ sigma: 0.6 })
       .jpeg({ quality: OCR_JPEG_QUALITY, mozjpeg: false })
       .toBuffer();
-    return { buffer: processed, mimeType: "image/jpeg" };
+    return { buffers: [processed], mimeType: "image/jpeg" };
   } catch (error) {
     console.warn("[expenses:ocr-prep] preprocessing failed, falling back to original", {
       error: error instanceof Error ? error.message : String(error)
     });
-    return { buffer: bytes, mimeType: originalMimeType };
+    return { buffers: [bytes], mimeType: originalMimeType };
   }
 }

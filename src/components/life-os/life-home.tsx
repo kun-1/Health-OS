@@ -97,7 +97,7 @@ export function LifeHome() {
     const prevMonth = prevMonthOf(month);
     if (prevMonth) {
       const sum = analyticsState.prev_month_daily_totals.reduce(
-        (acc, row) => acc + row.amount,
+        (acc, row) => acc + Math.round(row.amount * 100),
         0
       );
       if (sum > 0) spendByPeriod[prevMonth] = sum;
@@ -213,7 +213,7 @@ export function LifeHome() {
                 趋势图加载中…
               </div>
             ) : trend.kind === "error" ? (
-              <div className="life-chart-placeholder" style={{ minHeight: 280, color: "#a0aaa3" }}>
+              <div className="life-chart-placeholder" style={{ minHeight: 280, color: "var(--life-subtle)" }}>
                 趋势数据加载失败：{trend.message}
               </div>
             ) : trendState && trendState.length > 0 ? (
@@ -242,7 +242,7 @@ export function LifeHome() {
               <header className="life-card__header">
                 <span className="life-card__title">最近交易</span>
               </header>
-              <div className="life-chart-placeholder" style={{ minHeight: 160, color: "#a0aaa3" }}>
+              <div className="life-chart-placeholder" style={{ minHeight: 160, color: "var(--life-subtle)" }}>
                 交易数据加载失败：{analytics.kind === "error" ? analytics.message : ""}
               </div>
             </section>

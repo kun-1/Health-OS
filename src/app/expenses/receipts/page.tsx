@@ -1,14 +1,14 @@
-import { ReceiptsModule } from "@/components/expenses/receipts-module";
-import { ExpensesSubNav } from "@/components/expenses/expenses-sub-nav";
-import { LifeShell } from "@/components/life-os/life-shell";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function ExpensesReceiptsPage() {
-  return (
-    <LifeShell>
-      <ExpensesSubNav />
-      <ReceiptsModule />
-    </LifeShell>
-  );
+type Props = {
+  searchParams: Promise<{ month?: string | string[] }>;
+};
+
+export default async function ExpensesReceiptsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const rawMonth = Array.isArray(params.month) ? params.month[0] : params.month;
+  const suffix = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? `?month=${encodeURIComponent(rawMonth)}` : "";
+  redirect(`/expenses/transactions${suffix}`);
 }

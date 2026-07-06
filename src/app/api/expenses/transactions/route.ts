@@ -31,14 +31,15 @@ export async function POST(request: NextRequest) {
   }
 
   const expense = parsed.data;
+  const totalAmount = Number(expense.items.reduce((sum, item) => sum + item.amount, 0).toFixed(2));
   const transaction = createTransactionFromExtracted(
     null,
     {
       merchant_name: expense.merchant_name,
       purchased_at: expense.purchased_at,
       currency: expense.currency,
-      subtotal_amount: expense.amount,
-      total_amount: expense.amount,
+      subtotal_amount: totalAmount,
+      total_amount: totalAmount,
       tax_amount: 0,
       processing_fee: 0,
       delivery_fee: 0,
@@ -49,23 +50,21 @@ export async function POST(request: NextRequest) {
       needs_review_reasons: [],
       recognition_note: "手动录入，非票据 OCR",
       user_note: expense.notes,
-      items: [
-        {
-          name_raw: expense.item_name,
-          name_zh: expense.item_name,
-          category_zh: expense.category_zh,
-          category_raw: null,
-          quantity: expense.quantity,
-          spec_text: null,
-          food_amount_value: null,
-          food_amount_unit: null,
-          unit_price: expense.amount,
-          discounted_unit_price: null,
-          amount: expense.amount,
-          confidence: 1,
-          notes: expense.notes
-        }
-      ]
+      items: expense.items.map((item) => ({
+        name_raw: item.item_name,
+        name_zh: item.item_name,
+        category_zh: item.category_zh,
+        category_raw: null,
+        quantity: item.quantity,
+        spec_text: null,
+        food_amount_value: null,
+        food_amount_unit: null,
+        unit_price: item.amount,
+        discounted_unit_price: null,
+        amount: item.amount,
+        confidence: 1,
+        notes: item.notes ?? expense.notes
+      }))
     },
     // Wave 1 (Feature #3): honour the "不计入预算" checkbox.
     { excludedFromBudget: expense.excludedFromBudget }

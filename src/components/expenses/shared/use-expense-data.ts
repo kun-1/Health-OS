@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getStoredBudgetCents, getStoredPrimaryCurrency } from "@/lib/expenses/settings";
+import { migrateStoredBudgetSettingsToServer } from "@/lib/expenses/settings";
 import type {
   ExpenseAnalytics,
   ExtractedExpenseReceipt
@@ -51,13 +51,12 @@ export function useExpenseData(month: string): ExpenseDataState {
     fetchEpoch.current += 1;
     if (!isFirstRun) setRefreshing(true);
     setLoadError(null);
+    await migrateStoredBudgetSettingsToServer();
     const tz =
       Intl.DateTimeFormat().resolvedOptions().timeZone || `UTC${formatUtcOffsetForClient()}`;
     const query = new URLSearchParams({
       month,
-      tz,
-      budget: String(getStoredBudgetCents()),
-      primaryCurrency: getStoredPrimaryCurrency()
+      tz
     });
     let response: Response;
     try {
@@ -81,14 +80,24 @@ export function useExpenseData(month: string): ExpenseDataState {
     try {
       const data = (await response.json()) as ExpenseAnalytics;
       setAnalytics(data);
-      setPendingDrafts(
-        Object.fromEntries(data.pending_receipts.map((r) => [r.id, r.extracted]))
-      );
-      setTransactionDrafts(
-        Object.fromEntries(
-          data.recent_transactions.map((t) => [t.id, transactionToExtracted(t)])
-        )
-      );
+      // Wave 3.5 fix: preserve drafts the user is currently editing instead of
+      // blindly overwriting them on every background refresh / reload. Only
+      // seed drafts for newly-appearing receipts/transactions, and drop drafts
+      // for items that are no longer in the lists (e.g. confirmed/deleted).
+      setPendingDrafts((prev) => {
+        const next: DraftMap = {};
+        for (const r of data.pending_receipts) {
+          next[r.id] = prev[r.id] ?? r.extracted;
+        }
+        return next;
+      });
+      setTransactionDrafts((prev) => {
+        const next: DraftMap = {};
+        for (const t of data.recent_transactions) {
+          next[t.id] = prev[t.id] ?? transactionToExtracted(t);
+        }
+        return next;
+      });
     } catch (err) {
       setLoadError({
         kind: "client",

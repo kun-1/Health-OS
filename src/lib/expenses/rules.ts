@@ -173,7 +173,16 @@ function keepModelReviewReason(reason: string): boolean {
     // level. evaluateReceiptForPosting now re-evaluates this case
     // (subtotal vs total diff explained by line-item discount sum), so the
     // model's prose duplicates it. Drop and let the recompute decide.
-    "推导"
+    "推导",
+    // Wave 3.5: long merged grocery screenshots expose both "原价" and
+    // "实付" per line. The model sometimes reports the gap between "sum of
+    // 原价" and the displayed subtotal as an OCR error, but it is just the
+    // line-item discount. evaluateReceiptForPosting already checks this,
+    // so drop the model's prose version.
+    "原价合计",
+    // The canonical category list already maps beer to 饮料/咖啡; the
+    // model occasionally still hedges with a "存疑" prose reason. Drop it.
+    "啤酒被归类"
   ];
   return !recomputedReasonPatterns.some((pattern) => reason.includes(pattern));
 }

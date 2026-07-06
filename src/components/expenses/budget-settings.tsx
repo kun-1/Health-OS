@@ -3,15 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
-  addStoredBudgetTopUp,
   DEFAULT_PRIMARY_CURRENCY,
   SUPPORTED_CURRENCIES,
-  deleteStoredBudgetTopUp,
-  getStoredBudgetCents,
-  getStoredPrimaryCurrency,
-  getStoredBudgetTopUps,
-  setStoredBudgetCents,
-  setStoredPrimaryCurrency,
   type BudgetTopUp,
   type SupportedCurrency
 } from "@/lib/expenses/settings";
@@ -31,6 +24,12 @@ function centsToYuanString(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
+type BudgetResponse = {
+  baseBudgetCents: number;
+  primaryCurrency: SupportedCurrency;
+  topUps: BudgetTopUp[];
+};
+
 export function BudgetSettings({ month, onSaved }: Props) {
   const [open, setOpen] = useState(false);
   const [budgetYuan, setBudgetYuan] = useState("");
@@ -38,16 +37,31 @@ export function BudgetSettings({ month, onSaved }: Props) {
   const [topUpNote, setTopUpNote] = useState("");
   const [topUps, setTopUps] = useState<BudgetTopUp[]>([]);
   const [currency, setCurrency] = useState<SupportedCurrency>(DEFAULT_PRIMARY_CURRENCY);
+  const [busy, setBusy] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
-  // Wave 2 feature: budget settings — read the current localStorage values
-  // when the popover opens, so the user sees the active budget not a blank
-  // form.
   useEffect(() => {
     if (!open) return;
-    setBudgetYuan(centsToYuanString(getStoredBudgetCents()));
-    setCurrency(getStoredPrimaryCurrency());
-    setTopUps(month ? getStoredBudgetTopUps(month) : []);
+    let cancelled = false;
+    setBusy(true);
+    fetch(`/api/expenses/budget?month=${encodeURIComponent(month)}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return (await response.json()) as BudgetResponse;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setBudgetYuan(centsToYuanString(data.baseBudgetCents));
+        setCurrency(data.primaryCurrency);
+        setTopUps(data.topUps);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [month, open]);
 
   // Click-outside to close.
@@ -63,7 +77,7 @@ export function BudgetSettings({ month, onSaved }: Props) {
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  function save() {
+  async function save() {
     const parsed = Number(budgetYuan);
     // Reject negative / zero / NaN inputs instead of silently falling back to
     // the default. The min="0" on the input is a soft hint that the browser
@@ -71,37 +85,74 @@ export function BudgetSettings({ month, onSaved }: Props) {
     // validate, otherwise typing -50 then clicking Save writes a negative
     // budget and breaks every KPI.
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setBudgetYuan(centsToYuanString(getStoredBudgetCents()));
       return;
     }
-    setStoredBudgetCents(yuanToCents(parsed));
-    setStoredPrimaryCurrency(currency);
-    setOpen(false);
-    onSaved();
+    setBusy(true);
+    try {
+      const response = await fetch("/api/expenses/budget", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          month,
+          baseBudgetCents: yuanToCents(parsed),
+          primaryCurrency: currency
+        })
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as BudgetResponse;
+      setBudgetYuan(centsToYuanString(data.baseBudgetCents));
+      setCurrency(data.primaryCurrency);
+      setTopUps(data.topUps);
+      setOpen(false);
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function addTopUp() {
+  async function addTopUp() {
     if (!month) return;
     const parsed = Number(topUpYuan);
     if (!Number.isFinite(parsed) || parsed <= 0) {
       setTopUpYuan("");
       return;
     }
-    addStoredBudgetTopUp({
-      month,
-      amountCents: yuanToCents(parsed),
-      note: topUpNote
-    });
-    setTopUpYuan("");
-    setTopUpNote("");
-    setTopUps(getStoredBudgetTopUps(month));
-    onSaved();
+    setBusy(true);
+    try {
+      const response = await fetch("/api/expenses/budget", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          month,
+          amountCents: yuanToCents(parsed),
+          note: topUpNote
+        })
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as BudgetResponse;
+      setTopUps(data.topUps);
+      setTopUpYuan("");
+      setTopUpNote("");
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function deleteTopUp(id: string) {
-    deleteStoredBudgetTopUp(id);
-    setTopUps(month ? getStoredBudgetTopUps(month) : []);
-    onSaved();
+  async function deleteTopUp(id: string) {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        `/api/expenses/budget?id=${encodeURIComponent(id)}&month=${encodeURIComponent(month)}`,
+        { method: "DELETE" }
+      );
+      if (!response.ok) return;
+      const data = (await response.json()) as BudgetResponse;
+      setTopUps(data.topUps);
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   }
 
   const topUpTotal = topUps.reduce((sum, entry) => sum + entry.amountCents, 0);
@@ -169,7 +220,7 @@ export function BudgetSettings({ month, onSaved }: Props) {
                 type="number"
                 value={topUpYuan}
               />
-              <button className="exp-btn exp-btn--secondary exp-btn--sm" disabled={!month} onClick={addTopUp} type="button">
+              <button className="exp-btn exp-btn--secondary exp-btn--sm" disabled={!month || busy} onClick={() => void addTopUp()} type="button">
                 加钱
               </button>
             </div>
@@ -192,7 +243,8 @@ export function BudgetSettings({ month, onSaved }: Props) {
                     <button
                       aria-label="删除补给"
                       className="exp-budget-pop__delete"
-                      onClick={() => deleteTopUp(entry.id)}
+                      disabled={busy}
+                      onClick={() => void deleteTopUp(entry.id)}
                       type="button"
                     >
                       ×
@@ -208,8 +260,8 @@ export function BudgetSettings({ month, onSaved }: Props) {
             <button className="exp-btn exp-btn--ghost exp-btn--sm" onClick={() => setOpen(false)} type="button">
               取消
             </button>
-            <button className="exp-btn exp-btn--primary exp-btn--sm" onClick={save} type="button">
-              保存
+            <button className="exp-btn exp-btn--primary exp-btn--sm" disabled={busy} onClick={() => void save()} type="button">
+              {busy ? "保存中..." : "保存"}
             </button>
           </div>
         </div>

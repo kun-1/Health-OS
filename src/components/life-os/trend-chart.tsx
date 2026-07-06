@@ -112,7 +112,7 @@ export function TrendChart({ trend, spendByPeriod }: Props) {
             if (key === "spend" && typeof value === "number") return yuan(value);
             return typeof value === "number" ? value : String(value ?? "");
           }}
-          labelStyle={{ color: "#101512", fontWeight: 700 }}
+          labelStyle={{ color: "var(--life-text)", fontWeight: 700 }}
         />
         <Bar
           yAxisId="spend"

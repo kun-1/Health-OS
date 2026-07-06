@@ -201,15 +201,7 @@ export const confirmExpenseReceiptSchema = z.object({
   user_note: z.string().trim().max(1000).optional()
 });
 
-export const manualExpenseSchema = z.object({
-  merchant_name: z.string().trim().min(1).max(200),
-  purchased_at: receiptDateTime.pipe(
-    z
-      .string()
-      .datetime({ offset: true })
-      .refine(notInFuture, { message: "日期不能在未来" })
-  ),
-  currency: z.string().trim().min(1).max(8).default("CNY"),
+const manualExpenseItemSchema = z.object({
   item_name: z.string().trim().min(1).max(120),
   category_zh: z.enum(expenseCategories),
   quantity: z
@@ -217,10 +209,56 @@ export const manualExpenseSchema = z.object({
     .optional()
     .transform((value) => (value === undefined || value === "" ? "1" : String(value))),
   amount: money,
-  // Wave 1 (Feature #3): manual expenses can opt out of the budget.
-  excludedFromBudget: z.boolean().optional().default(false),
   notes: optionalText.default(null)
 });
+
+export const manualExpenseSchema = z
+  .object({
+    merchant_name: z.string().trim().min(1).max(200),
+    purchased_at: receiptDateTime.pipe(
+      z
+        .string()
+        .datetime({ offset: true })
+        .refine(notInFuture, { message: "日期不能在未来" })
+    ),
+    currency: z.string().trim().min(1).max(8).default("CNY"),
+    items: z.array(manualExpenseItemSchema).min(1).max(50).optional(),
+    // Legacy single-item payload shape. Kept so older open tabs do not fail.
+    item_name: z.string().trim().min(1).max(120).optional(),
+    category_zh: z.enum(expenseCategories).optional(),
+    quantity: z
+      .union([z.string().trim().max(60), z.number().finite()])
+      .optional()
+      .transform((value) => (value === undefined || value === "" ? "1" : String(value))),
+    amount: money.optional(),
+    // Wave 1 (Feature #3): manual expenses can opt out of the budget.
+    excludedFromBudget: z.boolean().optional().default(false),
+    notes: optionalText.default(null)
+  })
+  .superRefine((value, ctx) => {
+    if (value.items && value.items.length > 0) return;
+    if (value.item_name && value.category_zh && value.amount !== undefined) return;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "至少需要一条商品明细",
+      path: ["items"]
+    });
+  })
+  .transform((value) => ({
+    ...value,
+    items:
+      value.items && value.items.length > 0
+        ? value.items
+        : [
+            {
+              item_name: value.item_name as string,
+              category_zh: value.category_zh as ExpenseCategory,
+              quantity: value.quantity,
+              amount: value.amount as number,
+              notes: value.notes
+            }
+          ]
+  }));
 
 // Wave 3 polish (M4): single source of truth for "which fields must be filled
 // before this receipt can be posted". Used by both pending-card (UI button

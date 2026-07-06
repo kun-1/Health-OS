@@ -31,13 +31,19 @@ const PRIMARY: NavItem[] = [
   },
   {
     label: "支出",
-    href: "/expenses",
+    href: "/expenses/analytics",
     icon: Wallet,
     // Highlight the whole expenses section, including sub-routes like
     // /expenses/analytics, /expenses/transactions, /expenses/receipts and
     // /expenses/recurring.
     isActive: (pathname) => pathname === "/expenses" || pathname.startsWith("/expenses/")
   }
+];
+
+const EXPENSES_SUB: { label: string; href: string }[] = [
+  { label: "分析", href: "/expenses/analytics" },
+  { label: "账单", href: "/expenses/transactions" },
+  { label: "定期", href: "/expenses/recurring" }
 ];
 
 // Trends lives on the home page (per ui_redesign_plan.md §4.1) so it has
@@ -76,16 +82,36 @@ export function LifeSidebar() {
         {PRIMARY.map((item) => {
           const Icon = item.icon;
           const active = item.isActive(pathname);
+          const isExpenses = item.label === "支出";
+          const showSubmenu = isExpenses && active;
           return (
-            <Link
-              key={`${item.href}-${item.label}`}
-              href={hrefWithMonth(item.href, month)}
-              className="life-sidebar__link"
-              data-active={active ? "true" : "false"}
-            >
-              <Icon />
-              <span>{item.label}</span>
-            </Link>
+            <div className="life-sidebar__item" key={`${item.href}-${item.label}`}>
+              <Link
+                href={hrefWithMonth(item.href, month)}
+                className="life-sidebar__link"
+                data-active={active ? "true" : "false"}
+              >
+                <Icon />
+                <span>{item.label}</span>
+              </Link>
+              {showSubmenu ? (
+                <div className="life-sidebar__submenu">
+                  {EXPENSES_SUB.map((sub) => {
+                    const subActive = pathname === sub.href;
+                    return (
+                      <Link
+                        key={sub.href}
+                        href={hrefWithMonth(sub.href, month)}
+                        className="life-sidebar__sublink"
+                        data-active={subActive ? "true" : "false"}
+                      >
+                        <span>{sub.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           );
         })}
       </nav>
