@@ -137,7 +137,8 @@ const TREND_LABELS: Partial<Record<NutritionCategory, string>> = {
   动物性: "动物性",
   加工肉: "加工肉",
   含糖饮料: "含糖饮料",
-  反式零食: "反式零食",
+  精制谷物: "精制谷物",
+  甜点: "甜点",
   蔬菜: "蔬菜"
 };
 
@@ -145,7 +146,8 @@ const HIGHER_IS_BAD: Partial<Record<NutritionCategory, boolean>> = {
   动物性: true,
   加工肉: true,
   含糖饮料: true,
-  反式零食: true,
+  精制谷物: true,
+  甜点: true,
   蔬菜: false
 };
 

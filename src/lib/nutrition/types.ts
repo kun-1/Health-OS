@@ -49,7 +49,7 @@ export type PlateResult = {
     vegFruit: number; // 蔬菜 + 水果
     wholeGrain: number; // 全谷物
     protein: number; // 豆类 + 坚果 + 动物性
-    other: number; // 未分类 + 含糖饮料 + 加工肉 + 反式零食 + 香料
+    other: number; // 淀粉类蔬菜 + 精制谷物 + 未分类 + 含糖饮料 + 加工肉 + 甜点 + 香料
   };
   ratios: {
     vegFruit: number;

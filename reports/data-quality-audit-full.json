@@ -1,0 +1,5004 @@
+{
+  "generated_at": "2026-07-08T12:32:12.938Z",
+  "mode": "dry_run_read_only",
+  "database_path": "/Users/zhuanzmima0000/tinkering/health-monitor/data/app.db",
+  "standards": {
+    "ledger_trust": [
+      "transaction_receipt_item_references_are_complete",
+      "amounts_are_non_negative",
+      "currency_is_allowed",
+      "dates_have_iso_date_shape",
+      "receipts_are_traceable_to_images"
+    ],
+    "nutrition_usability": [
+      "food_items_are_classifiable",
+      "food_items_have_weight_or_convertible_unit",
+      "non_food_items_are_explicitly_ignored"
+    ],
+    "remediation_order": [
+      "no_alias_match",
+      "no_weight",
+      "ambiguous_unit",
+      "noise",
+      "category_normalization"
+    ],
+    "repair_actions": [
+      "auto_fixable",
+      "needs_review",
+      "ignore_for_nutrition"
+    ]
+  },
+  "dataset_summary": {
+    "row_counts": {
+      "expense_transactions": 117,
+      "expense_items": 310,
+      "expense_receipts": 68,
+      "expense_receipt_jobs": 71,
+      "expense_receipt_images": 80,
+      "receipt_hashes": 108,
+      "nutrition_food_aliases": 386,
+      "recurring_expenses": 1,
+      "sms_transaction_records": 5
+    },
+    "receipt_status_counts": {
+      "auto_posted": 16,
+      "confirmed": 52
+    },
+    "receipt_job_status_counts": {
+      "completed": 71
+    },
+    "item_expense_category_counts": {
+      "娱乐": 2,
+      "食物": 228,
+      "其他": 9,
+      "饮料/咖啡": 19,
+      "日用品": 10,
+      "个人护理": 3,
+      "交通": 33,
+      "清洁用品": 4,
+      "外食": 2
+    },
+    "confidence_scale": {
+      "scale": "0..1000",
+      "lowThreshold": 500
+    }
+  },
+  "ledger_quality": {
+    "hard_checks": {
+      "transaction_total_nonpositive": 0,
+      "transaction_bad_currency": 0,
+      "transaction_empty_merchant": 0,
+      "transaction_invalid_date": 0,
+      "transaction_without_items": 0,
+      "item_orphan_transaction": 0,
+      "receipt_without_image_row": 0,
+      "receipt_hash_orphan": 0,
+      "receipt_transaction_orphan": 0
+    },
+    "money_reconciliation_review_count": 47,
+    "money_reconciliation_review_samples": [
+      {
+        "id": 126,
+        "merchant_name": "盒马鲜生 上海杨高南路店",
+        "purchased_at": "2026-07-06T11:43:18+08:00",
+        "total_amount_cents": 1044,
+        "subtotal_amount_cents": 1483,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 439,
+        "item_sum_cents": 1044
+      },
+      {
+        "id": 125,
+        "merchant_name": "盒马鲜生上海杨高南路店",
+        "purchased_at": "2026-07-04T19:18:47+08:00",
+        "total_amount_cents": 1690,
+        "subtotal_amount_cents": 2780,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1090,
+        "item_sum_cents": 1690
+      },
+      {
+        "id": 123,
+        "merchant_name": "京东",
+        "purchased_at": "2026-07-04T21:24:46+08:00",
+        "total_amount_cents": 5060,
+        "subtotal_amount_cents": null,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1600,
+        "item_sum_cents": 5563
+      },
+      {
+        "id": 121,
+        "merchant_name": "蒙牛京东自营旗舰店",
+        "purchased_at": "2026-07-02T11:04:34+08:00",
+        "total_amount_cents": 3567,
+        "subtotal_amount_cents": 4490,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 923,
+        "item_sum_cents": 3567
+      },
+      {
+        "id": 120,
+        "merchant_name": "HOUYA京东自营旗舰店",
+        "purchased_at": "2026-07-02T11:04:38+08:00",
+        "total_amount_cents": 880,
+        "subtotal_amount_cents": 1090,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 210,
+        "item_sum_cents": 880
+      },
+      {
+        "id": 118,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-07-05T20:17:47+08:00",
+        "total_amount_cents": 2680,
+        "subtotal_amount_cents": 2580,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 600,
+        "delivery_discount_cents": 600,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 2680
+      },
+      {
+        "id": 117,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-07-05T19:32:22+08:00",
+        "total_amount_cents": 9949,
+        "subtotal_amount_cents": 12955,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 3006,
+        "item_sum_cents": 9949
+      },
+      {
+        "id": 116,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-07-02T22:43:56+08:00",
+        "total_amount_cents": 5523,
+        "subtotal_amount_cents": 6623,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1100,
+        "item_sum_cents": 5523
+      },
+      {
+        "id": 102,
+        "merchant_name": "超盒算NB(浦东巴黎春天成山店)",
+        "purchased_at": "2026-06-30T18:00:00+08:00",
+        "total_amount_cents": 10010,
+        "subtotal_amount_cents": 11733,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 100,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 1000,
+        "discount_amount_cents": 2825,
+        "item_sum_cents": 9910
+      },
+      {
+        "id": 101,
+        "merchant_name": "多多买菜",
+        "purchased_at": "2026-06-21T15:32:47+08:00",
+        "total_amount_cents": 4217,
+        "subtotal_amount_cents": 4171,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 50,
+        "delivery_discount_cents": 500,
+        "discount_amount_cents": 4,
+        "item_sum_cents": 3372
+      },
+      {
+        "id": 100,
+        "merchant_name": "盒马NB",
+        "purchased_at": "2026-06-25T08:00:00+08:00",
+        "total_amount_cents": 6588,
+        "subtotal_amount_cents": 10639,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 500,
+        "delivery_discount_cents": 500,
+        "discount_amount_cents": 4631,
+        "item_sum_cents": 6488
+      },
+      {
+        "id": 99,
+        "merchant_name": "淘宝天猫超市",
+        "purchased_at": "2026-06-22T04:00:00.000Z",
+        "total_amount_cents": 884,
+        "subtotal_amount_cents": 1990,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1106,
+        "item_sum_cents": 884
+      },
+      {
+        "id": 95,
+        "merchant_name": "百亿补贴品牌优选",
+        "purchased_at": "2026-06-21T00:00:00+08:00",
+        "total_amount_cents": 1090,
+        "subtotal_amount_cents": 1190,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 100,
+        "item_sum_cents": 1090
+      },
+      {
+        "id": 93,
+        "merchant_name": "小象超市(锦绣路店)",
+        "purchased_at": "2026-06-19T11:59:34+08:00",
+        "total_amount_cents": 6610,
+        "subtotal_amount_cents": 7148,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 6610
+      },
+      {
+        "id": 92,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-06-25T18:53:45+08:00",
+        "total_amount_cents": 5068,
+        "subtotal_amount_cents": 6517,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1449,
+        "item_sum_cents": 5068
+      },
+      {
+        "id": 91,
+        "merchant_name": "未知商家",
+        "purchased_at": "2026-06-30T20:23:43+08:00",
+        "total_amount_cents": 5972,
+        "subtotal_amount_cents": 8138,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 2166,
+        "item_sum_cents": 5972
+      },
+      {
+        "id": 90,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-06-23T04:00:00.000Z",
+        "total_amount_cents": 4160,
+        "subtotal_amount_cents": 5360,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1200,
+        "item_sum_cents": 4160
+      },
+      {
+        "id": 89,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-26T04:00:00.000Z",
+        "total_amount_cents": 18645,
+        "subtotal_amount_cents": 23280,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 100,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 4735,
+        "item_sum_cents": 5895
+      },
+      {
+        "id": 88,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-22T20:35:16+08:00",
+        "total_amount_cents": 1930,
+        "subtotal_amount_cents": 2190,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 100,
+        "delivery_fee_cents": 600,
+        "delivery_discount_cents": 600,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 1830
+      },
+      {
+        "id": 86,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-28T12:10:00.000Z",
+        "total_amount_cents": 1393,
+        "subtotal_amount_cents": 2278,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 885,
+        "item_sum_cents": 1393
+      },
+      {
+        "id": 84,
+        "merchant_name": "未知商家",
+        "purchased_at": "2026-06-21T04:00:00.000Z",
+        "total_amount_cents": 2160,
+        "subtotal_amount_cents": 4350,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 2190,
+        "item_sum_cents": 1510
+      },
+      {
+        "id": 83,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-06-24T04:00:00.000Z",
+        "total_amount_cents": 4228,
+        "subtotal_amount_cents": 4624,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 396,
+        "item_sum_cents": 4228
+      },
+      {
+        "id": 79,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-06-20T04:00:00.000Z",
+        "total_amount_cents": 5213,
+        "subtotal_amount_cents": 6497,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 1284,
+        "item_sum_cents": 5213
+      },
+      {
+        "id": 78,
+        "merchant_name": "叮咚买菜",
+        "purchased_at": "2026-06-19T04:00:00.000Z",
+        "total_amount_cents": 2854,
+        "subtotal_amount_cents": 4644,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 2015
+      },
+      {
+        "id": 77,
+        "merchant_name": "盒马",
+        "purchased_at": "2026-06-20T11:00:00.000Z",
+        "total_amount_cents": 5688,
+        "subtotal_amount_cents": 9120,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 3432,
+        "item_sum_cents": 5688
+      },
+      {
+        "id": 76,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-20T07:03:15+08:00",
+        "total_amount_cents": 595,
+        "subtotal_amount_cents": 990,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 100,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 495
+      },
+      {
+        "id": 75,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-19T21:50:06+08:00",
+        "total_amount_cents": 1092,
+        "subtotal_amount_cents": 2490,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 1398,
+        "item_sum_cents": 1092
+      },
+      {
+        "id": 60,
+        "merchant_name": "小象超市(锦尊路店)",
+        "purchased_at": "2026-06-17T13:00:00.000Z",
+        "total_amount_cents": 11897,
+        "subtotal_amount_cents": 15105,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 900,
+        "delivery_discount_cents": 900,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 11897
+      },
+      {
+        "id": 56,
+        "merchant_name": "盒马鲜生上海杨高南路店",
+        "purchased_at": "2026-06-16T19:29:22+08:00",
+        "total_amount_cents": 1227,
+        "subtotal_amount_cents": 1780,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 553,
+        "item_sum_cents": 1227
+      },
+      {
+        "id": 53,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-05T12:00:00.000Z",
+        "total_amount_cents": 990,
+        "subtotal_amount_cents": 1285,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 990
+      },
+      {
+        "id": 52,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-05T10:00:00.000Z",
+        "total_amount_cents": 1318,
+        "subtotal_amount_cents": 1617,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 1318
+      },
+      {
+        "id": 51,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-05T10:30:00.000Z",
+        "total_amount_cents": 1974,
+        "subtotal_amount_cents": 2480,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 506,
+        "item_sum_cents": 1974
+      },
+      {
+        "id": 36,
+        "merchant_name": "小象超市",
+        "purchased_at": "2026-06-11T13:00:00.000Z",
+        "total_amount_cents": 10529,
+        "subtotal_amount_cents": 12741,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 10529
+      },
+      {
+        "id": 35,
+        "merchant_name": "尚正鸿食品旗舰店",
+        "purchased_at": "2026-06-07T16:00:00.000Z",
+        "total_amount_cents": 2130,
+        "subtotal_amount_cents": 2850,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 720,
+        "item_sum_cents": 2130
+      },
+      {
+        "id": 34,
+        "merchant_name": "淘宝",
+        "purchased_at": "2026-06-01T16:00:00.000Z",
+        "total_amount_cents": 3182,
+        "subtotal_amount_cents": 5620,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 2438,
+        "item_sum_cents": 3182
+      },
+      {
+        "id": 33,
+        "merchant_name": "拼多多",
+        "purchased_at": "2026-06-07T14:02:00.000Z",
+        "total_amount_cents": 3488,
+        "subtotal_amount_cents": 3680,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 192,
+        "item_sum_cents": 3488
+      },
+      {
+        "id": 32,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-07T04:00:00.000Z",
+        "total_amount_cents": 2990,
+        "subtotal_amount_cents": 3289,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 299,
+        "item_sum_cents": 2990
+      },
+      {
+        "id": 31,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-13T20:30:08+08:00",
+        "total_amount_cents": 1014,
+        "subtotal_amount_cents": 1690,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 100,
+        "delivery_fee_cents": 600,
+        "delivery_discount_cents": 600,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 1014
+      },
+      {
+        "id": 30,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-13T12:00:00+08:00",
+        "total_amount_cents": 1748,
+        "subtotal_amount_cents": 2047,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 1748
+      },
+      {
+        "id": 29,
+        "merchant_name": "盒马鲜生",
+        "purchased_at": "2026-06-13T12:00:00+08:00",
+        "total_amount_cents": 1323,
+        "subtotal_amount_cents": 2189,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 866,
+        "item_sum_cents": 1323
+      },
+      {
+        "id": 24,
+        "merchant_name": "盒马鲜生上海杨高南店",
+        "purchased_at": "2026-06-11T19:39:55+08:00",
+        "total_amount_cents": 3512,
+        "subtotal_amount_cents": 4613,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 0,
+        "item_sum_cents": 3512
+      },
+      {
+        "id": 18,
+        "merchant_name": "盒马鲜生上海杨高南路店",
+        "purchased_at": "2026-06-06T18:00:59+08:00",
+        "total_amount_cents": 1133,
+        "subtotal_amount_cents": 3241,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 600,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 2708,
+        "item_sum_cents": 1133
+      },
+      {
+        "id": 17,
+        "merchant_name": "小象超市",
+        "purchased_at": "2026-06-04T10:00:00+08:00",
+        "total_amount_cents": 8375,
+        "subtotal_amount_cents": 12147,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 1200,
+        "delivery_discount_cents": 1200,
+        "discount_amount_cents": 3772,
+        "item_sum_cents": 8379
+      },
+      {
+        "id": 16,
+        "merchant_name": "小象超市",
+        "purchased_at": "2026-06-04T19:16:00+08:00",
+        "total_amount_cents": 10131,
+        "subtotal_amount_cents": 17477,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 7346,
+        "item_sum_cents": 10131
+      },
+      {
+        "id": 15,
+        "merchant_name": "小象超市",
+        "purchased_at": "2026-06-06T18:45:00+08:00",
+        "total_amount_cents": 9294,
+        "subtotal_amount_cents": 16751,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 300,
+        "delivery_discount_cents": 300,
+        "discount_amount_cents": 7457,
+        "item_sum_cents": 9294
+      },
+      {
+        "id": 9,
+        "merchant_name": "上海超盒算NB浦东巴黎春天店",
+        "purchased_at": "2026-06-03T20:32:20+08:00",
+        "total_amount_cents": 4142,
+        "subtotal_amount_cents": 4798,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 0,
+        "delivery_discount_cents": 0,
+        "discount_amount_cents": 656,
+        "item_sum_cents": 4142
+      },
+      {
+        "id": 2,
+        "merchant_name": "小象超市",
+        "purchased_at": "2026-06-01T16:00:00.000Z",
+        "total_amount_cents": 11113,
+        "subtotal_amount_cents": 18179,
+        "tax_amount_cents": 0,
+        "processing_fee_cents": 0,
+        "delivery_fee_cents": 500,
+        "delivery_discount_cents": 500,
+        "discount_amount_cents": 7066,
+        "item_sum_cents": 11113
+      }
+    ]
+  },
+  "nutrition_quality": {
+    "severity_counts": {
+      "ok": 148,
+      "warn": 36,
+      "fail": 65,
+      "ignored": 61
+    },
+    "severity_rates_pct": {
+      "ok": 47.7,
+      "warn": 11.6,
+      "fail": 21,
+      "ignored": 19.7
+    },
+    "reason_counts": {
+      "non_food_expense_category": 61,
+      "no_weight": 90,
+      "no_alias_match": 121,
+      "ambiguous_unit": 1,
+      "noise": 4,
+      "low_confidence": 5
+    },
+    "repair_action_counts": {
+      "ignore_for_nutrition": 65,
+      "none": 148,
+      "needs_review": 97
+    }
+  },
+  "dry_run_remediation": {
+    "alias_candidates": [
+      {
+        "id": 519,
+        "transaction_id": 124,
+        "name_zh": "岩烧乳酪吐司",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 516,
+        "transaction_id": 124,
+        "name_zh": "上海青",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 514,
+        "transaction_id": 124,
+        "name_zh": "蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 320,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 499,
+        "transaction_id": 128,
+        "name_zh": "经典意式恰巴塔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1,
+        "food_amount_unit": "份",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 498,
+        "transaction_id": 128,
+        "name_zh": "岩烧乳酪吐司",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 495,
+        "transaction_id": 126,
+        "name_zh": "盒马日日鲜 严选冰鲜精切猪腿肉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 493,
+        "transaction_id": 126,
+        "name_zh": "盒马日日鲜 严选冰鲜精切猪汤骨",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 477,
+        "transaction_id": 117,
+        "name_zh": "鲜冻黑鱼鱼籽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 474,
+        "transaction_id": 117,
+        "name_zh": "华英老味道鸭血红",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 473,
+        "transaction_id": 117,
+        "name_zh": "叮咚大满冠猪黄喉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 220,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 472,
+        "transaction_id": 117,
+        "name_zh": "海底捞火锅蘸料原味",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 120,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 471,
+        "transaction_id": 117,
+        "name_zh": "鲜冻黑鱼鱼籽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 470,
+        "transaction_id": 117,
+        "name_zh": "冰鲜三去墨鱼仔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 469,
+        "transaction_id": 117,
+        "name_zh": "叮咚大满冠二八酱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 467,
+        "transaction_id": 117,
+        "name_zh": "安卡拉螺丝形意大利面",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 461,
+        "transaction_id": 118,
+        "name_zh": "大理高原贡菜（古法晾晒）",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 50,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 449,
+        "transaction_id": 116,
+        "name_zh": "鲜活味美花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 448,
+        "transaction_id": 116,
+        "name_zh": "华英老味道鸭血红膜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 420,
+        "transaction_id": 106,
+        "name_zh": "意式恰巴塔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 2,
+        "food_amount_unit": "份",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 418,
+        "transaction_id": 106,
+        "name_zh": "蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 320,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 416,
+        "transaction_id": 106,
+        "name_zh": "松花菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 411,
+        "transaction_id": 101,
+        "name_zh": "芦笋",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 410,
+        "transaction_id": 101,
+        "name_zh": "赤松茸",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 250,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 407,
+        "transaction_id": 101,
+        "name_zh": "干姜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 450,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 406,
+        "transaction_id": 101,
+        "name_zh": "红芽芋艿",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 403,
+        "transaction_id": 102,
+        "name_zh": "NB包装饮用水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "饮用水",
+        "food_amount_value": 9000,
+        "food_amount_unit": "ml",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 402,
+        "transaction_id": 102,
+        "name_zh": "NB雪菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 401,
+        "transaction_id": 102,
+        "name_zh": "冰鲜鸡杂片",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 393,
+        "transaction_id": 102,
+        "name_zh": "高原上海青",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 381,
+        "transaction_id": 100,
+        "name_zh": "海鲜味火锅蘸料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 196,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 379,
+        "transaction_id": 100,
+        "name_zh": "麻辣味火锅蘸料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 98,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 370,
+        "transaction_id": 95,
+        "name_zh": "筷手小厨海底捞小龙虾调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "海底捞",
+        "food_amount_value": 280,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 362,
+        "transaction_id": 93,
+        "name_zh": "中盐加碘低钠盐",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 359,
+        "transaction_id": 92,
+        "name_zh": "华英老味道鹅血红肠",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 357,
+        "transaction_id": 92,
+        "name_zh": "精选单冻鸡心",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 356,
+        "transaction_id": 92,
+        "name_zh": "华英精切鸭肠",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 280,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 355,
+        "transaction_id": 92,
+        "name_zh": "广式古法盐焗鸭肝",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 120,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 354,
+        "transaction_id": 91,
+        "name_zh": "一点小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 353,
+        "transaction_id": 91,
+        "name_zh": "冻鸡心",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 352,
+        "transaction_id": 91,
+        "name_zh": "华英老味道鸭血红膜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 351,
+        "transaction_id": 91,
+        "name_zh": "永乐饭店水煮肉片调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 100,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 350,
+        "transaction_id": 91,
+        "name_zh": "冰鲜裙带菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 347,
+        "transaction_id": 91,
+        "name_zh": "叮咚大满冠猪黄喉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 220,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 346,
+        "transaction_id": 90,
+        "name_zh": "小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 345,
+        "transaction_id": 90,
+        "name_zh": "味美花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 344,
+        "transaction_id": 90,
+        "name_zh": "福建一口蚝",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 342,
+        "transaction_id": 89,
+        "name_zh": "大粒花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 333,
+        "transaction_id": 84,
+        "name_zh": "怡宝纯净水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "纯净水",
+        "food_amount_value": 6000,
+        "food_amount_unit": "ml",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 332,
+        "transaction_id": 84,
+        "name_zh": "叮咚好食光冷吃鲜肉粽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 240,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 331,
+        "transaction_id": 84,
+        "name_zh": "叮咚好食光冷吃碱水粽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 240,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 323,
+        "transaction_id": 79,
+        "name_zh": "民勤沙葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 322,
+        "transaction_id": 79,
+        "name_zh": "永乐饭店水煮肉片调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 321,
+        "transaction_id": 79,
+        "name_zh": "宁夏上海青苗",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 319,
+        "transaction_id": 79,
+        "name_zh": "一点小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 315,
+        "transaction_id": 78,
+        "name_zh": "芦笋头",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 311,
+        "transaction_id": 77,
+        "name_zh": "贵州黑牛肝菌",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 306,
+        "transaction_id": 74,
+        "name_zh": "华英老味道鸭血",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 257,
+        "transaction_id": 46,
+        "name_zh": "支出",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "支出",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 190,
+        "transaction_id": 19,
+        "name_zh": "海底捞",
+        "expense_category": "外食",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1,
+        "food_amount_unit": "份",
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 181,
+        "transaction_id": 17,
+        "name_zh": "怡宝纯净水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "纯净水",
+        "food_amount_value": 16640,
+        "food_amount_unit": "ml",
+        "confidence": 800,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 117,
+        "transaction_id": 2,
+        "name_zh": "娃哈哈饮用水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "娃哈哈",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 970,
+        "severity": "fail",
+        "reasons": [
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      }
+    ],
+    "no_weight_candidates": [
+      {
+        "id": 305,
+        "transaction_id": 73,
+        "name_zh": "有机小洋葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "洋葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 274,
+        "transaction_id": 54,
+        "name_zh": "牛油果油",
+        "expense_category": "食物",
+        "nutrition_category": "油脂",
+        "matched_pattern": "牛油果油",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 249,
+        "transaction_id": 39,
+        "name_zh": "Lady M 蛋糕",
+        "expense_category": "外食",
+        "nutrition_category": "反式零食",
+        "matched_pattern": "Lady M",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 170,
+        "transaction_id": 15,
+        "name_zh": "冷鲜猪大肠",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪大肠",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 153,
+        "transaction_id": 1,
+        "name_zh": "三文鱼柳",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "三文鱼",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 152,
+        "transaction_id": 1,
+        "name_zh": "白葡萄酒",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "含糖饮料",
+        "matched_pattern": "白葡萄酒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 151,
+        "transaction_id": 1,
+        "name_zh": "黑胡椒",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "黑胡椒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 150,
+        "transaction_id": 1,
+        "name_zh": "迷迭香",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "迷迭香",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 149,
+        "transaction_id": 1,
+        "name_zh": "欧芹",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "欧芹",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 148,
+        "transaction_id": 1,
+        "name_zh": "小香葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "小香葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 147,
+        "transaction_id": 1,
+        "name_zh": "洋葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "洋葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 146,
+        "transaction_id": 1,
+        "name_zh": "苹果",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "苹果",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 145,
+        "transaction_id": 1,
+        "name_zh": "白蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "白蘑菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 144,
+        "transaction_id": 1,
+        "name_zh": "甘胡萝卜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "胡萝卜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 143,
+        "transaction_id": 1,
+        "name_zh": "鲜香菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "鲜香菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 142,
+        "transaction_id": 9,
+        "name_zh": "秋葵",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "秋葵",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 141,
+        "transaction_id": 9,
+        "name_zh": "小皇冠西瓜",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "小皇冠西瓜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 140,
+        "transaction_id": 9,
+        "name_zh": "菠菜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "菠菜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 750,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 139,
+        "transaction_id": 9,
+        "name_zh": "贝贝南瓜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "贝贝南瓜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 138,
+        "transaction_id": 9,
+        "name_zh": "黑金刚莲雾",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "黑金刚莲雾",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 650,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 118,
+        "transaction_id": 2,
+        "name_zh": "老姜",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "老姜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 930,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 116,
+        "transaction_id": 2,
+        "name_zh": "冷鲜猪肉丝",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪肉丝",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 115,
+        "transaction_id": 2,
+        "name_zh": "冷鲜猪梅花肉",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪梅花肉",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 920,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 114,
+        "transaction_id": 2,
+        "name_zh": "西兰花",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "西兰花",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 113,
+        "transaction_id": 2,
+        "name_zh": "五香老卤汁调料",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "卤汁调料",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 960,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 112,
+        "transaction_id": 2,
+        "name_zh": "青菜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "青菜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 111,
+        "transaction_id": 2,
+        "name_zh": "螺丝椒",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "螺丝椒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 110,
+        "transaction_id": 2,
+        "name_zh": "冰鲜花鲢鱼",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "花鲢鱼",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 880,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 109,
+        "transaction_id": 2,
+        "name_zh": "鲜活基围虾",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "基围虾",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 920,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 108,
+        "transaction_id": 2,
+        "name_zh": "富硒谷物鸡蛋",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "谷物鸡蛋",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 107,
+        "transaction_id": 2,
+        "name_zh": "杏鲍菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "杏鲍菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      }
+    ],
+    "ambiguous_unit_candidates": [
+      {
+        "id": 374,
+        "transaction_id": 99,
+        "name_zh": "一次性保鲜膜套",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 330,
+        "food_amount_unit": "个",
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "ambiguous_unit",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      }
+    ],
+    "ignored_non_food_items": [
+      {
+        "id": 525,
+        "transaction_id": 133,
+        "name_zh": "apple_music",
+        "expense_category": "娱乐",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 521,
+        "transaction_id": 124,
+        "name_zh": "包装费",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 480,
+        "transaction_id": 123,
+        "name_zh": "美丽雅 高硼硅玻璃保鲜盒",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 2160,
+        "food_amount_unit": "ml",
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 479,
+        "transaction_id": 123,
+        "name_zh": "onlycook 耐热玻璃碗",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 930,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 478,
+        "transaction_id": 122,
+        "name_zh": "格纳斯玻璃沙拉碗",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 930,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 465,
+        "transaction_id": 120,
+        "name_zh": "HOUYA一次性马桶垫",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 464,
+        "transaction_id": 119,
+        "name_zh": "DR.DT鱼子酱角蛋白精华",
+        "expense_category": "个人护理",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 463,
+        "transaction_id": 118,
+        "name_zh": "购物袋",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 429,
+        "transaction_id": 114,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 428,
+        "transaction_id": 113,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 427,
+        "transaction_id": 112,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 426,
+        "transaction_id": 111,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 425,
+        "transaction_id": 110,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 424,
+        "transaction_id": 109,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 423,
+        "transaction_id": 108,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 422,
+        "transaction_id": 107,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 421,
+        "transaction_id": 106,
+        "name_zh": "无纺布购物袋",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 414,
+        "transaction_id": 105,
+        "name_zh": "硅胶防烫隔热手套",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 413,
+        "transaction_id": 104,
+        "name_zh": "壁挂式厨房垃圾桶",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 412,
+        "transaction_id": 103,
+        "name_zh": "不锈钢厨房置物沥水架",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 383,
+        "transaction_id": 100,
+        "name_zh": "牙线棒",
+        "expense_category": "个人护理",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 378,
+        "transaction_id": 100,
+        "name_zh": "75%酒精卫生湿巾",
+        "expense_category": "清洁用品",
+        "nutrition_category": "含糖饮料",
+        "matched_pattern": "酒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 375,
+        "transaction_id": 100,
+        "name_zh": "一次性使用口罩",
+        "expense_category": "个人护理",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 374,
+        "transaction_id": 99,
+        "name_zh": "一次性保鲜膜套",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 330,
+        "food_amount_unit": "个",
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "ambiguous_unit",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 373,
+        "transaction_id": 98,
+        "name_zh": "珐琅铸铁锅",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 372,
+        "transaction_id": 97,
+        "name_zh": "清风抽纸",
+        "expense_category": "清洁用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 371,
+        "transaction_id": 96,
+        "name_zh": "金纺衣物柔顺剂（玉龙雪山玫瑰香）",
+        "expense_category": "清洁用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 361,
+        "transaction_id": 93,
+        "name_zh": "墨宇去渍除螨洗衣爆盐",
+        "expense_category": "清洁用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 700,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 326,
+        "transaction_id": 82,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 325,
+        "transaction_id": 81,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 324,
+        "transaction_id": 80,
+        "name_zh": "开通账户",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 303,
+        "transaction_id": 71,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 302,
+        "transaction_id": 70,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 301,
+        "transaction_id": 69,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 300,
+        "transaction_id": 68,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 299,
+        "transaction_id": 67,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 298,
+        "transaction_id": 66,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 297,
+        "transaction_id": 65,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 296,
+        "transaction_id": 64,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 295,
+        "transaction_id": 63,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 294,
+        "transaction_id": 62,
+        "name_zh": "icloud每月50g费用",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 286,
+        "transaction_id": 59,
+        "name_zh": "超值优惠劵包",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 275,
+        "transaction_id": 55,
+        "name_zh": "抽纸",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 263,
+        "transaction_id": 50,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 262,
+        "transaction_id": 49,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 259,
+        "transaction_id": 48,
+        "name_zh": "公交",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 258,
+        "transaction_id": 47,
+        "name_zh": "公交",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 256,
+        "transaction_id": 45,
+        "name_zh": "公交",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 255,
+        "transaction_id": 44,
+        "name_zh": "公交车",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 254,
+        "transaction_id": 43,
+        "name_zh": "apple music月付",
+        "expense_category": "娱乐",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 248,
+        "transaction_id": 38,
+        "name_zh": "美团共享单车",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 220,
+        "transaction_id": 34,
+        "name_zh": "厨房水龙头延伸器（防溅神器）",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 219,
+        "transaction_id": 34,
+        "name_zh": "冰箱隔热板（耐高温防火板）",
+        "expense_category": "日用品",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 208,
+        "transaction_id": 28,
+        "name_zh": "公交车",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 207,
+        "transaction_id": 27,
+        "name_zh": "支出",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": "支出",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 206,
+        "transaction_id": 26,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 205,
+        "transaction_id": 25,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 192,
+        "transaction_id": 21,
+        "name_zh": "15日共享单车卡",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 159,
+        "transaction_id": 14,
+        "name_zh": "疏通马桶",
+        "expense_category": "其他",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 95,
+        "transaction_id": 4,
+        "name_zh": "地铁出行",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 94,
+        "transaction_id": 5,
+        "name_zh": "支出",
+        "expense_category": "交通",
+        "nutrition_category": "未分类",
+        "matched_pattern": "支出",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "ignored",
+        "reasons": [
+          "non_food_expense_category",
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      }
+    ],
+    "review_items": [
+      {
+        "id": 519,
+        "transaction_id": 124,
+        "name_zh": "岩烧乳酪吐司",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 516,
+        "transaction_id": 124,
+        "name_zh": "上海青",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 514,
+        "transaction_id": 124,
+        "name_zh": "蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 320,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 499,
+        "transaction_id": 128,
+        "name_zh": "经典意式恰巴塔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1,
+        "food_amount_unit": "份",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 498,
+        "transaction_id": 128,
+        "name_zh": "岩烧乳酪吐司",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 495,
+        "transaction_id": 126,
+        "name_zh": "盒马日日鲜 严选冰鲜精切猪腿肉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 493,
+        "transaction_id": 126,
+        "name_zh": "盒马日日鲜 严选冰鲜精切猪汤骨",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 477,
+        "transaction_id": 117,
+        "name_zh": "鲜冻黑鱼鱼籽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 474,
+        "transaction_id": 117,
+        "name_zh": "华英老味道鸭血红",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 473,
+        "transaction_id": 117,
+        "name_zh": "叮咚大满冠猪黄喉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 220,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 472,
+        "transaction_id": 117,
+        "name_zh": "海底捞火锅蘸料原味",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 120,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 471,
+        "transaction_id": 117,
+        "name_zh": "鲜冻黑鱼鱼籽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 470,
+        "transaction_id": 117,
+        "name_zh": "冰鲜三去墨鱼仔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 469,
+        "transaction_id": 117,
+        "name_zh": "叮咚大满冠二八酱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 467,
+        "transaction_id": 117,
+        "name_zh": "安卡拉螺丝形意大利面",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 461,
+        "transaction_id": 118,
+        "name_zh": "大理高原贡菜（古法晾晒）",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 50,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 449,
+        "transaction_id": 116,
+        "name_zh": "鲜活味美花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 448,
+        "transaction_id": 116,
+        "name_zh": "华英老味道鸭血红膜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 420,
+        "transaction_id": 106,
+        "name_zh": "意式恰巴塔",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 2,
+        "food_amount_unit": "份",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 418,
+        "transaction_id": 106,
+        "name_zh": "蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 320,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 416,
+        "transaction_id": 106,
+        "name_zh": "松花菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 411,
+        "transaction_id": 101,
+        "name_zh": "芦笋",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 410,
+        "transaction_id": 101,
+        "name_zh": "赤松茸",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 250,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 407,
+        "transaction_id": 101,
+        "name_zh": "干姜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 450,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 406,
+        "transaction_id": 101,
+        "name_zh": "红芽芋艿",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 403,
+        "transaction_id": 102,
+        "name_zh": "NB包装饮用水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "饮用水",
+        "food_amount_value": 9000,
+        "food_amount_unit": "ml",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 402,
+        "transaction_id": 102,
+        "name_zh": "NB雪菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 401,
+        "transaction_id": 102,
+        "name_zh": "冰鲜鸡杂片",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 393,
+        "transaction_id": 102,
+        "name_zh": "高原上海青",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 381,
+        "transaction_id": 100,
+        "name_zh": "海鲜味火锅蘸料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 196,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 379,
+        "transaction_id": 100,
+        "name_zh": "麻辣味火锅蘸料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 98,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 370,
+        "transaction_id": 95,
+        "name_zh": "筷手小厨海底捞小龙虾调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "海底捞",
+        "food_amount_value": 280,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 362,
+        "transaction_id": 93,
+        "name_zh": "中盐加碘低钠盐",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 359,
+        "transaction_id": 92,
+        "name_zh": "华英老味道鹅血红肠",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 357,
+        "transaction_id": 92,
+        "name_zh": "精选单冻鸡心",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 356,
+        "transaction_id": 92,
+        "name_zh": "华英精切鸭肠",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 280,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 355,
+        "transaction_id": 92,
+        "name_zh": "广式古法盐焗鸭肝",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 120,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 354,
+        "transaction_id": 91,
+        "name_zh": "一点小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 353,
+        "transaction_id": 91,
+        "name_zh": "冻鸡心",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 352,
+        "transaction_id": 91,
+        "name_zh": "华英老味道鸭血红膜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 351,
+        "transaction_id": 91,
+        "name_zh": "永乐饭店水煮肉片调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 100,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 350,
+        "transaction_id": 91,
+        "name_zh": "冰鲜裙带菜",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 347,
+        "transaction_id": 91,
+        "name_zh": "叮咚大满冠猪黄喉",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 220,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 346,
+        "transaction_id": 90,
+        "name_zh": "小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 345,
+        "transaction_id": 90,
+        "name_zh": "味美花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 344,
+        "transaction_id": 90,
+        "name_zh": "福建一口蚝",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 342,
+        "transaction_id": 89,
+        "name_zh": "大粒花蛤",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1000,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 333,
+        "transaction_id": 84,
+        "name_zh": "怡宝纯净水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "纯净水",
+        "food_amount_value": 6000,
+        "food_amount_unit": "ml",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 332,
+        "transaction_id": 84,
+        "name_zh": "叮咚好食光冷吃鲜肉粽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 240,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 331,
+        "transaction_id": 84,
+        "name_zh": "叮咚好食光冷吃碱水粽",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 240,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 323,
+        "transaction_id": 79,
+        "name_zh": "民勤沙葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 322,
+        "transaction_id": 79,
+        "name_zh": "永乐饭店水煮肉片调料",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 321,
+        "transaction_id": 79,
+        "name_zh": "宁夏上海青苗",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 400,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 319,
+        "transaction_id": 79,
+        "name_zh": "一点小葱",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 25,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 315,
+        "transaction_id": 78,
+        "name_zh": "芦笋头",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 311,
+        "transaction_id": 77,
+        "name_zh": "贵州黑牛肝菌",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 306,
+        "transaction_id": 74,
+        "name_zh": "华英老味道鸭血",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 950,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 305,
+        "transaction_id": 73,
+        "name_zh": "有机小洋葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "洋葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 274,
+        "transaction_id": 54,
+        "name_zh": "牛油果油",
+        "expense_category": "食物",
+        "nutrition_category": "油脂",
+        "matched_pattern": "牛油果油",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 257,
+        "transaction_id": 46,
+        "name_zh": "支出",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "支出",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 253,
+        "transaction_id": 42,
+        "name_zh": "盒马超市",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "noise"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 252,
+        "transaction_id": 41,
+        "name_zh": "微信转账",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "微信转账",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "noise"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 251,
+        "transaction_id": 40,
+        "name_zh": "盒马超市",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "noise"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 249,
+        "transaction_id": 39,
+        "name_zh": "Lady M 蛋糕",
+        "expense_category": "外食",
+        "nutrition_category": "反式零食",
+        "matched_pattern": "Lady M",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 190,
+        "transaction_id": 19,
+        "name_zh": "海底捞",
+        "expense_category": "外食",
+        "nutrition_category": "未分类",
+        "matched_pattern": null,
+        "food_amount_value": 1,
+        "food_amount_unit": "份",
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 181,
+        "transaction_id": 17,
+        "name_zh": "怡宝纯净水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "纯净水",
+        "food_amount_value": 16640,
+        "food_amount_unit": "ml",
+        "confidence": 800,
+        "severity": "fail",
+        "reasons": [
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 176,
+        "transaction_id": 16,
+        "name_zh": "小象黑金亚麻籽油",
+        "expense_category": "食物",
+        "nutrition_category": "油脂",
+        "matched_pattern": "亚麻籽油",
+        "food_amount_value": 500,
+        "food_amount_unit": "g",
+        "confidence": 350,
+        "severity": "warn",
+        "reasons": [
+          "low_confidence"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 175,
+        "transaction_id": 16,
+        "name_zh": "黑椒鸡腿排",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "黑椒鸡腿排",
+        "food_amount_value": 200,
+        "food_amount_unit": "g",
+        "confidence": 400,
+        "severity": "warn",
+        "reasons": [
+          "low_confidence"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 174,
+        "transaction_id": 16,
+        "name_zh": "酱猪肝",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "酱猪肝",
+        "food_amount_value": 120,
+        "food_amount_unit": "g",
+        "confidence": 450,
+        "severity": "warn",
+        "reasons": [
+          "low_confidence"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 170,
+        "transaction_id": 15,
+        "name_zh": "冷鲜猪大肠",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪大肠",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 167,
+        "transaction_id": 15,
+        "name_zh": "西兰花",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "西兰花",
+        "food_amount_value": 300,
+        "food_amount_unit": "g",
+        "confidence": 400,
+        "severity": "warn",
+        "reasons": [
+          "low_confidence"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 161,
+        "transaction_id": 15,
+        "name_zh": "坚果核桃拿破仑",
+        "expense_category": "食物",
+        "nutrition_category": "反式零食",
+        "matched_pattern": "核桃拿破仑",
+        "food_amount_value": 4,
+        "food_amount_unit": "块",
+        "confidence": 350,
+        "severity": "warn",
+        "reasons": [
+          "low_confidence"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 153,
+        "transaction_id": 1,
+        "name_zh": "三文鱼柳",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "三文鱼",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 152,
+        "transaction_id": 1,
+        "name_zh": "白葡萄酒",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "含糖饮料",
+        "matched_pattern": "白葡萄酒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 151,
+        "transaction_id": 1,
+        "name_zh": "黑胡椒",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "黑胡椒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 150,
+        "transaction_id": 1,
+        "name_zh": "迷迭香",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "迷迭香",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 149,
+        "transaction_id": 1,
+        "name_zh": "欧芹",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "欧芹",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 148,
+        "transaction_id": 1,
+        "name_zh": "小香葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "小香葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 147,
+        "transaction_id": 1,
+        "name_zh": "洋葱",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "洋葱",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 146,
+        "transaction_id": 1,
+        "name_zh": "苹果",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "苹果",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 145,
+        "transaction_id": 1,
+        "name_zh": "白蘑菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "白蘑菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 144,
+        "transaction_id": 1,
+        "name_zh": "甘胡萝卜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "胡萝卜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 143,
+        "transaction_id": 1,
+        "name_zh": "鲜香菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "鲜香菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 142,
+        "transaction_id": 9,
+        "name_zh": "秋葵",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "秋葵",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 141,
+        "transaction_id": 9,
+        "name_zh": "小皇冠西瓜",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "小皇冠西瓜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 140,
+        "transaction_id": 9,
+        "name_zh": "菠菜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "菠菜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 750,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 139,
+        "transaction_id": 9,
+        "name_zh": "贝贝南瓜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "贝贝南瓜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 138,
+        "transaction_id": 9,
+        "name_zh": "黑金刚莲雾",
+        "expense_category": "食物",
+        "nutrition_category": "水果",
+        "matched_pattern": "黑金刚莲雾",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 650,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 120,
+        "transaction_id": 6,
+        "name_zh": "淘宝商品",
+        "expense_category": "食物",
+        "nutrition_category": "未分类",
+        "matched_pattern": "淘宝商品",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 1000,
+        "severity": "fail",
+        "reasons": [
+          "noise"
+        ],
+        "repair_action": "ignore_for_nutrition"
+      },
+      {
+        "id": 118,
+        "transaction_id": 2,
+        "name_zh": "老姜",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "老姜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 930,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 117,
+        "transaction_id": 2,
+        "name_zh": "娃哈哈饮用水",
+        "expense_category": "饮料/咖啡",
+        "nutrition_category": "未分类",
+        "matched_pattern": "娃哈哈",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 970,
+        "severity": "fail",
+        "reasons": [
+          "no_weight",
+          "no_alias_match"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 116,
+        "transaction_id": 2,
+        "name_zh": "冷鲜猪肉丝",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪肉丝",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 115,
+        "transaction_id": 2,
+        "name_zh": "冷鲜猪梅花肉",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "猪梅花肉",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 920,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 114,
+        "transaction_id": 2,
+        "name_zh": "西兰花",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "西兰花",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 113,
+        "transaction_id": 2,
+        "name_zh": "五香老卤汁调料",
+        "expense_category": "食物",
+        "nutrition_category": "香料",
+        "matched_pattern": "卤汁调料",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 960,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 112,
+        "transaction_id": 2,
+        "name_zh": "青菜",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "青菜",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 111,
+        "transaction_id": 2,
+        "name_zh": "螺丝椒",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "螺丝椒",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 110,
+        "transaction_id": 2,
+        "name_zh": "冰鲜花鲢鱼",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "花鲢鱼",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 880,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 109,
+        "transaction_id": 2,
+        "name_zh": "鲜活基围虾",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "基围虾",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 920,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 108,
+        "transaction_id": 2,
+        "name_zh": "富硒谷物鸡蛋",
+        "expense_category": "食物",
+        "nutrition_category": "动物性",
+        "matched_pattern": "谷物鸡蛋",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      },
+      {
+        "id": 107,
+        "transaction_id": 2,
+        "name_zh": "杏鲍菇",
+        "expense_category": "食物",
+        "nutrition_category": "蔬菜",
+        "matched_pattern": "杏鲍菇",
+        "food_amount_value": null,
+        "food_amount_unit": null,
+        "confidence": 950,
+        "severity": "warn",
+        "reasons": [
+          "no_weight"
+        ],
+        "repair_action": "needs_review"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "ledger-hard-checks",
+      "layer": "ledger",
+      "severity": "pass",
+      "title": "Ledger referential and validity checks",
+      "evidence": {
+        "hard_checks": {
+          "transaction_total_nonpositive": 0,
+          "transaction_bad_currency": 0,
+          "transaction_empty_merchant": 0,
+          "transaction_invalid_date": 0,
+          "transaction_without_items": 0,
+          "item_orphan_transaction": 0,
+          "receipt_without_image_row": 0,
+          "receipt_hash_orphan": 0,
+          "receipt_transaction_orphan": 0
+        }
+      },
+      "risk": "Hard failures would break trusted expense totals and receipt traceability.",
+      "recommendation": "No hard ledger failures found in the current database snapshot."
+    },
+    {
+      "id": "nutrition-coverage",
+      "layer": "nutrition",
+      "severity": "high",
+      "title": "Nutrition analysis coverage",
+      "evidence": {
+        "fail": 65,
+        "warn": 36,
+        "ignored": 61,
+        "total_items": 310,
+        "reason_counts": {
+          "non_food_expense_category": 61,
+          "no_weight": 90,
+          "no_alias_match": 121,
+          "ambiguous_unit": 1,
+          "noise": 4,
+          "low_confidence": 5
+        }
+      },
+      "risk": "Failed food items are skipped or materially weaken plate/PDI scoring.",
+      "recommendation": "Prioritize alias review, then missing weights, then unit normalization."
+    },
+    {
+      "id": "confidence-scale",
+      "layer": "ocr",
+      "severity": "medium",
+      "title": "OCR confidence scale normalization",
+      "evidence": {
+        "scale": "0..1000",
+        "lowThreshold": 500
+      },
+      "risk": "A fixed 0.5 threshold only works for 0..1 confidence values.",
+      "recommendation": "Use the detected scale threshold in audits and normalize confidence before future scoring."
+    },
+    {
+      "id": "money-reconciliation-review",
+      "layer": "ledger",
+      "severity": "medium",
+      "title": "Transaction subtotal/item reconciliation needs review",
+      "evidence": {
+        "review_count": 47
+      },
+      "risk": "Discounts, delivery fees, and subtotals can make naive item-sum comparisons misleading.",
+      "recommendation": "Keep these as needs_review until the receipt arithmetic rule is finalized."
+    }
+  ]
+}

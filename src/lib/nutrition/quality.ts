@@ -25,24 +25,34 @@ export type QualityReason =
   | "ambiguous_unit" // unit not in g/ml/份/块
   | "no_alias_match" // classify returned 未分类
   | "low_confidence" // OCR model confidence < 0.5
-  | "noise"; // known OCR noise (微信转账, 淘宝商品, ...)
+  | "noise" // known OCR noise (微信转账, 淘宝商品, ...)
+  | "not_nutrition"; // valid expense item that should not enter nutrition scoring
 
 export const REASON_LABELS: Record<QualityReason, string> = {
   no_weight: "无重量",
   ambiguous_unit: "单位无法换算",
   no_alias_match: "未匹配别名",
   low_confidence: "OCR 低置信度",
-  noise: "OCR 噪声"
+  noise: "OCR 噪声",
+  not_nutrition: "非营养项"
 };
 
 // Order matters: first match wins. Keep this list short — it's only for
 // "this is OCR garbage, not a food item at all". Items with a real
 // category but bad OCR data go through normal quality scoring instead.
 const NOISE_PATTERNS = ["微信转账", "淘宝商品", "盒马超市"];
+const NOT_NUTRITION_PATTERNS = ["包装费", "支出", "纯净水", "饮用水", "矿泉水", "蒸馏水"];
+const NOT_NUTRITION_EXACT = new Set(["海底捞"]);
 
-// OCR stores confidence as INTEGER 0..100 (or 0..1 in JSON depending on
-// stage). Tolerate both; the threshold is on the same scale.
-const LOW_CONFIDENCE_THRESHOLD = 0.5;
+function isLowConfidence(confidence: number): boolean {
+  if (confidence > 100) return confidence < 500;
+  if (confidence > 1) return confidence < 50;
+  return confidence < 0.5;
+}
+
+function isManuallyVerified(notes: string | null | undefined): boolean {
+  return notes?.includes("[manual_verified") ?? false;
+}
 
 export type QualitySeverity = "ok" | "warn" | "fail";
 
@@ -56,10 +66,12 @@ export type QualityInput = {
   food_amount_value: number | null;
   food_amount_unit: string | null;
   confidence: number;
+  notes?: string | null;
 };
 
 export type QualityClassification = {
   category: NutritionCategory;
+  matchedPattern?: string | null;
 };
 
 // Known unit set matches the scorer (toGrams in score.ts). Items with any
@@ -77,6 +89,13 @@ export function qualityCheck(
     return { reasons: ["noise"], severity: "fail" };
   }
 
+  if (
+    NOT_NUTRITION_EXACT.has(item.name_zh.trim()) ||
+    NOT_NUTRITION_PATTERNS.some((p) => item.name_zh.includes(p))
+  ) {
+    return { reasons: ["not_nutrition"], severity: "fail" };
+  }
+
   const reasons: QualityReason[] = [];
 
   if (item.food_amount_value === null) {
@@ -85,11 +104,13 @@ export function qualityCheck(
     reasons.push("ambiguous_unit");
   }
 
-  if (classification.category === "未分类") {
+  if (classification.category === "未分类" && classification.matchedPattern) {
+    reasons.push("not_nutrition");
+  } else if (classification.category === "未分类") {
     reasons.push("no_alias_match");
   }
 
-  if (item.confidence < LOW_CONFIDENCE_THRESHOLD) {
+  if (!isManuallyVerified(item.notes) && isLowConfidence(item.confidence)) {
     reasons.push("low_confidence");
   }
 
@@ -98,6 +119,8 @@ export function qualityCheck(
   let severity: QualitySeverity;
   if (reasons.length === 0) {
     severity = "ok";
+  } else if (reasons.includes("not_nutrition")) {
+    severity = "fail";
   } else if (
     reasons.length === 1 &&
     !reasons.includes("no_alias_match")
@@ -120,7 +143,8 @@ export function emptySkipBreakdown(): SkipBreakdown {
     ambiguous_unit: 0,
     no_alias_match: 0,
     low_confidence: 0,
-    noise: 0
+    noise: 0,
+    not_nutrition: 0
   };
 }
 

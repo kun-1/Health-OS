@@ -184,6 +184,25 @@ sqlite.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_nutrition_aliases_pattern
     ON nutrition_food_aliases (raw_pattern);
+
+  -- Wave 4: SMS auto-entry audit / dedup table.
+  CREATE TABLE IF NOT EXISTS sms_transaction_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_hash TEXT NOT NULL UNIQUE,
+    source TEXT NOT NULL DEFAULT 'sms',
+    status TEXT NOT NULL,
+    raw_message TEXT NOT NULL,
+    transaction_id INTEGER,
+    reason TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_sms_records_status_created
+    ON sms_transaction_records (status, created_at);
+
+  CREATE INDEX IF NOT EXISTS idx_sms_records_transaction
+    ON sms_transaction_records (transaction_id);
 `);
 
 const transactionColumns = sqlite.prepare("PRAGMA table_info(expense_transactions)").all() as {

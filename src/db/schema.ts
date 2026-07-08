@@ -9,8 +9,10 @@ import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core
 // otherwise dominate the "other" bucket and skew the ratio.
 export const nutritionCategories = [
   "蔬菜",
+  "淀粉类蔬菜",
   "水果",
   "全谷物",
+  "精制谷物",
   "豆类",
   "坚果",
   "香料",
@@ -18,7 +20,7 @@ export const nutritionCategories = [
   "油脂",
   "含糖饮料",
   "加工肉",
-  "反式零食",
+  "甜点",
   "未分类"
 ] as const;
 
@@ -220,3 +222,30 @@ export const recurringExpenses = sqliteTable("recurring_expenses", {
 });
 
 export type RecurringExpenseRow = typeof recurringExpenses.$inferSelect;
+
+// Wave 4: audit trail for SMS auto-entry. One row per received SMS. The
+// message_hash is a SHA-256 of the normalized text and is unique so the same
+// alert forwarded twice is silently deduplicated.
+export const smsTransactionRecords = sqliteTable(
+  "sms_transaction_records",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    messageHash: text("message_hash").notNull().unique(),
+    source: text("source").notNull().default("sms"),
+    status: text("status").notNull(), // processed | skipped | duplicate | error
+    rawMessage: text("raw_message").notNull(),
+    transactionId: integer("transaction_id"),
+    reason: text("reason"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull()
+  },
+  (table) => ({
+    idxSmsRecordsStatusCreated: index("idx_sms_records_status_created").on(
+      table.status,
+      table.createdAt
+    ),
+    idxSmsRecordsTransaction: index("idx_sms_records_transaction").on(table.transactionId)
+  })
+);
+
+export type SmsTransactionRecordRow = typeof smsTransactionRecords.$inferSelect;

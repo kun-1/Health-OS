@@ -15,17 +15,17 @@ type Props = {
 
 export function ChartCard({ title, subtitle, toolbar, children, footer }: Props) {
   return (
-    <section className="life-card">
+    <section className="life-card life-chart-card">
       <header className="life-card__header">
-        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <div className="life-chart-card__heading">
           <span className="life-card__title">{title}</span>
           {subtitle ? (
-            <span style={{ fontSize: "0.78rem", color: "var(--life-muted)" }}>{subtitle}</span>
+            <span className="life-chart-card__subtitle">{subtitle}</span>
           ) : null}
         </div>
-        {toolbar ? <div>{toolbar}</div> : null}
+        {toolbar ? <div className="life-chart-card__toolbar">{toolbar}</div> : null}
       </header>
-      <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
+      <div className="life-chart-card__body">{children}</div>
       {footer ? <div className="life-card__footnote">{footer}</div> : null}
     </section>
   );

@@ -1,7 +1,7 @@
 // GET /api/nutrition/trend?months=6&end=YYYY-MM
 //
 // Returns the last N months of total grams for 5 fixed nutrition categories
-// (动物性/加工肉/含糖饮料/反式零食/蔬菜). One row per month, one number per
+// (动物性/加工肉/含糖饮料/精制谷物/甜点/蔬菜). One row per month, one number per
 // category — feeds the sparkline row on the nutrition dashboard.
 //
 // Months are returned oldest → newest so the client can render a left-to-
@@ -34,7 +34,8 @@ const TRACKED: ReadonlyArray<NutritionCategory> = [
   "动物性",
   "加工肉",
   "含糖饮料",
-  "反式零食",
+  "精制谷物",
+  "甜点",
   "蔬菜"
 ];
 
@@ -77,8 +78,10 @@ function monthBounds(period: string): { start: string; end: string } {
 function emptyAcc(): Record<NutritionCategory, number> {
   return {
     蔬菜: 0,
+    淀粉类蔬菜: 0,
     水果: 0,
     全谷物: 0,
+    精制谷物: 0,
     豆类: 0,
     坚果: 0,
     香料: 0,
@@ -86,7 +89,7 @@ function emptyAcc(): Record<NutritionCategory, number> {
     油脂: 0,
     含糖饮料: 0,
     加工肉: 0,
-    反式零食: 0,
+    甜点: 0,
     未分类: 0
   };
 }

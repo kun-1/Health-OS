@@ -28,6 +28,9 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
       percent: Math.round((item.amount / Math.max(1, analytics.budget_progress.spent)) * 100)
     }))
     .sort((a, b) => b.amount - a.amount);
+  const topCategory = categoryData[0];
+  const topThreePercent = categoryData.slice(0, 3).reduce((sum, item) => sum + item.percent, 0);
+  const categoryCount = categoryData.length;
 
   return (
     <div className="exp-screen exp-screen--structure">
@@ -55,25 +58,44 @@ export function StructureTask({ analytics }: { analytics: ExpenseAnalytics }) {
             <span key={item.category}><i style={{ background: item.color }} />{categoryLabel(item.category)} {item.percent}%</span>
           ))}
         </div>
+        <div className="exp-structure-summary">
+          <div>
+            <span>第一流向</span>
+            <strong>{topCategory ? `${categoryLabel(topCategory.category)} ${topCategory.percent}%` : "暂无数据"}</strong>
+          </div>
+          <div>
+            <span>前三集中度</span>
+            <strong>{topThreePercent}%</strong>
+          </div>
+          <div>
+            <span>分类数量</span>
+            <strong>{categoryCount}</strong>
+          </div>
+        </div>
       </section>
 
       <section className="exp-panel exp-panel--side">
         <div className="exp-section-head exp-section-head--compact">
           <div>
             <p className="exp-eyebrow">类别占比</p>
-            <h2>支出类别分布</h2>
+            <h2>支出排行</h2>
           </div>
         </div>
-        <div className="exp-bars">
-          {categoryData.slice(0, 4).map((item) => (
+        <div className="exp-bars exp-bars--ranked">
+          {categoryData.slice(0, 6).map((item, index) => (
             <div className="exp-bar-row" key={item.category}>
               <div className="exp-bar-row__meta">
-                <span><i style={{ background: item.color }} />{categoryEmoji(item.category)} {categoryLabel(item.category)}</span>
-                <strong>{formatMoneyCompact(fromCents(item.amount), analytics.primary_currency)}</strong>
+                <span>
+                  <em>{index + 1}</em>
+                  <i style={{ background: item.color }} />
+                  {categoryEmoji(item.category)} {categoryLabel(item.category)}
+                </span>
+                <strong>{item.percent}%</strong>
               </div>
               <div className="exp-range"><span style={{ width: `${Math.min(100, item.percent * 1.8)}%`, background: item.color }} /></div>
               <div className="exp-bar-row__foot">
-                <small>{item.percent}% of monthly spend</small>
+                <small>{formatMoneyCompact(fromCents(item.amount), analytics.primary_currency)}</small>
+                <small>{item.percent >= 30 ? "需要关注" : item.percent >= 15 ? "主要支出" : "常规支出"}</small>
               </div>
             </div>
           ))}

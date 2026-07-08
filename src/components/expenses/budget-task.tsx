@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleDollarSign, Landmark, ReceiptText } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -15,6 +16,57 @@ import type { ExpenseAnalytics } from "@/lib/expenses/types";
 
 import { categoryEmoji, categoryLabel } from "./category-colors";
 import { formatMoneyCompact } from "./shared/task-helpers";
+
+function BudgetInsightStrip({ analytics }: { analytics: ExpenseAnalytics }) {
+  const usage = Math.round((analytics.budget_progress.spent / Math.max(1, analytics.budget_progress.budget)) * 100);
+  const topCategory = analytics.category_breakdown
+    .slice()
+    .sort((a, b) => b.amount - a.amount)[0];
+  const largestTransaction = analytics.recent_transactions
+    .slice()
+    .sort((a, b) => b.total_amount - a.total_amount)[0];
+
+  const usageTone = usage > 100 ? "danger" : usage >= 85 ? "warn" : "good";
+
+  return (
+    <section className="exp-insight-strip exp-panel--wide" aria-label="预算摘要">
+      <div className="exp-insight" data-tone={usageTone}>
+        <span className="exp-insight__icon"><Landmark aria-hidden /></span>
+        <div className="exp-insight__body">
+          <span className="exp-insight__label">本月节奏</span>
+          <strong>{usage}%</strong>
+          <small>{usage > 100 ? "已经超预算" : usage >= 85 ? "接近预算上限" : "仍在预算内"}</small>
+        </div>
+      </div>
+
+      <div className="exp-insight">
+        <span className="exp-insight__icon"><CircleDollarSign aria-hidden /></span>
+        <div className="exp-insight__body">
+          <span className="exp-insight__label">最大流向</span>
+          <strong>{topCategory ? categoryLabel(topCategory.category_zh) : "暂无分类"}</strong>
+          <small>
+            {topCategory
+              ? formatMoneyCompact(fromCents(topCategory.amount), topCategory.currency)
+              : "等待更多账单"}
+          </small>
+        </div>
+      </div>
+
+      <div className="exp-insight">
+        <span className="exp-insight__icon"><ReceiptText aria-hidden /></span>
+        <div className="exp-insight__body">
+          <span className="exp-insight__label">最近大额</span>
+          <strong>{largestTransaction?.merchant_name ?? "暂无交易"}</strong>
+          <small>
+            {largestTransaction
+              ? `${formatMoney(largestTransaction.total_amount, largestTransaction.currency)} · ${new Date(largestTransaction.purchased_at).toLocaleDateString("zh-CN")}`
+              : "没有可展示记录"}
+          </small>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function BudgetKpiRow({ analytics, days }: { analytics: ExpenseAnalytics; days: number }) {
   const spent = fromCents(analytics.budget_progress.spent);
@@ -65,6 +117,7 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
   return (
     <div className="exp-screen exp-screen--budget">
       <BudgetKpiRow analytics={analytics} days={days} />
+      <BudgetInsightStrip analytics={analytics} />
 
       <section className="exp-panel exp-panel--chart">
         <div className="exp-section-head">

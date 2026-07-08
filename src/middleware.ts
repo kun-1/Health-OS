@@ -7,15 +7,24 @@ import { isAuthEnabled, isValidSessionCookie, readSessionCookie } from "@/lib/ex
 // working without any config. When set, every /api/expenses/* and /expenses/*
 // request needs a valid signed cookie; API paths return 401 JSON, page paths
 // redirect to /login?redirect=<original>.
+//
+// Wave 4 exception: /api/expenses/sms-transactions uses its own Bearer token
+// (EXPENSES_SMS_TOKEN) because iOS Shortcuts cannot easily manage a session
+// cookie. The route handler validates the token itself.
 
 const PAGE_PROTECTED = /^\/expenses(\/|$)/;
 const API_PROTECTED = /^\/api\/expenses(\/|$)/;
+const SMS_ROUTE = /^\/api\/expenses\/sms-transactions\/?$/;
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const isPage = PAGE_PROTECTED.test(pathname);
   const isApi = API_PROTECTED.test(pathname);
   if (!isPage && !isApi) return NextResponse.next();
+
+  // Wave 4: let the SMS webhook handle its own auth.
+  if (SMS_ROUTE.test(pathname)) return NextResponse.next();
+
   if (!isAuthEnabled()) return NextResponse.next();
 
   const cookie = readSessionCookie(request.headers.get("cookie"));

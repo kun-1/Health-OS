@@ -6,6 +6,8 @@
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start",
+    "audit:data-quality": "/opt/homebrew/opt/node@22/bin/node scripts/audit-data-quality.mjs",
+    "repair:data-quality": "/opt/homebrew/opt/node@22/bin/node scripts/repair-data-quality.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

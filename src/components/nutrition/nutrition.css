@@ -1372,6 +1372,119 @@
   min-height: 220px;
 }
 
+.nut-quality-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nut-quality-card {
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.nut-quality-card span {
+  color: var(--life-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nut-quality-card strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.nut-quality-card small,
+.nut-quality-note {
+  color: var(--life-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.nut-quality-note {
+  border-top: 1px solid var(--life-border);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.nut-taxonomy-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nut-taxonomy-card {
+  background: #ffffff;
+  border: 1px solid var(--life-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.nut-taxonomy-card__head {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.nut-taxonomy-card__head span {
+  color: var(--life-text);
+  font-size: 0.82rem;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nut-taxonomy-card__head strong {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.nut-taxonomy-card__bar {
+  background: var(--life-card-soft);
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.nut-taxonomy-card__bar span {
+  background: var(--life-green-strong);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 2px;
+}
+
+.nut-taxonomy-card[data-tone="neutral"] .nut-taxonomy-card__bar span {
+  background: var(--life-blue);
+}
+
+.nut-taxonomy-card[data-tone="watch"] .nut-taxonomy-card__bar span {
+  background: var(--life-yellow);
+}
+
+.nut-taxonomy-card small {
+  color: var(--life-muted);
+  font-size: 0.74rem;
+}
+
 .nut-combined__body {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
@@ -1798,6 +1911,10 @@
     margin-left: 38px;
   }
   .nut-kpis {
+    grid-template-columns: 1fr;
+  }
+  .nut-quality-grid,
+  .nut-taxonomy-grid {
     grid-template-columns: 1fr;
   }
 }

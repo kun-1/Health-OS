@@ -31,8 +31,10 @@ type ChartRow = {
 
 const CATEGORY_LABELS: Record<NutritionCategory, string> = {
   蔬菜: "蔬菜",
+  淀粉类蔬菜: "淀粉类蔬菜",
   水果: "水果",
   全谷物: "全谷物",
+  精制谷物: "精制谷物",
   豆类: "豆类",
   坚果: "坚果",
   香料: "香料",
@@ -40,7 +42,7 @@ const CATEGORY_LABELS: Record<NutritionCategory, string> = {
   油脂: "油脂",
   含糖饮料: "含糖饮料",
   加工肉: "加工肉",
-  反式零食: "反式零食",
+  甜点: "甜点",
   未分类: "未分类"
 };
 
@@ -49,7 +51,11 @@ function makeTrendRows(months: TrendMonth[]): ChartRow[] {
     const veg = (month.grams["蔬菜"] ?? 0) + (month.grams["水果"] ?? 0);
     const protein = (month.grams["豆类"] ?? 0) + (month.grams["坚果"] ?? 0) + (month.grams["动物性"] ?? 0);
     const whole = month.grams["全谷物"] ?? 0;
-    const bad = (month.grams["加工肉"] ?? 0) + (month.grams["含糖饮料"] ?? 0) + (month.grams["反式零食"] ?? 0);
+    const bad =
+      (month.grams["加工肉"] ?? 0) +
+      (month.grams["含糖饮料"] ?? 0) +
+      (month.grams["精制谷物"] ?? 0) +
+      (month.grams["甜点"] ?? 0);
     const total = Object.values(month.grams).reduce((s, n) => s + n, 0) || 1;
     const score = clampScore(
       58 + (veg / total) * 30 + (protein / total) * 12 + (whole / total) * 14 - (bad / total) * 24
@@ -66,6 +72,11 @@ function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+function formatGrams(value: number): string {
+  if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)} kg`;
+  return `${Math.round(value)} g`;
+}
+
 function totalSkips(breakdown: NutritionReport["skipBreakdown"]): number {
   const keys: Array<keyof NutritionReport["skipBreakdown"]> = [
     "no_weight",
@@ -75,6 +86,16 @@ function totalSkips(breakdown: NutritionReport["skipBreakdown"]): number {
     "noise"
   ];
   return keys.reduce((s, k) => s + breakdown[k], 0);
+}
+
+function foodItemCount(report: NutritionReport): number {
+  return Math.max(0, report.itemsAnalyzed - report.skipBreakdown.not_nutrition);
+}
+
+function foodCoveragePct(report: NutritionReport): number {
+  const denominator = foodItemCount(report);
+  if (denominator <= 0) return 0;
+  return Math.round((report.itemsWithWeight / denominator) * 100);
 }
 
 function describeScore(score: number): string {
@@ -138,7 +159,7 @@ function RingProgress({
 
 function KpiRow({ report }: { report: NutritionReport }) {
   const score = structureScore(report);
-  const coverage = Math.round(report.coveragePct * 100);
+  const coverage = foodCoveragePct(report);
   const skipCount = totalSkips(report.skipBreakdown);
   const status = describeScore(score);
 
@@ -164,6 +185,42 @@ function KpiRow({ report }: { report: NutritionReport }) {
         <span className="nut-kpi__pill">{status}</span>
       </div>
     </div>
+  );
+}
+
+function DataQualityPanel({ report }: { report: NutritionReport }) {
+  const foodItems = foodItemCount(report);
+  const pending = totalSkips(report.skipBreakdown);
+  const excluded = report.skipBreakdown.not_nutrition;
+  const coverage = foodCoveragePct(report);
+  const rows = [
+    { label: "食物项", value: foodItems, meta: "参与营养判断" },
+    { label: "有重量", value: report.itemsWithWeight, meta: `${coverage}% 可量化` },
+    { label: "待补", value: pending, meta: "别名/重量/单位/OCR" },
+    { label: "已排除", value: excluded, meta: "非食物项" }
+  ];
+
+  return (
+    <section className="nut-panel nut-panel--quality">
+      <div className="nut-section-head nut-section-head--compact">
+        <div>
+          <p className="nut-eyebrow">数据可用性</p>
+          <h2>营养分析用到哪些账单项</h2>
+        </div>
+      </div>
+      <div className="nut-quality-grid">
+        {rows.map((row) => (
+          <div className="nut-quality-card" key={row.label}>
+            <span>{row.label}</span>
+            <strong>{row.value}</strong>
+            <small>{row.meta}</small>
+          </div>
+        ))}
+      </div>
+      <div className="nut-quality-note">
+        非食物项不会被当成坏数据；只有食物项缺别名、重量或单位时才进入待补。
+      </div>
+    </section>
   );
 }
 
@@ -333,6 +390,48 @@ function StructurePanel({ report }: { report: NutritionReport }) {
   );
 }
 
+function TaxonomyPanel({ grams }: { grams: Record<NutritionCategory, number> }) {
+  const total = Object.values(grams).reduce((sum, value) => sum + value, 0) || 1;
+  const items: Array<{ category: NutritionCategory; label: string; tone: "good" | "neutral" | "watch" }> = [
+    { category: "蔬菜", label: "非淀粉蔬菜", tone: "good" },
+    { category: "淀粉类蔬菜", label: "淀粉类蔬菜", tone: "neutral" },
+    { category: "全谷物", label: "全谷物", tone: "good" },
+    { category: "精制谷物", label: "精制谷物", tone: "watch" },
+    { category: "甜点", label: "甜点", tone: "watch" },
+    { category: "油脂", label: "油脂", tone: "neutral" },
+    { category: "香料", label: "香料", tone: "neutral" }
+  ];
+
+  return (
+    <section className="nut-panel nut-panel--taxonomy">
+      <div className="nut-section-head nut-section-head--compact">
+        <div>
+          <p className="nut-eyebrow">分类结构</p>
+          <h2>按新分类口径看本月食物</h2>
+        </div>
+      </div>
+      <div className="nut-taxonomy-grid">
+        {items.map((item) => {
+          const value = grams[item.category] ?? 0;
+          const share = Math.round((value / total) * 100);
+          return (
+            <div className="nut-taxonomy-card" data-tone={item.tone} key={item.category}>
+              <div className="nut-taxonomy-card__head">
+                <span>{item.label}</span>
+                <strong>{share}%</strong>
+              </div>
+              <div className="nut-taxonomy-card__bar">
+                <span style={{ width: `${Math.min(100, share)}%` }} />
+              </div>
+              <small>{formatGrams(value)}</small>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 type Rec = { title: string; body: string; tone: "good" | "warn" | "bad" };
 
 function Checklist({ items }: { items: Rec[] }) {
@@ -367,7 +466,7 @@ function RecommendationsPanel({ report }: { report: NutritionReport }) {
     },
     {
       title: "控制超加工食品",
-      body: `超加工占比 ${pct(report.upf.upfShare)}，继续压低加工肉、含糖饮料和反式零食。`,
+      body: `超加工占比 ${pct(report.upf.upfShare)}，继续压低加工肉、含糖饮料、精制谷物和甜点。`,
       tone: report.upf.grade === "好" ? "good" : report.upf.grade === "可" ? "warn" : "bad"
     },
     {
@@ -441,6 +540,8 @@ export function NutritionAnalysisBoard({
   if (trend.kind === "error") return <ErrorState message={trend.message} />;
 
   const rows = makeTrendRows(trend.months);
+  const currentMonth = trend.months.find((month) => month.period === report.period) ?? trend.months.at(-1);
+  const grams = currentMonth?.grams ?? ({} as Record<NutritionCategory, number>);
 
   return (
     <div className="nut-analysis-board">
@@ -448,6 +549,8 @@ export function NutritionAnalysisBoard({
       <div className="nut-analysis-grid">
         <TrendPanel rows={rows} />
         <StructurePanel report={report} />
+        <TaxonomyPanel grams={grams} />
+        <DataQualityPanel report={report} />
         <DrillPanel report={report} />
         <RecommendationsPanel report={report} />
       </div>

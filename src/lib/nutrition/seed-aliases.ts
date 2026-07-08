@@ -18,8 +18,10 @@ export type SeedAlias = {
 };
 
 const V = "蔬菜";
+const SV = "淀粉类蔬菜";
 const F = "水果";
 const G = "全谷物";
+const R = "精制谷物";
 const L = "豆类";
 const N = "坚果";
 const S = "香料";
@@ -27,14 +29,14 @@ const A = "动物性";
 const O = "油脂";
 const B = "含糖饮料";
 const P = "加工肉";
-const T = "反式零食";
+const D = "甜点";
 const U = "未分类";
 
 export const seedAliases: ReadonlyArray<SeedAlias> = [
   // === 100 from existing distinct names ===
   { rawPattern: "330ml清爽原味汽水", category: B },
-  { rawPattern: "Lady M", category: T },
-  { rawPattern: "蛋糕", category: T },
+  { rawPattern: "Lady M", category: D },
+  { rawPattern: "蛋糕", category: D },
   { rawPattern: "三文鱼", category: A },
   { rawPattern: "五花肉", category: A },
   { rawPattern: "五花超大肉", category: A },
@@ -61,10 +63,10 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "青甘蓝", category: V },
   { rawPattern: "地瓜叶", category: V },
   { rawPattern: "番薯叶", category: V },
-  { rawPattern: "红洋葱", category: V },
-  { rawPattern: "土豆", category: V },
-  { rawPattern: "核桃拿破仑", category: T },
-  { rawPattern: "坚果拿破仑", category: T },
+  { rawPattern: "红洋葱", category: S },
+  { rawPattern: "土豆", category: SV },
+  { rawPattern: "核桃拿破仑", category: D },
+  { rawPattern: "坚果拿破仑", category: D },
   { rawPattern: "大闸蟹", category: A },
   { rawPattern: "谷物鸡蛋", category: A },
   { rawPattern: "草鸡蛋", category: A },
@@ -75,7 +77,7 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "黄牛吊龙", category: A },
   { rawPattern: "潮汕火锅片", category: A },
   { rawPattern: "亚麻籽油", category: O },
-  { rawPattern: "小香葱", category: V },
+  { rawPattern: "小香葱", category: S },
   { rawPattern: "川式卤料", category: S },
   { rawPattern: "平菇", category: V },
   { rawPattern: "番茄罐头", category: V },
@@ -98,7 +100,7 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "榴莲", category: F },
   { rawPattern: "泰森", category: A },
   { rawPattern: "鸡大胸", category: A },
-  { rawPattern: "洋葱", category: V },
+  { rawPattern: "洋葱", category: S },
   { rawPattern: "红宝石莲雾", category: F },
   { rawPattern: "莲雾", category: F },
   { rawPattern: "海带苗", category: V },
@@ -114,27 +116,27 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "白葡萄酒", category: B },
   { rawPattern: "葡萄酒", category: B },
   { rawPattern: "酒", category: B },
-  { rawPattern: "榴莲软心巴斯克", category: T },
+  { rawPattern: "榴莲软心巴斯克", category: D },
   { rawPattern: "秋葵", category: V },
   { rawPattern: "猪肉糜", category: A },
   { rawPattern: "老姜", category: S },
   { rawPattern: "苹果", category: F },
   { rawPattern: "菠菜", category: V },
-  { rawPattern: "葱油花卷", category: T },
-  { rawPattern: "花卷", category: G },
+  { rawPattern: "葱油花卷", category: R },
+  { rawPattern: "花卷", category: R },
   { rawPattern: "螺丝椒", category: V },
   { rawPattern: "蟹味菇", category: V },
   { rawPattern: "裸麦", category: G },
   { rawPattern: "坚果果干面包", category: G },
   { rawPattern: "西兰花", category: V },
-  { rawPattern: "西瓜蜜薯", category: V },
-  { rawPattern: "蜜薯", category: V },
+  { rawPattern: "西瓜蜜薯", category: SV },
+  { rawPattern: "蜜薯", category: SV },
   { rawPattern: "笋丁鲜肉大馄饨", category: A },
   { rawPattern: "鲜肉大馄饨", category: A },
   { rawPattern: "大馄饨", category: A },
   { rawPattern: "马兰头鲜肉大馄饨", category: A },
-  { rawPattern: "贝贝南瓜", category: V },
-  { rawPattern: "南瓜", category: V },
+  { rawPattern: "贝贝南瓜", category: SV },
+  { rawPattern: "南瓜", category: SV },
   { rawPattern: "肥牛卷", category: A },
   { rawPattern: "胸腩", category: A },
   { rawPattern: "迷迭香", category: S },
@@ -186,9 +188,9 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "茭白", category: V },
   { rawPattern: "莲藕", category: V },
   { rawPattern: "藕", category: V },
-  { rawPattern: "山药", category: V },
-  { rawPattern: "红薯", category: V },
-  { rawPattern: "紫薯", category: V },
+  { rawPattern: "山药", category: SV },
+  { rawPattern: "红薯", category: SV },
+  { rawPattern: "紫薯", category: SV },
   { rawPattern: "紫甘蓝", category: V },
   { rawPattern: "茄子", category: V },
   { rawPattern: "西红柿", category: V },
@@ -204,12 +206,12 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "西葫芦", category: V },
   { rawPattern: "茼蒿", category: V },
   { rawPattern: "豆芽", category: V },
-  { rawPattern: "蒜苗", category: V },
-  { rawPattern: "蒜苔", category: V },
-  { rawPattern: "蒜头", category: V },
-  { rawPattern: "大蒜", category: V },
-  { rawPattern: "蒜瓣", category: V },
-  { rawPattern: "大葱", category: V },
+  { rawPattern: "蒜苗", category: S },
+  { rawPattern: "蒜苔", category: S },
+  { rawPattern: "蒜头", category: S },
+  { rawPattern: "大蒜", category: S },
+  { rawPattern: "蒜瓣", category: S },
+  { rawPattern: "大葱", category: S },
   { rawPattern: "生姜", category: S },
   { rawPattern: "红椒", category: V },
   { rawPattern: "莴苣", category: V },
@@ -430,19 +432,19 @@ export const seedAliases: ReadonlyArray<SeedAlias> = [
   { rawPattern: "火腿肠", category: P },
 
   // === Chinese-common extension: trans-fat snacks ===
-  { rawPattern: "薯片", category: T },
-  { rawPattern: "薯条", category: T },
-  { rawPattern: "饼干", category: T },
-  { rawPattern: "巧克力", category: T },
-  { rawPattern: "糖果", category: T },
-  { rawPattern: "雪糕", category: T },
-  { rawPattern: "冰淇淋", category: T },
-  { rawPattern: "甜甜圈", category: T },
-  { rawPattern: "蛋挞", category: T },
-  { rawPattern: "酥饼", category: T },
-  { rawPattern: "桃酥", category: T },
-  { rawPattern: "曲奇", category: T },
-  { rawPattern: "威化", category: T },
-  { rawPattern: "蛋黄酥", category: T },
-  { rawPattern: "面包", category: T }
+  { rawPattern: "薯片", category: D },
+  { rawPattern: "薯条", category: D },
+  { rawPattern: "饼干", category: D },
+  { rawPattern: "巧克力", category: D },
+  { rawPattern: "糖果", category: D },
+  { rawPattern: "雪糕", category: D },
+  { rawPattern: "冰淇淋", category: D },
+  { rawPattern: "甜甜圈", category: D },
+  { rawPattern: "蛋挞", category: D },
+  { rawPattern: "酥饼", category: D },
+  { rawPattern: "桃酥", category: D },
+  { rawPattern: "曲奇", category: D },
+  { rawPattern: "威化", category: D },
+  { rawPattern: "蛋黄酥", category: D },
+  { rawPattern: "面包", category: R }
 ];

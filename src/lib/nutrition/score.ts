@@ -40,8 +40,10 @@ export type PeriodItem = {
   name_zh: string;
   food_amount_value: number | null;
   food_amount_unit: string | null;
+  category_zh: string;
   amount_cents: number | null;
   confidence: number;
+  notes: string | null;
   transaction_id: number;
   receipt_id: number | null;
   merchant_name: string;
@@ -64,7 +66,8 @@ export function loadItemsForPeriod(period: string): PeriodItem[] {
   return rawDb
     .prepare(
       `SELECT ei.id, ei.name_zh, ei.food_amount_value, ei.food_amount_unit,
-              ei.amount_cents, ei.confidence, et.id AS transaction_id, et.receipt_id,
+              ei.category_zh,
+              ei.amount_cents, ei.confidence, ei.notes, et.id AS transaction_id, et.receipt_id,
               et.merchant_name, et.purchased_at
        FROM expense_items ei
        JOIN expense_transactions et ON et.id = ei.transaction_id
@@ -144,7 +147,7 @@ function classifyAll(
       item.food_amount_value !== null
         ? toGrams(item.food_amount_value, item.food_amount_unit)
         : null;
-    const classification = { category: result.category };
+    const classification = { category: result.category, matchedPattern: result.matchedPattern };
     return {
       id: item.id,
       transactionId: item.transaction_id,
@@ -167,7 +170,8 @@ function classifyAll(
           name_zh: item.name_zh,
           food_amount_value: item.food_amount_value,
           food_amount_unit: item.food_amount_unit,
-          confidence: item.confidence
+          confidence: item.confidence,
+          notes: item.notes
         },
         classification
       )
@@ -309,7 +313,8 @@ function plateFilteredGrams(classified: ClassifiedItem[]): number {
 const UPF_CATEGORIES = new Set<NutritionCategory>([
   "含糖饮料",
   "加工肉",
-  "反式零食"
+  "精制谷物",
+  "甜点"
 ]);
 
 function scoreUpf(
@@ -403,7 +408,8 @@ function scoreAhei(
       case "含糖饮料":
         ssbG += c.grams;
         break;
-      case "反式零食":
+      case "精制谷物":
+      case "甜点":
         transG += c.grams;
         break;
       default:
@@ -487,8 +493,8 @@ function topByCategory(
   // Ensure every category appears even with empty array, so the UI doesn't
   // have to handle missing keys.
   const allCats: NutritionCategory[] = [
-    "蔬菜", "水果", "全谷物", "豆类", "坚果", "香料",
-    "动物性", "油脂", "含糖饮料", "加工肉", "反式零食", "未分类"
+    "蔬菜", "淀粉类蔬菜", "水果", "全谷物", "精制谷物", "豆类", "坚果", "香料",
+    "动物性", "油脂", "含糖饮料", "加工肉", "甜点", "未分类"
   ];
   for (const cat of allCats) if (!result[cat]) result[cat] = [];
   return result;

@@ -92,6 +92,7 @@ graph TB
 | **Lab Reports** | Structured data import (in progress) |
 | **Wearables** | Time-series sync (planned) |
 | **Medical Records** | Import & tagging (planned) |
+| **SMS Auto-Entry** | iOS Shortcuts → bank debit SMS → auto-captured transit expense |
 
 #### Current Record Types
 
@@ -207,6 +208,27 @@ src/
 | **Phase 4** | AI Integration — LLM-powered analysis, natural language queries | 🔮 Planned |
 | **Phase 5** | External Data — lab report import, wearable sync | 🔮 Planned |
 
+## 🚇 SMS Auto-Entry (Experimental)
+
+Automatically turn public-transit debit SMS alerts (e.g. Beijing Bank subway charges) into `交通` expenses without manual entry.
+
+### Setup
+
+1. Generate a strong random token and add it to `.env.local`:
+   ```bash
+   EXPENSES_SMS_TOKEN=your-random-secret-token
+   ```
+2. Restart the server.
+3. In iOS **Shortcuts → Automation**, create:
+   - **Trigger**: Receive message containing `地铁`
+   - **Action**: `Get contents of URL`
+     - URL: `https://<your-server>/api/expenses/sms-transactions`
+     - Method: `POST`
+     - Header: `Authorization = Bearer your-random-secret-token`
+     - Body (JSON): `{ "message": <Message Content> }`
+
+The server parses amount, time, and merchant from the SMS, deduplicates it, and writes a transaction to `expense_transactions`.
+
 ## 📜 License
 
 MIT
@@ -288,6 +310,7 @@ graph TB
 | **化验单** | 结构化数据导入（开发中） |
 | **可穿戴设备** | 时间序列同步（计划中） |
 | **医疗记录** | 导入与标签（计划中） |
+| **短信自动记账** | iOS 快捷指令 → 银行扣费短信 → 自动录入交通支出 |
 
 #### 当前记录类型
 
@@ -402,6 +425,27 @@ src/
 | **第三阶段** | 决策层 — 实验计划、行动追踪 | 🔜 计划中 |
 | **第四阶段** | AI 集成 — LLM 分析、自然语言查询 | 🔮 计划中 |
 | **第五阶段** | 外部数据 — 化验单导入、可穿戴设备同步 | 🔮 计划中 |
+
+## 🚇 短信自动记账（实验性）
+
+可将北京银行等机构的公共交通扣费短信自动转为 `交通` 类支出，无需手动录入。
+
+### 配置
+
+1. 在 `.env.local` 中生成并填入一个强随机 Token：
+   ```bash
+   EXPENSES_SMS_TOKEN=your-random-secret-token
+   ```
+2. 重启服务。
+3. 在 iOS **快捷指令 → 自动化** 中创建：
+   - **触发**：收到信息，信息包含 `地铁`
+   - **操作**：「获取 URL 的内容」
+     - URL：`https://<your-server>/api/expenses/sms-transactions`
+     - 方法：`POST`
+     - 头部：`Authorization = Bearer your-random-secret-token`
+     - 请求体（JSON）：`{ "message": <信息内容> }`
+
+服务端会解析短信中的金额、时间、商户，自动去重后写入 `expense_transactions`。
 
 ## 📜 许可证
 

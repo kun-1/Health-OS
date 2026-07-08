@@ -42,7 +42,11 @@ function deriveScoreFromGrams(grams: Record<string, number>): number {
   const veg = (grams["蔬菜"] ?? 0) + (grams["水果"] ?? 0);
   const protein = (grams["豆类"] ?? 0) + (grams["坚果"] ?? 0) + (grams["动物性"] ?? 0);
   const whole = grams["全谷物"] ?? 0;
-  const bad = (grams["加工肉"] ?? 0) + (grams["含糖饮料"] ?? 0) + (grams["反式零食"] ?? 0);
+  const bad =
+    (grams["加工肉"] ?? 0) +
+    (grams["含糖饮料"] ?? 0) +
+    (grams["精制谷物"] ?? 0) +
+    (grams["甜点"] ?? 0);
   const total = Object.values(grams).reduce((s, n) => s + n, 0) || 1;
   return clampScore(
     58 + (veg / total) * 30 + (protein / total) * 12 + (whole / total) * 14 - (bad / total) * 24
