@@ -1,14 +1,14 @@
 /* ---------- Shell ---------- */
 .life-shell {
   display: grid;
-  grid-template-columns: var(--life-sidebar-w) minmax(0, 1fr);
+  grid-template-columns: var(--life-sidebar-w, 224px) minmax(0, 1fr);
   min-height: 100vh;
-  background: var(--life-bg);
+  background: var(--life-bg, #eef3f1);
 }
 
 .life-main {
   display: grid;
-  grid-template-rows: var(--life-topbar-h) minmax(0, 1fr);
+  grid-template-rows: var(--life-topbar-h, 72px) minmax(0, 1fr);
   min-width: 0;
 }
 
@@ -22,8 +22,8 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  background: var(--life-shell);
-  border-right: 1px solid var(--life-border);
+  background: var(--life-shell, #f8faf8);
+  border-right: 1px solid var(--life-border, rgba(15, 23, 42, 0.08));
   display: flex;
   flex-direction: column;
   padding: 22px 14px 18px;
