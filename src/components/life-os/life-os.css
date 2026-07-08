@@ -211,14 +211,15 @@
 .life-topbar {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 32px;
+  gap: 14px;
+  padding: 0 24px;
   background: var(--life-shell);
   border-bottom: 1px solid var(--life-border);
   position: sticky;
   top: 0;
   z-index: 10;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  flex-wrap: wrap;
 }
 
 .life-topbar__greeting {
@@ -229,7 +230,7 @@
 }
 
 .life-topbar__title {
-  font-size: 1.18rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--life-text);
   letter-spacing: 0;
@@ -1071,5 +1072,289 @@
   }
   .month-switcher__label {
     min-width: 76px;
+  }
+}
+
+/* ---------- Health OS topbar integration ----------
+   These bits live in the global topbar (rendered above the page content
+   on every route) and are NOT scoped to .od-home. They share the OD
+   palette tokens defined in od-home.css. */
+.od-topbar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6d776f;
+}
+.od-topbar-status .od-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--od-health-green, #5b8a72);
+  animation: od-pulse-global 1.8s ease-in-out infinite;
+}
+.od-topbar-status .od-status-dot.synced {
+  background: var(--od-sleep-blue, #4a6b8a);
+  animation: none;
+}
+@keyframes od-pulse-global {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.od-topbar-op {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.od-topbar-op button {
+  font-size: 11px;
+  padding: 4px 9px;
+  border: 1px solid var(--life-border);
+  border-radius: 4px;
+  color: #4a4a48;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.od-topbar-op button:hover {
+  background: #f4f3ee;
+  border-color: #d4d4cc;
+  color: #1f1f1f;
+}
+.od-topbar-op button:active {
+  background: #e8f0ea;
+  color: #5b8a72;
+}
+.od-topbar-status-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  color: #8a8a85;
+  border: 1px solid #e5e5e0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f4f3ee;
+  letter-spacing: 0.01em;
+}
+.od-topbar-status-chip .dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #5b8a72;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.od-topbar-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid var(--life-border);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #4a4a48;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.od-topbar-refresh:hover {
+  background: #f4f3ee;
+  border-color: #d4d4cc;
+  color: #1f1f1f;
+}
+.od-topbar-refresh svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---------- Sidebar (Health OS sections) ---------- */
+.life-sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.life-sidebar__section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--life-subtle);
+  padding: 8px 12px 6px;
+  font-weight: 700;
+}
+.life-sidebar__section-label .od-nav-section-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--life-border);
+  border-radius: 3px;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--life-subtle);
+  background: rgba(15, 23, 42, 0.04);
+  text-transform: none;
+  vertical-align: 1px;
+  font-weight: 500;
+}
+.life-sidebar__coming-soon {
+  color: var(--life-subtle);
+  cursor: not-allowed;
+}
+.life-sidebar__coming-soon:hover {
+  background: transparent;
+}
+.life-sidebar__coming-soon-tag {
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px dashed var(--life-border);
+  border-radius: 3px;
+  font-size: 9.5px;
+  color: var(--life-subtle);
+  background: transparent;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+  .life-shell {
+    display: block;
+    min-width: 0;
+  }
+
+  .life-sidebar {
+    border-bottom: 1px solid var(--life-border);
+    border-right: 0;
+    display: block;
+    height: auto;
+    overflow: visible;
+    padding: 14px 16px 12px;
+    position: relative;
+  }
+
+  .life-sidebar__brand {
+    padding: 0 0 12px;
+  }
+
+  .life-sidebar__brand-text {
+    max-width: 180px;
+  }
+
+  .life-sidebar__section {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .life-sidebar__section-label {
+    flex: 0 0 100%;
+    padding: 0;
+  }
+
+  .life-sidebar__item {
+    display: block;
+  }
+
+  .life-sidebar__link,
+  .life-sidebar__coming-soon {
+    border-radius: 10px;
+    gap: 8px;
+    height: auto;
+    justify-content: flex-start;
+    padding: 8px 12px;
+    width: auto;
+  }
+
+  .life-sidebar__link svg {
+    height: 16px;
+    width: 16px;
+  }
+
+  .life-sidebar__submenu,
+  .life-sidebar nav[aria-label="数据录入"] {
+    display: none;
+  }
+
+  .life-main {
+    display: block;
+    min-width: 0;
+  }
+
+  .life-topbar {
+    min-height: auto;
+    padding: 14px 16px;
+  }
+
+  .life-topbar__actions {
+    align-items: center;
+    flex-wrap: wrap;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .od-topbar-op {
+    flex: 1 1 260px;
+  }
+
+  .od-topbar-status-chip {
+    max-width: 132px;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .life-content {
+    padding: 16px 16px 32px;
+  }
+
+  .life-sidebar__section {
+    gap: 7px;
+  }
+
+  .life-sidebar__link {
+    font-size: 0.84rem;
+    padding: 8px 11px;
+  }
+
+  .life-topbar__actions {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    max-width: calc(100vw - 32px);
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .od-topbar-op {
+    grid-column: 1 / -1;
+  }
+
+  .od-topbar-refresh {
+    justify-self: start;
+  }
+
+  .life-topbar__actions .month-switcher {
+    box-sizing: border-box;
+    display: grid;
+    flex: 1 1 100%;
+    grid-column: 1 / -1;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    justify-content: space-between;
+    max-width: min(100%, 320px);
+    width: min(100%, 320px);
+  }
+
+  .life-topbar__actions .month-switcher__label {
+    flex: 1;
+    min-width: 0;
   }
 }

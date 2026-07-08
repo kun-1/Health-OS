@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ExpenseAnalytics } from "@/lib/expenses/types";
 import type { NutritionReport } from "@/lib/nutrition/types";
@@ -42,6 +42,9 @@ export type HomeData = {
   score: Source<ScorePayload>;
   trend: Source<TrendMonth[]>;
   analytics: Source<ExpenseAnalytics>;
+  /** Force a refetch without changing the month (used by cluster
+   *  callbacks after a successful mutation). */
+  refresh: () => void;
 };
 
 /** Build a YYYY-MM-DD string for "today" in the local timezone. */
@@ -74,11 +77,15 @@ export function useHomeData(): HomeData {
   // setRefreshing toggles both the local state (for consumers that read
   // useHomeData().refreshing directly) AND the global context (for the
   // topbar pill).
-  const toggleRefreshing = (next: boolean) => {
+  const toggleRefreshing = useCallback((next: boolean) => {
     setRefreshingState(next);
     setRefreshing(next);
-  };
+  }, [setRefreshing]);
   const fetchEpoch = useRef(0);
+  // refreshTick is bumped by the `refresh` callback to re-trigger the
+  // effect below without changing the month (used after a successful
+  // mutation like batch confirm/delete).
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai";
@@ -86,6 +93,8 @@ export function useHomeData(): HomeData {
     const isFirstRun = fetchEpoch.current === 0;
     fetchEpoch.current += 1;
     if (!isFirstRun) toggleRefreshing(true);
+    // refreshTick is intentionally a dependency so manual refreshes re-run.
+    void refreshTick;
 
     // Don't reset existing data to loading — leave the previous month's
     // values on screen while the new month fetches. Cards degrade
@@ -120,7 +129,11 @@ export function useHomeData(): HomeData {
       controller.abort();
       toggleRefreshing(false);
     };
-  }, [month, setRefreshing]);
+  }, [month, refreshTick, toggleRefreshing]);
+
+  const refresh = useCallback(() => {
+    setRefreshTick((t) => t + 1);
+  }, []);
 
   return {
     month,
@@ -129,6 +142,7 @@ export function useHomeData(): HomeData {
     refreshing,
     score,
     trend,
-    analytics
+    analytics,
+    refresh
   };
 }
