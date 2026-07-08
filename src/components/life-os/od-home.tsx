@@ -183,6 +183,12 @@ function ODHomeBody() {
     if (!odParam) return;
     if (odParam === "export-csv") handleExportCsv();
     else if (odParam === "run-rules") handleRunRules();
+    else if (odParam === "batch-confirm") {
+      setTimeout(() => window.dispatchEvent(new CustomEvent("od:batch-confirm")), 0);
+    }
+    else if (odParam === "open-budget") {
+      setTimeout(() => window.dispatchEvent(new CustomEvent("od:open-budget")), 0);
+    }
     else {
       const el = document.getElementById(odParam);
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -277,6 +283,14 @@ function ODHomeBody() {
     setSelectedRowIds(new Set());
     refresh();
   }, [rows, selectedRowIds, toast, refresh]);
+
+  useEffect(() => {
+    function onConfirm() {
+      handleBatchConfirm();
+    }
+    window.addEventListener("od:batch-confirm", onConfirm);
+    return () => window.removeEventListener("od:batch-confirm", onConfirm);
+  }, [handleBatchConfirm]);
 
   const handleBatchDelete = useCallback(async () => {
     const targets = rows.filter((r) => selectedRowIds.has(r.id));

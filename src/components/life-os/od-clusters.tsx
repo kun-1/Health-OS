@@ -147,6 +147,18 @@ export function ODClusters(props: Props) {
     setCurrency(props.currency);
   }, [props.budgetCents, props.currency]);
 
+  useEffect(() => {
+    function onOpenBudget() {
+      setBudgetOpen(true);
+      const el = document.getElementById("cluster-budget");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.classList.add("od-flash");
+      setTimeout(() => el?.classList.remove("od-flash"), 900);
+    }
+    window.addEventListener("od:open-budget", onOpenBudget);
+    return () => window.removeEventListener("od:open-budget", onOpenBudget);
+  }, []);
+
   const clusters = buildClusters({
     pendingCount: props.pendingCount,
     onRunRules: props.onRunRules,

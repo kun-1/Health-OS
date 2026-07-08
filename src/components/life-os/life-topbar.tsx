@@ -28,54 +28,52 @@ function todayLabel(): string {
 }
 
 /** Topbar mini launch buttons for the Health OS control affordances.
- *  These dispatch to the matching cluster button on the home page. When
- *  the user is already on the home page, we scroll to the cluster; from
- *  other pages, we navigate to home with the active month in the URL. */
+ *  Each button either opens the matching home-page control or navigates
+ *  to the real workflow while preserving the active month. */
+type OpTarget = {
+  op: string;
+  label: string;
+  action: "new-receipt" | "open-budget" | "batch-confirm" | "run-rules" | "export-csv";
+};
+
 function OpQuickButtons({ month }: { month: string }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const targets: Array<{ op: string; label: string; clusterId: string }> = [
-    { op: "receipt", label: "新增票据", clusterId: "cluster-data-capture" },
-    { op: "budget", label: "预算", clusterId: "cluster-budget" },
-    { op: "confirm", label: "批量入账", clusterId: "cluster-review" },
-    { op: "run", label: "跑规则", clusterId: "cluster-rules" },
-    { op: "csv", label: "导出 CSV", clusterId: "cluster-row-actions" }
+  const targets: OpTarget[] = [
+    { op: "receipt", label: "新增票据", action: "new-receipt" },
+    { op: "budget", label: "预算", action: "open-budget" },
+    { op: "confirm", label: "批量入账", action: "batch-confirm" },
+    { op: "run", label: "跑规则", action: "run-rules" },
+    { op: "csv", label: "导出 CSV", action: "export-csv" }
   ];
 
-  function dispatch(op: string) {
+  function dispatchAction(action: OpTarget["action"]) {
     if (pathname === "/") {
-      // Already on home — scroll the matching cluster into view.
-      if (op === "csv") {
-        // 导出 CSV has no in-page anchor; trigger the global custom event
-        // the home page listens for.
-        window.dispatchEvent(new CustomEvent("od:export-csv"));
+      if (action === "new-receipt") {
+        router.push(`/expenses/transactions?month=${encodeURIComponent(month)}`);
         return;
       }
-      if (op === "run") {
-        window.dispatchEvent(new CustomEvent("od:run-rules"));
+      if (action === "run-rules") {
+        router.push(`/expenses/recurring?month=${encodeURIComponent(month)}`);
         return;
       }
-      const id = targets.find((t) => t.op === op)?.clusterId;
-      if (id) {
-        const el = document.getElementById(id);
-        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Briefly highlight by triggering a flash class.
-        el?.classList.add("od-flash");
-        setTimeout(() => el?.classList.remove("od-flash"), 900);
-      }
+      window.dispatchEvent(new CustomEvent(`od:${action}`));
       return;
     }
-    // From other pages, navigate home with the month and tell the home
-    // page which action to dispatch.
+
+    if (action === "new-receipt") {
+      router.push(`/expenses/transactions?month=${encodeURIComponent(month)}`);
+      return;
+    }
+    if (action === "run-rules") {
+      router.push(`/expenses/recurring?month=${encodeURIComponent(month)}`);
+      return;
+    }
+
     const search = new URLSearchParams();
     search.set("month", month);
-    if (op !== "csv" && op !== "run") {
-      const id = targets.find((t) => t.op === op)?.clusterId;
-      if (id) search.set("od", id);
-    } else {
-      search.set("od", op);
-    }
+    search.set("od", action);
     router.push(`/?${search.toString()}`);
   }
 
@@ -85,7 +83,7 @@ function OpQuickButtons({ month }: { month: string }) {
         <button
           data-op={t.op}
           key={t.op}
-          onClick={() => dispatch(t.op)}
+          onClick={() => dispatchAction(t.action)}
           type="button"
         >
           {t.label}
