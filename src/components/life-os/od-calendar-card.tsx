@@ -56,6 +56,9 @@ export function ODCalendarCard({ month, rows, onOpenDay }: Props) {
   const visibleRows = useMemo(() => {
     if (scope === "all") return rows;
     if (scope === "bills") return rows.filter((r) => r.kind === "transaction" || r.kind === "receipt" || r.kind === "recurring");
+    // scope === "health" — no meal/sleep/habit kinds in the current data model
+    // (nutrition/sleep modules aren't wired). Surface an empty state instead
+    // of silently rendering a blank grid.
     return [];
   }, [rows, scope]);
 
@@ -176,6 +179,9 @@ export function ODCalendarCard({ month, rows, onOpenDay }: Props) {
           );
         })}
       </div>
+      {scope === "health" ? (
+        <div className="od-calendar-empty">暂无健康记录数据 · 待 nutrition / sleep 模块上线</div>
+      ) : null}
       {expanded ? (
         <div className="od-calendar-expanded">
           <strong>完整月历视图</strong> — 31 天逐日营养 / 支出 / 睡眠 / 习惯打点。点击日期进入日视图。日历视图包括周视图切换与导出 iCal。

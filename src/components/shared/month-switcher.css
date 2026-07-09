@@ -1,48 +1,54 @@
 .month-switcher {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--life-card);
-  border: 1px solid var(--life-border);
-  border-radius: 999px;
-  padding: 4px 6px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  align-items: stretch;
+  border: 1px solid var(--od-border, #e5e5e0);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--od-surface, #ffffff);
 }
 
 .month-switcher__btn {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 999px;
-  color: var(--life-muted);
+  border-right: 1px solid var(--od-border, #e5e5e0);
+  color: var(--od-fg-2, #4a4a48);
   cursor: pointer;
   display: inline-flex;
-  height: 28px;
+  font-size: 12.5px;
+  font-weight: 500;
+  height: auto;
   justify-content: center;
-  padding: 0;
-  transition: background 140ms ease, color 140ms ease;
-  width: 28px;
+  padding: 5px 10px;
+  transition: background 120ms ease, color 120ms ease;
+  width: auto;
+  border-radius: 0;
+}
+
+.month-switcher__btn:last-child {
+  border-right: 0;
 }
 
 .month-switcher__btn:hover {
-  background: rgba(155, 234, 61, 0.18);
-  color: var(--life-text);
+  background: var(--od-surface-soft, #f4f3ee);
+  color: var(--od-fg, #1f1f1f);
 }
 
 .month-switcher__btn svg {
-  height: 16px;
-  width: 16px;
+  display: none;
 }
 
 .month-switcher__label {
   cursor: pointer;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: var(--life-text);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--od-fg, #1f1f1f);
   font-variant-numeric: tabular-nums;
-  min-width: 86px;
+  min-width: 92px;
   position: relative;
   text-align: center;
+  padding: 5px 10px;
+  border-right: 1px solid var(--od-border, #e5e5e0);
 }
 
 .month-switcher__input {

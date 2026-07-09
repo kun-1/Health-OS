@@ -106,15 +106,9 @@
 }
 
 .life-sidebar__link[data-active="true"] {
-  /* Active state: contained pill that aligns with the link's own padding
-     and border-radius, no external indicator bar. */
-  background: linear-gradient(
-    180deg,
-    rgba(155, 253, 68, 0.22) 0%,
-    rgba(155, 253, 68, 0.14) 100%
-  );
-  color: #1a4d22;
-  box-shadow: inset 0 0 0 1px rgba(155, 234, 61, 0.35), 0 4px 14px rgba(155, 234, 61, 0.18);
+  background: var(--od-surface-soft, #f4f3ee);
+  color: var(--od-health-green, #5b8a72);
+  font-weight: 600;
 }
 
 .life-sidebar__link svg {
@@ -333,14 +327,12 @@
 }
 
 .life-card__value {
-  font-size: 2.32rem;
-  font-weight: 800;
-  color: var(--life-text);
-  letter-spacing: 0;
-  font-family: var(--life-font-num);
+  font-size: 22px;
+  font-weight: 600;
+  color: #1f1f1f;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "ss01" 1;
-  line-height: 1.05;
+  line-height: 1.15;
 }
 
 .life-card__value--sm {
@@ -654,10 +646,9 @@
 }
 
 .life-calendar__cell--today {
-  background: #9bfd44;
-  color: #102012;
+  background: #5b8a72;
+  color: #fff;
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgba(26, 77, 34, 0.12);
 }
 
 .life-calendar__cell--muted {

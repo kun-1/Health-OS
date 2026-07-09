@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useODToast } from "./od-toast";
@@ -79,6 +79,28 @@ export function ODDayDrawer({ openDay, rows, onClose, onMutated, selected, onSel
   const router = useRouter();
   const toast = useODToast();
   const [busy, setBusy] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (openDay && !dialog.open) dialog.showModal();
+    else if (!openDay && dialog.open) dialog.close();
+  }, [openDay]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handler = () => onClose();
+    dialog.addEventListener("close", handler);
+    return () => dialog.removeEventListener("close", handler);
+  }, [onClose]);
+
+  function handleBackdropClick(event: React.MouseEvent<HTMLDialogElement>) {
+    // Native <dialog> reports the dialog element as the click target when the user
+    // clicks outside its content rect — that's our backdrop-click signal.
+    if (event.target === event.currentTarget) onClose();
+  }
 
   const dayRows = useMemo(
     () => (openDay ? rows.filter((r) => r.day === openDay) : []),
@@ -100,15 +122,8 @@ export function ODDayDrawer({ openDay, rows, onClose, onMutated, selected, onSel
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openDay]);
 
-  // Close on Escape.
-  useEffect(() => {
-    if (!openDay) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openDay, onClose]);
+  // Close-on-Escape is handled natively by <dialog>; the `close` event
+  // listener above fans it into React's onClose.
 
   if (!openDay) return null;
 
@@ -258,27 +273,25 @@ export function ODDayDrawer({ openDay, rows, onClose, onMutated, selected, onSel
   }
 
   return (
-    <>
-      <button
-        aria-label="关闭日详情"
-        className="od-drawer-backdrop"
-        onClick={onClose}
-        type="button"
-      />
-      <aside aria-labelledby="od-drawer-title" className="od-drawer" role="dialog">
-        <div className="od-drawer-head">
-          <div className="od-drawer-title" id="od-drawer-title">
-            {openDay} · {dayOfWeekZh(openDay)} · {total} 项
-          </div>
-          <button
-            aria-label="关闭"
-            className="od-drawer-close"
-            onClick={onClose}
-            type="button"
-          >
-            ✕
-          </button>
+    <dialog
+      aria-labelledby="od-drawer-title"
+      className="od-drawer"
+      onClick={handleBackdropClick}
+      ref={dialogRef}
+    >
+      <div className="od-drawer-head">
+        <div className="od-drawer-title" id="od-drawer-title">
+          {openDay} · {dayOfWeekZh(openDay)} · {total} 项
         </div>
+        <button
+          aria-label="关闭"
+          className="od-drawer-close"
+          onClick={onClose}
+          type="button"
+        >
+          ✕
+        </button>
+      </div>
         <div className="od-drawer-batch">
           <label className="od-drawer-select-all">
             <input
@@ -388,7 +401,6 @@ export function ODDayDrawer({ openDay, rows, onClose, onMutated, selected, onSel
         <div className="od-drawer-foot">
           共 {total} 项 · 已选 {daySel} 项 · 当日合计 {formatAmount(spend, "CNY")}
         </div>
-      </aside>
-    </>
+    </dialog>
   );
 }

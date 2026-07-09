@@ -189,12 +189,6 @@ function ODHomeBody() {
     else if (odParam === "open-budget") {
       setTimeout(() => window.dispatchEvent(new CustomEvent("od:open-budget")), 0);
     }
-    else {
-      const el = document.getElementById(odParam);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-      el?.classList.add("od-flash");
-      setTimeout(() => el?.classList.remove("od-flash"), 900);
-    }
     // Strip the param from the URL so a refresh doesn't re-dispatch.
     params.delete("od");
     const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
@@ -288,9 +282,17 @@ function ODHomeBody() {
     function onConfirm() {
       handleBatchConfirm();
     }
+    function onOpQuick(event: Event) {
+      const label = (event as CustomEvent<{ label: string }>).detail?.label ?? "快捷操作";
+      toast.show(`已打开: ${label}`);
+    }
     window.addEventListener("od:batch-confirm", onConfirm);
-    return () => window.removeEventListener("od:batch-confirm", onConfirm);
-  }, [handleBatchConfirm]);
+    window.addEventListener("od:op-quick-fired", onOpQuick);
+    return () => {
+      window.removeEventListener("od:batch-confirm", onConfirm);
+      window.removeEventListener("od:op-quick-fired", onOpQuick);
+    };
+  }, [handleBatchConfirm, toast]);
 
   const handleBatchDelete = useCallback(async () => {
     const targets = rows.filter((r) => selectedRowIds.has(r.id));
@@ -475,24 +477,26 @@ function ODHomeBody() {
       <ODCalendarCard month={month} onOpenDay={setOpenDay} rows={rows} />
 
       <ODSectionTitle>Health OS controls</ODSectionTitle>
-      <ODClusters
-        budgetCents={analyticsState ? analyticsState.base_monthly_budget : 600000}
-        currency={analyticsState?.primary_currency ?? "CNY"}
-        month={month}
-        onAddEntry={handleAddEntry}
-        onBatchConfirm={handleBatchConfirm}
-        onBatchDelete={handleBatchDelete}
-        onBudgetSaved={handleBudgetSaved}
-        onClearSelection={handleClearSelection}
-        onDeleteSelected={handleDeleteSelected}
-        onEditSelected={handleEditSelected}
-        onExcludeSelected={handleExcludeSelected}
-        onExportCsv={handleExportCsv}
-        onNewReceipt={handleNewReceipt}
-        onRunRules={handleRunRules}
-        onShowPending={() => toast.show("暂停 / 启用 — 等待定时任务支持切换")}
-        pendingCount={pendingReceipts.length + recurringCount}
-      />
+      <div aria-hidden="true" className="od-clusters-storage">
+        <ODClusters
+          budgetCents={analyticsState ? analyticsState.base_monthly_budget : 600000}
+          currency={analyticsState?.primary_currency ?? "CNY"}
+          month={month}
+          onAddEntry={handleAddEntry}
+          onBatchConfirm={handleBatchConfirm}
+          onBatchDelete={handleBatchDelete}
+          onBudgetSaved={handleBudgetSaved}
+          onClearSelection={handleClearSelection}
+          onDeleteSelected={handleDeleteSelected}
+          onEditSelected={handleEditSelected}
+          onExcludeSelected={handleExcludeSelected}
+          onExportCsv={handleExportCsv}
+          onNewReceipt={handleNewReceipt}
+          onRunRules={handleRunRules}
+          onShowPending={() => toast.show("暂停 / 启用 — 等待定时任务支持切换")}
+          pendingCount={pendingReceipts.length + recurringCount}
+        />
+      </div>
 
       <ODDayDrawer
         onClose={() => setOpenDay(null)}
