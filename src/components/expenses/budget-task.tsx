@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleDollarSign, Landmark, ReceiptText } from "lucide-react";
+import { CircleDollarSign, ReceiptText } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -18,7 +18,6 @@ import { categoryEmoji, categoryLabel } from "./category-colors";
 import { formatMoneyCompact } from "./shared/task-helpers";
 
 function BudgetInsightStrip({ analytics }: { analytics: ExpenseAnalytics }) {
-  const usage = Math.round((analytics.budget_progress.spent / Math.max(1, analytics.budget_progress.budget)) * 100);
   const topCategory = analytics.category_breakdown
     .slice()
     .sort((a, b) => b.amount - a.amount)[0];
@@ -26,19 +25,8 @@ function BudgetInsightStrip({ analytics }: { analytics: ExpenseAnalytics }) {
     .slice()
     .sort((a, b) => b.total_amount - a.total_amount)[0];
 
-  const usageTone = usage > 100 ? "danger" : usage >= 85 ? "warn" : "good";
-
   return (
-    <section className="exp-insight-strip exp-panel--wide" aria-label="预算摘要">
-      <div className="exp-insight" data-tone={usageTone}>
-        <span className="exp-insight__icon"><Landmark aria-hidden /></span>
-        <div className="exp-insight__body">
-          <span className="exp-insight__label">本月节奏</span>
-          <strong>{usage}%</strong>
-          <small>{usage > 100 ? "已经超预算" : usage >= 85 ? "接近预算上限" : "仍在预算内"}</small>
-        </div>
-      </div>
-
+    <section className="exp-insight-strip exp-insight-strip--secondary exp-panel--wide" aria-label="支出摘要">
       <div className="exp-insight">
         <span className="exp-insight__icon"><CircleDollarSign aria-hidden /></span>
         <div className="exp-insight__body">
@@ -73,7 +61,7 @@ function BudgetKpiRow({ analytics, days }: { analytics: ExpenseAnalytics; days: 
   const budget = fromCents(analytics.budget_progress.budget);
   const remaining = fromCents(analytics.budget_progress.remaining);
   const usage = Math.round((analytics.budget_progress.spent / Math.max(1, analytics.budget_progress.budget)) * 100);
-  const daily = remaining / Math.max(1, days);
+  const daily = analytics.is_current_month ? remaining / Math.max(1, days) : null;
 
   return (
     <div className="exp-kpis exp-kpis--4 exp-kpis--wide">
@@ -96,10 +84,10 @@ function BudgetKpiRow({ analytics, days }: { analytics: ExpenseAnalytics; days: 
       </div>
       <div className="exp-kpi">
         <span className="exp-kpi__label">每日可用</span>
-        <span className={`exp-kpi__value${daily < 0 ? " exp-kpi__value--danger" : ""}`}>
-          {formatMoneyCompact(daily, analytics.budget_currency)}
+        <span className={`exp-kpi__value${daily !== null && daily < 0 ? " exp-kpi__value--danger" : ""}`}>
+          {daily === null ? "—" : formatMoneyCompact(daily, analytics.budget_currency)}
         </span>
-        <span className="exp-kpi__meta">剩余 {days} 天</span>
+        <span className="exp-kpi__meta">{analytics.is_current_month ? `剩余 ${days} 天` : "月份已结束"}</span>
       </div>
     </div>
   );
@@ -136,15 +124,15 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
             <AreaChart data={line} margin={{ bottom: 10, left: 0, right: 20, top: 10 }}>
               <defs>
                 <linearGradient id="expense-spend-fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="5%" stopColor="#9bea3d" stopOpacity={0.34} />
-                  <stop offset="95%" stopColor="#9bea3d" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="var(--life-green-strong)" stopOpacity={0.34} />
+                  <stop offset="95%" stopColor="var(--life-green-strong)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="3 6" vertical={false} />
               <XAxis axisLine={false} dataKey="label" tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickLine={false} />
               <YAxis axisLine={false} domain={[0, yMax]} tick={{ fill: "var(--life-muted)", fontSize: 12 }} tickFormatter={(value) => `¥${Number(value).toFixed(0)}`} tickLine={false} />
               <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 8, color: "#101512" }} formatter={(value) => formatMoney(Number(value), analytics.primary_currency)} />
-              <Area dataKey="amount" fill="url(#expense-spend-fill)" name="支出" stroke="#9bea3d" strokeWidth={2.5} type="monotone" />
+              <Area dataKey="amount" fill="url(#expense-spend-fill)" name="支出" stroke="var(--life-green-strong)" strokeWidth={2.5} type="monotone" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -163,8 +151,6 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
         </div>
         <div className="exp-side-stats">
           <div><span>月度预算</span><strong>{formatMoneyCompact(fromCents(analytics.budget_progress.budget), analytics.budget_currency)}</strong></div>
-          <div><span>剩余预算</span><strong>{formatMoneyCompact(fromCents(analytics.budget_progress.remaining), analytics.budget_currency)}</strong></div>
-          <div><span>每日可用</span><strong>{formatMoneyCompact(fromCents(analytics.budget_progress.remaining) / Math.max(1, days), analytics.budget_currency)}</strong></div>
         </div>
       </section>
 

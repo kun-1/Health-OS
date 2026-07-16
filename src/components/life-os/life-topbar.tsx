@@ -83,7 +83,7 @@ export function LifeTopbar() {
           aria-hidden
           className={`od-status-dot${refreshing ? "" : " synced"}`}
         />
-        <span>{refreshing ? "updating" : "synced"}</span>
+        <span>{refreshing ? "更新中" : "已同步"}</span>
       </div>
 
       <MonthSwitcher month={selectedMonth} />
@@ -91,10 +91,6 @@ export function LifeTopbar() {
       <div className="life-topbar__spacer" />
 
       <div className="life-topbar__actions">
-        <span className="od-topbar-status-chip" aria-label="Health OS controls mapped">
-          <span className="dot" aria-hidden />
-          Health OS controls mapped
-        </span>
         <OpQuickButtons month={selectedMonth} />
         <button
           aria-label="刷新"

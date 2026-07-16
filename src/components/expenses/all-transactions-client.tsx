@@ -677,7 +677,7 @@ export function AllTransactionsClient() {
                     <span>{group.transactions.length} 笔</span>
                   </div>
                 </header>
-                <div className="exp-ledger-day__grid">
+                <div className={`exp-ledger-day__grid${group.transactions.length === 1 ? " exp-ledger-day__grid--single" : ""}`}>
                   {group.transactions.map((transaction) => (
                     <TransactionCard
                       draft={drafts[transaction.id] ?? transactionToExtracted(transaction)}
