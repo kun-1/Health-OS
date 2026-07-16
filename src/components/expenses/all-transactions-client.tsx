@@ -1,7 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, ReceiptText, Wallet } from "lucide-react";
+import {
+  BusFront,
+  CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Ellipsis,
+  LayoutList,
+  PenLine,
+  ReceiptText,
+  RotateCw,
+  ScanLine,
+  ShoppingBasket,
+  Trash2,
+  Utensils,
+  Wallet,
+  type LucideIcon
+} from "lucide-react";
 
 import { formatMoney } from "@/lib/expenses/money";
 import type {
@@ -18,6 +35,7 @@ import { ManualExpensePanel } from "./manual-expense-panel";
 import { PendingReceiptCard } from "./pending-card";
 import { ReceiptUploader } from "./receipt-uploader";
 import { TransactionCard } from "./transaction-card";
+import { RecurringManagerClient } from "./recurring-manager-client";
 import { ExpenseBanners } from "./shared/expense-banners";
 import {
   transactionToExtracted,
@@ -31,14 +49,49 @@ import "./expenses.css";
 
 const PAGE_SIZE = 50;
 
-type QuickFilter = { id: string; label: string; match: (category: string) => boolean };
+type QuickFilter = { id: string; label: string; icon: LucideIcon; match: (category: string) => boolean };
+type WorkspaceView = "ledger" | "recurring";
+
+function initialWorkspaceView(): WorkspaceView {
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "recurring") {
+    return "recurring";
+  }
+  return "ledger";
+}
+
+function LedgerWorkspaceTabs({ view, onChange }: { view: WorkspaceView; onChange: (next: WorkspaceView) => void }) {
+  return (
+    <div className="exp-workspace-tabs" role="tablist" aria-label="账单工作区视图">
+      <button
+        aria-selected={view === "ledger"}
+        className={view === "ledger" ? "is-active" : ""}
+        onClick={() => onChange("ledger")}
+        role="tab"
+        type="button"
+      >
+        <ReceiptText aria-hidden />
+        账单
+      </button>
+      <button
+        aria-selected={view === "recurring"}
+        className={view === "recurring" ? "is-active" : ""}
+        onClick={() => onChange("recurring")}
+        role="tab"
+        type="button"
+      >
+        <CalendarClock aria-hidden />
+        定期
+      </button>
+    </div>
+  );
+}
 
 const QUICK_FILTERS: QuickFilter[] = [
-  { id: "all", label: "全部", match: () => true },
-  { id: "food", label: "餐饮", match: (c) => ["食物", "外食", "饮料/咖啡"].includes(c) },
-  { id: "transport", label: "交通", match: (c) => c === "交通" },
-  { id: "daily", label: "日用", match: (c) => ["日用品", "清洁用品", "个人护理"].includes(c) },
-  { id: "other", label: "其他", match: (c) => !["食物", "外食", "饮料/咖啡", "交通", "日用品", "清洁用品", "个人护理"].includes(c) }
+  { id: "all", label: "全部", icon: LayoutList, match: () => true },
+  { id: "food", label: "餐饮", icon: Utensils, match: (c) => ["食物", "外食", "饮料/咖啡"].includes(c) },
+  { id: "transport", label: "交通", icon: BusFront, match: (c) => c === "交通" },
+  { id: "daily", label: "日用", icon: ShoppingBasket, match: (c) => ["日用品", "清洁用品", "个人护理"].includes(c) },
+  { id: "other", label: "其他", icon: Ellipsis, match: (c) => !["食物", "外食", "饮料/咖啡", "交通", "日用品", "清洁用品", "个人护理"].includes(c) }
 ];
 
 type LedgerDateGroup = {
@@ -156,6 +209,17 @@ export function AllTransactionsClient() {
     run: () => Promise<void>;
   } | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(initialWorkspaceView);
+
+  const changeWorkspaceView = useCallback((next: WorkspaceView) => {
+    setWorkspaceView(next);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (next === "recurring") params.set("view", "recurring");
+    else params.delete("view");
+    const query = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+  }, []);
 
   const orderedItems = useMemo<BulkItem[]>(
     () => rows.map((t) => ({ id: t.id, kind: "transaction" as const })),
@@ -417,7 +481,7 @@ export function AllTransactionsClient() {
           </div>
           <div>
             <div className="exp-shell__name">账单</div>
-            <div className="exp-shell__crumb">支出 / 待处理与已入账账单</div>
+            <div className="exp-shell__crumb">待处理与已入账</div>
           </div>
         </div>
         <div className="exp-workbar exp-workbar--ledger">
@@ -429,14 +493,15 @@ export function AllTransactionsClient() {
             onUpload={uploadReceipt}
           />
           <button
-            className="exp-workbar__button"
+            className="exp-workbar__button exp-workbar__button--primary"
             onClick={() => setManualOpen(true)}
             type="button"
           >
-            <Plus aria-hidden />
+            <PenLine aria-hidden />
             记一笔
           </button>
-          <a className="exp-workbar__button" href={csvHref}>
+          <a className="exp-workbar__button exp-workbar__button--quiet" href={csvHref}>
+            <Download aria-hidden />
             导出 CSV
           </a>
         </div>
@@ -444,11 +509,16 @@ export function AllTransactionsClient() {
 
       <ExpenseBanners error={error ?? ""} loadError={loadError} message={message} onRetry={() => void reloadWorkspace()} />
 
+      <LedgerWorkspaceTabs onChange={changeWorkspaceView} view={workspaceView} />
+
+      {workspaceView === "recurring" ? <RecurringManagerClient embedded /> : (
+        <>
+
       <section className={`exp-ledger-workbench ${hasReceiptWork ? "" : "exp-ledger-workbench--clear"}`}>
         <div className="exp-section-head exp-section-head--compact">
           <div>
-            <p className="exp-eyebrow">待处理</p>
-            <h2>票据识别到账单</h2>
+            <p className="exp-eyebrow">待确认票据</p>
+            <h2>票据识别结果</h2>
           </div>
           <span className="exp-ledger-workbench__meta">
             {analytics
@@ -474,7 +544,7 @@ export function AllTransactionsClient() {
               {analytics.receipt_jobs.map((job) => (
                 <article className="exp-work-queue__job" key={job.id}>
                   <div className="exp-work-queue__job-icon">
-                    <ReceiptText aria-hidden />
+                    <ScanLine aria-hidden />
                   </div>
                   <div className="exp-work-queue__job-body">
                     <div className="exp-work-queue__job-top">
@@ -492,6 +562,7 @@ export function AllTransactionsClient() {
                       onClick={() => void retryJob(job)}
                       type="button"
                     >
+                      <RotateCw aria-hidden />
                       重试
                     </button>
                     <button
@@ -499,6 +570,7 @@ export function AllTransactionsClient() {
                       onClick={() => void deleteJob(job)}
                       type="button"
                     >
+                      <Trash2 aria-hidden />
                       删除
                     </button>
                   </div>
@@ -506,16 +578,17 @@ export function AllTransactionsClient() {
               ))}
               {analytics.receipt_jobs.length > 0 ? (
                 <button className="exp-work-queue__retry-all" onClick={() => void retryDueJobs()} type="button">
+                  <RotateCw aria-hidden />
                   重试到期任务
                 </button>
               ) : null}
             </div>
           ) : (
             <div className="exp-ledger-empty">
-              <ReceiptText aria-hidden />
+              <ScanLine aria-hidden />
               <div>
-                <strong>没有待处理票据</strong>
-                <span>上传票据后会先出现在这里，确认后自动进入下方账单列表。</span>
+              <strong>暂无待确认票据</strong>
+              <span>上传后会先在这里核对，确认后自动加入账单。</span>
               </div>
             </div>
           )
@@ -537,12 +610,13 @@ export function AllTransactionsClient() {
             role="tab"
             type="button"
           >
+            <filter.icon aria-hidden />
             {filter.label}
           </button>
         ))}
-        <span className="exp-quick-filter__hint">
-          当前：{activeFilterLabel} · {filteredRows.length} 笔
-        </span>
+        {activeFilter !== "all" ? (
+          <span className="exp-quick-filter__hint">筛选后 {activeFilterLabel} · {filteredRows.length} 笔</span>
+        ) : null}
       </div>
 
       <div
@@ -559,6 +633,7 @@ export function AllTransactionsClient() {
             onClick={() => void load(Math.max(0, offset - PAGE_SIZE))}
             type="button"
           >
+            <ChevronLeft aria-hidden />
             上一页
           </button>
           <button
@@ -567,6 +642,7 @@ export function AllTransactionsClient() {
             onClick={() => void load(offset + PAGE_SIZE)}
             type="button"
           >
+            <ChevronRight aria-hidden />
             下一页
           </button>
         </div>
@@ -584,7 +660,7 @@ export function AllTransactionsClient() {
           {groupedRows.length === 0 && !loading ? (
             <div className="exp-empty exp-card">
               <div className="exp-empty__icon" aria-hidden>
-                📒
+                <ReceiptText aria-hidden />
               </div>
               <div>该过滤条件下没有交易</div>
             </div>
@@ -620,6 +696,9 @@ export function AllTransactionsClient() {
           )}
         </div>
       </BulkSelectionProvider>
+
+        </>
+      )}
 
       <ManualExpensePanel
         busy={manualBusy}

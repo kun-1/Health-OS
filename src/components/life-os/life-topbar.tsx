@@ -25,6 +25,12 @@ function OpQuickButtons({ month }: { month: string }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // The ledger workspace owns receipt upload, manual entry, export, and
+  // selection actions. Keeping the global command rail visible here created
+  // duplicate controls, and several of those commands only navigated back to
+  // the same page instead of performing an action.
+  if (pathname.startsWith("/expenses/transactions")) return null;
+
   const targets: OpTarget[] = [
     { op: "receipt", label: "新增票据", action: "new-receipt" },
     { op: "budget", label: "预算", action: "open-budget" },
@@ -44,11 +50,12 @@ function OpQuickButtons({ month }: { month: string }) {
     if (action === "new-receipt") {
       navigateWithMonth("/expenses/transactions");
     } else if (action === "run-rules") {
-      navigateWithMonth("/expenses/recurring");
-    } else if (onHome) {
+      const search = new URLSearchParams({ month, view: "recurring" });
+      router.push(`/expenses/transactions?${search.toString()}`);
+    } else if (onHome && action !== "batch-confirm" && action !== "open-budget") {
       window.dispatchEvent(new CustomEvent(`od:${action}`));
     } else {
-      navigateWithMonth(`/?od=${action}`);
+      navigateWithMonth(action === "open-budget" ? "/expenses/analytics" : "/expenses/transactions");
     }
     if (SILENT_ACTIONS.has(action)) {
       window.dispatchEvent(new CustomEvent("od:op-quick-fired", { detail: { label } }));
