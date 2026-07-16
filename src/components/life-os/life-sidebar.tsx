@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Activity, CalendarClock, ClipboardList, LayoutDashboard, Wallet } from "lucide-react";
+import { Activity, ClipboardList, LayoutDashboard, Wallet } from "lucide-react";
 
 import { MONTH_PATTERN } from "@/components/shared/use-selected-month";
 
@@ -41,11 +41,6 @@ const PRIMARY: NavItem[] = [
     icon: ClipboardList,
     isActive: (pathname, searchParams) => pathname === "/expenses/transactions" && searchParams.get("view") !== "recurring"
   },
-  {
-    label: "定期",
-    href: "/expenses/transactions?view=recurring",
-    icon: CalendarClock,
-    isActive: (pathname, searchParams) => pathname === "/expenses/transactions" && searchParams.get("view") === "recurring"
   }
 ];
 
