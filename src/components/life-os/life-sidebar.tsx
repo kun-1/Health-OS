@@ -40,7 +40,6 @@ const PRIMARY: NavItem[] = [
     href: "/expenses/transactions",
     icon: ClipboardList,
     isActive: (pathname, searchParams) => pathname === "/expenses/transactions" && searchParams.get("view") !== "recurring"
-  },
   }
 ];
 
