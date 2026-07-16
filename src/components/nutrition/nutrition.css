@@ -15,6 +15,48 @@
   font-family: var(--life-font);
 }
 
+/* Keep nutrition on the same OD canvas as overview and expenses. */
+.life-os-nutrition {
+  --od-surface: #ffffff;
+  --od-surface-soft: #f4f3ee;
+  --od-border: #e5e5e0;
+  --od-border-strong: #d4d4cc;
+  --od-fg: #1f1f1f;
+  --od-fg-2: #4a4a48;
+  --od-muted: #8a8a85;
+  --od-health-green: #5b8a72;
+  color: var(--od-fg);
+}
+.life-os-nutrition .nut-header {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--od-border);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 14px;
+}
+.life-os-nutrition .nut-header__logo { background: #e8f0ea; border-radius: 6px; color: var(--od-health-green); }
+.life-os-nutrition .nut-header__name { color: var(--od-fg); font-size: 0.98rem; font-weight: 650; }
+.life-os-nutrition .nut-header__crumb,
+.life-os-nutrition .nut-eyebrow { color: var(--od-muted); }
+.life-os-nutrition .nut-panel,
+.life-os-nutrition .nut-card,
+.life-os-nutrition .nut-summary,
+.life-os-nutrition .nut-judgement {
+  background: var(--od-surface);
+  border: 1px solid var(--od-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+.life-os-nutrition .nut-panel { padding: 16px; }
+.life-os-nutrition button {
+  border: 1px solid var(--od-border);
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--od-fg-2);
+}
+.life-os-nutrition button:hover { background: var(--od-surface-soft); border-color: var(--od-border-strong); }
+
 .life-os-nutrition *,
 .life-os-nutrition *::before,
 .life-os-nutrition *::after {
@@ -1245,6 +1287,24 @@
   }
 }
 
+@media (max-width: 720px) {
+  .life-os-nutrition {
+    gap: 12px;
+  }
+  .life-os-nutrition .nut-panel,
+  .life-os-nutrition .nut-judgement {
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .life-os-nutrition .nut-section-head {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .life-os-nutrition .nut-hero-board__metrics {
+    gap: 14px;
+  }
+}
+
 /* ---------- exp-banner override (Life OS card skin) ----------
    The .exp-banner lives in expenses.css with expense-specific surface tokens
    that read as a dark/neutral panel. Inside .life-os-nutrition we want it
@@ -1277,11 +1337,67 @@
   display: block;
 }
 
+.life-os-nutrition .life-analysis-tabs {
+  margin-bottom: 18px;
+}
+
 .nut-kpis {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 18px;
+}
+
+.nut-focus-grid {
+  align-items: stretch;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr);
+}
+
+.nut-focus-grid > .nut-panel--conclusion {
+  grid-column: 1 / -1;
+}
+
+.nut-panel--conclusion .nut-section-head { margin-bottom: 12px; }
+
+.nut-conclusion-grid {
+  align-items: stretch;
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(150px, 0.7fr));
+}
+
+.nut-conclusion-lead,
+.nut-conclusion-stat {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 18px;
+}
+
+.nut-conclusion-lead {
+  background: var(--od-surface-soft, var(--life-card-soft));
+  border-radius: 8px;
+}
+
+.nut-conclusion-lead strong,
+.nut-conclusion-stat strong {
+  color: var(--life-text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.nut-conclusion-lead span,
+.nut-conclusion-stat span,
+.nut-conclusion-stat small {
+  color: var(--life-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.nut-conclusion-stat + .nut-conclusion-stat {
+  border-left: 1px solid var(--life-border);
 }
 
 .nut-kpi {
@@ -1372,6 +1488,17 @@
   min-height: 220px;
 }
 
+.nut-chart-empty {
+  align-items: center;
+  color: var(--life-muted);
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px;
+  text-align: center;
+}
+
 .nut-quality-grid {
   display: grid;
   gap: 10px;
@@ -1403,6 +1530,85 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
+}
+
+.nut-v2-axis-grid,
+.nut-v2-components {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nut-v2-axis-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.nut-v2-axis,
+.nut-v2-component {
+  background: #ffffff;
+  border: 1px solid var(--life-border);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 11px 12px;
+}
+
+.nut-v2-axis__head,
+.nut-v2-component {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.nut-v2-axis__head span,
+.nut-v2-component strong {
+  color: var(--life-text);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.nut-v2-axis__head strong,
+.nut-v2-component b {
+  color: var(--life-text);
+  flex: 0 0 auto;
+  font-family: var(--life-font-num);
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.nut-v2-axis__track {
+  background: var(--life-card-soft);
+  border-radius: 999px;
+  height: 5px;
+  margin: 9px 0 7px;
+  overflow: hidden;
+}
+
+.nut-v2-axis__track span {
+  background: var(--life-green-strong);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.nut-v2-axis small,
+.nut-v2-component span {
+  color: var(--life-muted);
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+
+.nut-v2-component > div {
+  min-width: 0;
+}
+
+.nut-v2-component[data-unavailable="true"] {
+  background: var(--life-card-soft);
 }
 
 .nut-quality-card small,
@@ -1876,6 +2082,9 @@
 }
 
 @media (max-width: 1060px) {
+  .nut-focus-grid {
+    grid-template-columns: 1fr;
+  }
   .nut-analysis-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
@@ -1895,6 +2104,13 @@
 }
 
 @media (max-width: 720px) {
+  .nut-conclusion-grid {
+    grid-template-columns: 1fr;
+  }
+  .nut-conclusion-stat + .nut-conclusion-stat {
+    border-left: 0;
+    border-top: 1px solid var(--life-border);
+  }
   .nut-narrative__signal {
     grid-template-columns: 12px 76px 1fr;
   }
@@ -1915,6 +2131,91 @@
   }
   .nut-quality-grid,
   .nut-taxonomy-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Food-spend joint panel ---------- */
+.nut-panel--food-spend {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nut-panel--food-spend .nut-status-pill[data-grade="好"] {
+  background: rgba(155, 234, 61, 0.18);
+  border-color: rgba(155, 234, 61, 0.4);
+  color: #1a4d22;
+}
+.nut-panel--food-spend .nut-status-pill[data-grade="可"] {
+  background: rgba(245, 184, 51, 0.18);
+  border-color: rgba(245, 184, 51, 0.5);
+  color: #7a5400;
+}
+.nut-panel--food-spend .nut-status-pill[data-grade="差"] {
+  background: rgba(220, 90, 90, 0.14);
+  border-color: rgba(220, 90, 90, 0.45);
+  color: #8a2a2a;
+}
+
+.nut-fspend-drivers {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nut-fspend-drivers__col h3 {
+  color: var(--life-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.nut-fspend-drivers__col ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nut-fspend-drivers__col li {
+  background: var(--life-card-soft);
+  border: 1px solid var(--life-border);
+  border-left: 3px solid var(--life-green-strong);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.nut-fspend-drivers__col li[data-direction="negative"] {
+  border-left-color: var(--life-yellow);
+}
+
+.nut-fspend-drivers__col li strong {
+  color: var(--life-text);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.nut-fspend-drivers__col li span {
+  color: var(--life-text);
+  font-family: var(--life-font-num);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.nut-fspend-drivers__col li small {
+  color: var(--life-muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  .nut-fspend-drivers {
     grid-template-columns: 1fr;
   }
 }

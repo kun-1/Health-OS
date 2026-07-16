@@ -93,7 +93,9 @@ function BudgetKpiRow({ analytics, days }: { analytics: ExpenseAnalytics; days: 
   );
 }
 
-export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; days: number }) {
+export type BudgetFocus = "overview" | "trend";
+
+export function BudgetTask({ analytics, days, focus = "overview" }: { analytics: ExpenseAnalytics; days: number; focus?: BudgetFocus }) {
   const line = analytics.daily_totals.map((item) => ({
     ...item,
     label: item.day.slice(5)
@@ -105,9 +107,9 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
   return (
     <div className="exp-screen exp-screen--budget">
       <BudgetKpiRow analytics={analytics} days={days} />
-      <BudgetInsightStrip analytics={analytics} />
+      {focus === "overview" ? <BudgetInsightStrip analytics={analytics} /> : null}
 
-      <section className="exp-panel exp-panel--chart">
+      {focus === "trend" ? <section className="exp-panel exp-panel--chart">
         <div className="exp-section-head">
           <div>
             <p className="exp-eyebrow">预算趋势</p>
@@ -136,9 +138,9 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
             </AreaChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </section> : null}
 
-      <section className="exp-panel exp-panel--side">
+      {focus === "trend" ? <section className="exp-panel exp-panel--side">
         <div className="exp-section-head exp-section-head--compact">
           <div>
             <p className="exp-eyebrow">预算状态</p>
@@ -152,9 +154,9 @@ export function BudgetTask({ analytics, days }: { analytics: ExpenseAnalytics; d
         <div className="exp-side-stats">
           <div><span>月度预算</span><strong>{formatMoneyCompact(fromCents(analytics.budget_progress.budget), analytics.budget_currency)}</strong></div>
         </div>
-      </section>
+      </section> : null}
 
-      <TransactionBand month={analytics.month} transactions={analytics.recent_transactions.slice(0, 5)} title="最近影响预算的交易" />
+      {focus === "trend" ? <TransactionBand month={analytics.month} transactions={analytics.recent_transactions.slice(0, 5)} title="最近影响预算的交易" /> : null}
     </div>
   );
 }

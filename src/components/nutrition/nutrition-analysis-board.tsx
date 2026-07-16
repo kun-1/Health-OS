@@ -11,12 +11,22 @@ import {
   YAxis
 } from "recharts";
 
-import { clampScore, structureScore } from "@/lib/life-os/selectors";
+import { structureScore } from "@/lib/life-os/selectors";
 import { rainbowColors } from "@/lib/nutrition/color-signals";
 import type { NutritionCategory, NutritionReport } from "@/lib/nutrition/types";
 
 import type { TrendMonth } from "./nutrition-extras";
 import "./nutrition.css";
+import { AnalysisViewTabs, type AnalysisViewTab } from "@/components/shared/analysis-view-tabs";
+
+export type NutritionView = "overview" | "trend" | "structure" | "data";
+
+const NUTRITION_TABS: readonly AnalysisViewTab[] = [
+  { id: "overview", label: "结论" },
+  { id: "trend", label: "趋势" },
+  { id: "structure", label: "结构" },
+  { id: "data", label: "数据质量" }
+];
 
 type TrendState =
   | { kind: "loading" }
@@ -26,7 +36,7 @@ type TrendState =
 type ChartRow = {
   period: string;
   label: string;
-  score: number;
+  score: number | null;
 };
 
 const CATEGORY_LABELS: Record<NutritionCategory, string> = {
@@ -48,22 +58,10 @@ const CATEGORY_LABELS: Record<NutritionCategory, string> = {
 
 function makeTrendRows(months: TrendMonth[]): ChartRow[] {
   return months.map((month) => {
-    const veg = (month.grams["蔬菜"] ?? 0) + (month.grams["水果"] ?? 0);
-    const protein = (month.grams["豆类"] ?? 0) + (month.grams["坚果"] ?? 0) + (month.grams["动物性"] ?? 0);
-    const whole = month.grams["全谷物"] ?? 0;
-    const bad =
-      (month.grams["加工肉"] ?? 0) +
-      (month.grams["含糖饮料"] ?? 0) +
-      (month.grams["精制谷物"] ?? 0) +
-      (month.grams["甜点"] ?? 0);
-    const total = Object.values(month.grams).reduce((s, n) => s + n, 0) || 1;
-    const score = clampScore(
-      58 + (veg / total) * 30 + (protein / total) * 12 + (whole / total) * 14 - (bad / total) * 24
-    );
     return {
       period: month.period,
       label: month.period.slice(5),
-      score
+      score: month.score
     };
   });
 }
@@ -157,11 +155,28 @@ function RingProgress({
   );
 }
 
+function scoreForReport(report: NutritionReport): number {
+  return report.v2?.scores.composite.score ?? structureScore(report);
+}
+
+function formatOneDecimal(value: number): string {
+  return value.toFixed(1).replace(/\.0$/, "");
+}
+
+function formatComponentValue(component: NonNullable<NutritionReport["v2"]>["components"][number]): string {
+  if (component.available === false) return component.reason ?? "数据源缺失";
+  if (component.unit === "g_per_day") return `${formatOneDecimal(component.rawValue)} g/日`;
+  if (component.unit === "ratio") return `${Math.round(component.rawValue * 100)}%`;
+  if (component.unit === "count") return `${Math.round(component.rawValue)} 项`;
+  return `${formatOneDecimal(component.rawValue)}`;
+}
+
 function KpiRow({ report }: { report: NutritionReport }) {
-  const score = structureScore(report);
-  const coverage = foodCoveragePct(report);
+  const score = scoreForReport(report);
+  const v2Confidence = report.v2?.confidence;
+  const coverage = v2Confidence ? Math.round(v2Confidence.nutritionCoverage * 100) : foodCoveragePct(report);
   const skipCount = totalSkips(report.skipBreakdown);
-  const status = describeScore(score);
+  const status = report.v2?.scores.composite.lowConfidence ? "结论低可信" : describeScore(score);
 
   return (
     <div className="nut-kpis">
@@ -169,33 +184,70 @@ function KpiRow({ report }: { report: NutritionReport }) {
         <RingProgress pct={score} />
         <div>
           <strong className="nut-kpi__value">{score}</strong>
-          <span className="nut-kpi__label">综合质量</span>
+          <span className="nut-kpi__label">{report.v2 ? "v2 综合质量" : "综合质量"}</span>
         </div>
       </div>
       <div className="nut-kpi">
         <strong className="nut-kpi__value">{coverage}%</strong>
-        <span className="nut-kpi__label">质量覆盖</span>
+        <span className="nut-kpi__label">营养覆盖</span>
       </div>
       <div className="nut-kpi">
         <strong className="nut-kpi__value">{skipCount}</strong>
         <span className="nut-kpi__label">待补记录</span>
       </div>
       <div className="nut-kpi nut-kpi--vertical">
-        <span className="nut-kpi__label">状态评估</span>
-        <span className="nut-kpi__pill">{status}</span>
+        <span className="nut-kpi__label">购买口径可信度</span>
+        <span className="nut-kpi__pill">{v2Confidence ? v2Confidence.grade : status}</span>
       </div>
     </div>
   );
 }
 
+function NutritionConclusionPanel({ report }: { report: NutritionReport }) {
+  const score = scoreForReport(report);
+  const negative = report.v2?.drivers.negative[0];
+  const positive = report.v2?.drivers.positive[0];
+  const confidence = report.v2?.confidence;
+  const status = report.v2?.scores.composite.lowConfidence ? "结论需要谨慎解读" : describeScore(score);
+
+  return (
+    <section className="nut-panel nut-panel--conclusion">
+      <div className="nut-section-head nut-section-head--compact">
+        <div>
+          <p className="nut-eyebrow">本月结论</p>
+          <h2>营养质量{status}</h2>
+        </div>
+        <span className="nut-status-pill">购买口径</span>
+      </div>
+      <div className="nut-conclusion-grid">
+        <div className="nut-conclusion-lead">
+          <strong>{negative?.label ?? "当前没有明确拖累项"}</strong>
+          <span>{negative?.explanation ?? "继续积累可计重的食品记录，结论会更稳定。"}</span>
+        </div>
+        <div className="nut-conclusion-stat">
+          <span>可信度</span>
+          <strong>{confidence?.grade ?? "—"}</strong>
+          <small>{confidence ? `${Math.round(confidence.nutritionCoverage * 100)}% 食品项可量化` : "等待数据质量"}</small>
+        </div>
+        <div className="nut-conclusion-stat">
+          <span>主要加分</span>
+          <strong>{positive?.label ?? "暂无"}</strong>
+          <small>{positive?.metric ?? "需要更多记录"}</small>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function DataQualityPanel({ report }: { report: NutritionReport }) {
-  const foodItems = foodItemCount(report);
+  const v2Confidence = report.v2?.confidence;
+  const foodItems = v2Confidence?.foodItemCount ?? foodItemCount(report);
   const pending = totalSkips(report.skipBreakdown);
-  const excluded = report.skipBreakdown.not_nutrition;
-  const coverage = foodCoveragePct(report);
+  const excluded = v2Confidence?.notNutritionCount ?? report.skipBreakdown.not_nutrition;
+  const coverage = v2Confidence ? Math.round(v2Confidence.nutritionCoverage * 100) : foodCoveragePct(report);
   const rows = [
     { label: "食物项", value: foodItems, meta: "参与营养判断" },
-    { label: "有重量", value: report.itemsWithWeight, meta: `${coverage}% 可量化` },
+    { label: "有重量", value: v2Confidence?.itemsWithWeight ?? report.itemsWithWeight, meta: `${coverage}% 可量化` },
     { label: "待补", value: pending, meta: "别名/重量/单位/OCR" },
     { label: "已排除", value: excluded, meta: "非食物项" }
   ];
@@ -218,14 +270,105 @@ function DataQualityPanel({ report }: { report: NutritionReport }) {
         ))}
       </div>
       <div className="nut-quality-note">
-        非食物项不会被当成坏数据；只有食物项缺别名、重量或单位时才进入待补。
+        非食物项不会被当成坏数据；只有食物项缺别名、重量或单位时才进入待补。所有重量都是购买口径。
+      </div>
+    </section>
+  );
+}
+
+function V2ScorePanel({ report }: { report: NutritionReport }) {
+  const v2 = report.v2;
+  if (!v2) return null;
+  const axes = [
+    { key: "plate", label: "Plate", score: v2.scores.plate.score, meta: `偏差 ${v2.scores.plate.deviation}` },
+    { key: "ahei", label: "AHEI-like", score: v2.scores.ahei.score, meta: `${v2.scores.ahei.components.length} 个可用组件` },
+    { key: "upf", label: "UPF", score: v2.scores.upf.score, meta: `UPF ${Math.round(v2.scores.upf.upfShare * 100)}%` },
+    { key: "diversity", label: "Diversity", score: v2.scores.diversity.score, meta: `${v2.scores.diversity.uniqueFoodCount}/${v2.scores.diversity.uniqueFoodTarget} 种` }
+  ];
+  const components = v2.components.slice(0, 12);
+
+  return (
+    <section className="nut-panel nut-panel--v2">
+      <div className="nut-section-head nut-section-head--compact">
+        <div>
+          <p className="nut-eyebrow">v2 score components</p>
+          <h2>分数拆解与可用分母</h2>
+        </div>
+        <span className="nut-status-pill">购买口径</span>
+      </div>
+      <div className="nut-v2-axis-grid">
+        {axes.map((axis) => (
+          <div className="nut-v2-axis" key={axis.key}>
+            <div className="nut-v2-axis__head">
+              <span>{axis.label}</span>
+              <strong>{axis.score}</strong>
+            </div>
+            <div className="nut-v2-axis__track">
+              <span style={{ width: `${Math.min(100, Math.max(0, axis.score))}%` }} />
+            </div>
+            <small>{axis.meta}</small>
+          </div>
+        ))}
+      </div>
+      <div className="nut-v2-components" aria-label="AHEI-like 组件">
+        {components.map((component) => (
+          <div className="nut-v2-component" data-unavailable={component.available === false ? "true" : undefined} key={component.key}>
+            <div>
+              <strong>{component.label}</strong>
+              <span>{formatComponentValue(component)}</span>
+            </div>
+            <b>{component.available === false ? "—" : `${component.score}/10`}</b>
+          </div>
+        ))}
+      </div>
+      <div className="nut-quality-note">
+        分母：{v2.confidence.itemsWithWeight}/{v2.confidence.foodItemCount} 个食品项可计重；{v2.confidence.notNutritionCount} 个非食物项已排除。数据质量只影响可信度，不混入健康分。
+      </div>
+    </section>
+  );
+}
+
+function DriversPanel({ report }: { report: NutritionReport }) {
+  const v2 = report.v2;
+  if (!v2) return null;
+  const drivers = [...v2.drivers.negative, ...v2.drivers.positive];
+
+  return (
+    <section className="nut-panel nut-panel--drivers">
+      <div className="nut-section-head nut-section-head--compact">
+        <div>
+          <p className="nut-eyebrow">drivers</p>
+          <h2>本月主要拖累与加分项</h2>
+        </div>
+      </div>
+      {drivers.length === 0 ? (
+        <div className="nut-chart-empty">暂无明确 driver；需要更多可计重食品记录</div>
+      ) : (
+        <div className="nut-driver-list">
+          {drivers.map((driver) => (
+            <div className="nut-driver" data-direction={driver.direction} key={driver.key}>
+              <div className="nut-driver__head">
+                <strong>{driver.label}</strong>
+                <span>{driver.direction === "negative" ? "拖累" : "加分"}</span>
+              </div>
+              <p>{driver.explanation}</p>
+              <small>{driver.metric}</small>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="nut-quality-note">
+        {v2.confidence.reasons.length > 0 ? v2.confidence.reasons.join("；") : "本月营养覆盖良好。"}
       </div>
     </section>
   );
 }
 
 function TrendChart({ rows }: { rows: ChartRow[] }) {
-  const scores = rows.map((r) => r.score);
+  const scores = rows.flatMap((r) => (r.score === null ? [] : [r.score]));
+  if (scores.length === 0) {
+    return <div className="nut-chart-empty">当前时间范围暂无可比较的营养数据</div>;
+  }
   const minScore = Math.min(...scores);
   const maxScore = Math.max(...scores);
   const step = 5;
@@ -531,10 +674,14 @@ function DrillPanel({ report }: { report: NutritionReport }) {
 
 export function NutritionAnalysisBoard({
   report,
-  trend
+  trend,
+  view,
+  onViewChange
 }: {
   report: NutritionReport;
   trend: TrendState;
+  view: NutritionView;
+  onViewChange: (view: NutritionView) => void;
 }) {
   if (trend.kind === "loading") return <LoadingState label="趋势加载中..." />;
   if (trend.kind === "error") return <ErrorState message={trend.message} />;
@@ -546,14 +693,29 @@ export function NutritionAnalysisBoard({
   return (
     <div className="nut-analysis-board">
       <KpiRow report={report} />
-      <div className="nut-analysis-grid">
-        <TrendPanel rows={rows} />
-        <StructurePanel report={report} />
-        <TaxonomyPanel grams={grams} />
-        <DataQualityPanel report={report} />
-        <DrillPanel report={report} />
-        <RecommendationsPanel report={report} />
-      </div>
+      <AnalysisViewTabs ariaLabel="营养分析视图" onChange={(next) => onViewChange(next as NutritionView)} tabs={NUTRITION_TABS} value={view} />
+      {view === "overview" ? (
+        <div className="nut-focus-grid">
+          <NutritionConclusionPanel report={report} />
+          <DriversPanel report={report} />
+          <RecommendationsPanel report={report} />
+          <DataQualityPanel report={report} />
+        </div>
+      ) : null}
+      {view === "trend" ? <div className="nut-analysis-grid"><TrendPanel rows={rows} /></div> : null}
+      {view === "structure" ? (
+        <div className="nut-analysis-grid">
+          <V2ScorePanel report={report} />
+          <StructurePanel report={report} />
+          <TaxonomyPanel grams={grams} />
+        </div>
+      ) : null}
+      {view === "data" ? (
+        <div className="nut-analysis-grid">
+          <DataQualityPanel report={report} />
+          <DrillPanel report={report} />
+        </div>
+      ) : null}
     </div>
   );
 }

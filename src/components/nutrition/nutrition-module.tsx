@@ -15,7 +15,8 @@ import { useEffect, useState } from "react";
 import type { NutritionCategory, NutritionReport } from "@/lib/nutrition/types";
 
 import { useSelectedMonth } from "@/components/shared/use-selected-month";
-import { NutritionAnalysisBoard } from "./nutrition-analysis-board";
+import { FoodSpendPanel } from "./food-spend-panel";
+import { NutritionAnalysisBoard, type NutritionView } from "./nutrition-analysis-board";
 import type { TrendMonth } from "./nutrition-extras";
 
 import "./nutrition.css";
@@ -34,6 +35,7 @@ export function NutritionModule() {
   const period = useSelectedMonth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [trend, setTrend] = useState<TrendState>({ kind: "loading" });
+  const [view, setView] = useState<NutritionView>("overview");
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +82,10 @@ export function NutritionModule() {
       ) : state.kind === "error" ? (
         <ErrorState message={state.message} />
       ) : (
-        <NutritionAnalysisBoard report={state.report} trend={trend} />
+        <>
+          <NutritionAnalysisBoard onViewChange={setView} report={state.report} trend={trend} view={view} />
+          {view === "overview" ? <FoodSpendPanel period={period} /> : null}
+        </>
       )}
     </div>
   );

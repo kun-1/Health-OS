@@ -3320,6 +3320,79 @@
 
 .exp-analytics .exp-ledger-pager { margin-top: 2px; }
 
+.exp-analytics .life-analysis-tabs {
+  margin-bottom: 18px;
+}
+
+.exp-conclusion-panel {
+  gap: 12px;
+}
+
+.exp-conclusion-panel .exp-section-head { margin-bottom: 0; }
+
+.exp-conclusion-grid {
+  align-items: stretch;
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(150px, 0.7fr));
+}
+
+.exp-conclusion-lead,
+.exp-conclusion-stat {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 18px;
+}
+
+.exp-conclusion-lead {
+  background: var(--od-surface-soft);
+  border-radius: 8px;
+}
+
+.exp-conclusion-lead strong,
+.exp-conclusion-stat strong {
+  color: var(--od-fg);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.exp-conclusion-lead span,
+.exp-conclusion-stat span {
+  color: var(--od-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.exp-conclusion-stat + .exp-conclusion-stat {
+  border-left: 1px solid var(--od-border);
+}
+
+.exp-status--score {
+  background: rgba(155, 234, 61, 0.16);
+  border-color: rgba(155, 234, 61, 0.4);
+  color: var(--od-health-green);
+  font-size: 0.78rem;
+  font-weight: 750;
+  padding: 5px 10px;
+}
+
+.exp-status--score.is-danger {
+  background: rgba(220, 90, 90, 0.12);
+  border-color: rgba(220, 90, 90, 0.3);
+  color: #a33a3a;
+}
+
+@media (max-width: 720px) {
+  .exp-conclusion-grid {
+    grid-template-columns: 1fr;
+  }
+  .exp-conclusion-stat + .exp-conclusion-stat {
+    border-left: 0;
+    border-top: 1px solid var(--od-border);
+  }
+}
+
 .exp-ledger-pager__actions {
   display: flex;
   gap: 8px;
